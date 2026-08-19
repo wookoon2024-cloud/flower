@@ -1,78 +1,166 @@
-# 🌿 데스크톱 플로팅 AI 반려화분 위젯 (GovAI Companion Plant)
+# 🌿 데스크톱 플로팅 AI 반려화분 (AI Companion Plant)
 
-> **범정부 AI 공통기반(dev.ai.go.kr) API 연동 업무망 힐링 다마고치 위젯**
+<div align="center">
 
----
+![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+![Release](https://img.shields.io/badge/Release-v1.0.0-10B981?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-## 🌟 주요 특징
-1. **투명 플로팅 UI (`PySide6`):**
-   - 창 테두리 없는 투명 배경 (`FramelessWindowHint`, `WA_TranslucentBackground`)
-   - 항상 화면 최상위 상주 (`WindowStaysOnTopHint`)
-   - 자유로운 마우스 드래그 이동 및 우클릭 컨텍스트 메뉴 지원
-2. **로컬 다마고치 육성 엔진:**
-   - 수분(`water`), 햇빛(`sunlight`), 애정도(`affection`), 4단계 성장(`stage 1~4`)
-   - 오프라인 부재 시간 자동 계산 및 자연 감쇠(Decay) 반영
-   - 수분/햇빛 부족 시 긴급 말풍선 알림
-3. **로컬 SQLite3 영속화 & 슬라이딩 윈도우:**
-   - 대화 내역 영속화 및 API 호출 시 최근 4~6건(2~3턴) 컨텍스트 윈도우 자동 추출
-4. **범정부 AI API (`dev.ai.go.kr`) & QThread 비동기 워커:**
-   - 메인 스레드 프리징 없는 비동기 통신
-   - 5초 타임아웃 및 업무망 폐쇄망용 Fallback 로컬 인텔리전트 대사 시스템
-   - 사설 인증서/망분리 환경을 위한 SSL 검증 우회 옵션
-5. **독립 배포 바이너리:**
-   - PyInstaller 기반 단일 실행 파일 (`dist/AICompanionPlant.exe`) 지원
+<br>
+
+**공직자·직장인의 책상 위를 따뜻하게 밝혀주는 데스크톱 투명 플로팅 AI 반려식물 다마고치 위젯**<br>
+*업무 피로와 스트레스 케어, 5종 품종 육성, 100종 업적 도감, 범정부 AI 및 OpenAI/로컬 LLM 완벽 연동*
+
+<br>
+
+[✨ 주요 기능](#-핵심-주요-기능) • [🌱 5종 품종 & 6단계 성장](#-5종-반려식물-품종--6단계-성장-시스템) • [🏆 100종 업적 도감](#-100종-대규모-업적-도감-시스템) • [🚀 빠른 시작 & 다운로드](#-빠른-시작--실행-방법) • [📜 릴리즈 히스토리](#-릴리즈-버전-히스토리)
+
+</div>
 
 ---
 
-## 📁 디렉터리 구조
+## 🌟 핵심 주요 기능
+
+### 1. 🪴 0픽셀 밀착 & 윈도우 최상위 상주 플로팅 UI
+- **HWND_TOPMOST 강제 최상위 고정**: 다른 퀵바나 앱에 가려지지 않고 항상 최상단에 안정적으로 상주합니다.
+- **작업표시줄 & 화면 모서리 자석 스냅 (Magnetic Docking)**: 작업표시줄 윗면에 0픽셀 gap으로 착 달라붙어 책상 위 진짜 화분처럼 배치됩니다.
+- **자유로운 크기 조절 (70% ~ 150%)**: `Ctrl + 마우스 휠 줌`, `우클릭 빠른 메뉴`, `환경설정`을 통해 원하는 크기로 자유롭게 확대/축소할 수 있습니다.
+- **클릭 팝업 메뉴 (6초 스마트 유지)**: 평소에는 깔끔한 화분만 보이다가 클릭 시 상단에 상태바가 부드럽게 팝업됩니다.
+
+### 2. 🤖 지능형 AI 대화 & 감성 힐링 어시스턴트
+- **5종 품종별 고유 AI 페르소나**: 다정한 공감, 활기찬 비타민 응원, 츤데레 챙김 등 품종마다 독창적인 성격과 어조를 가집니다.
+- **실시간 일과 & 시간대 컨텍스트 인식**: 출근 모닝커피(08시), 오전 집중(10시), 점심시간(12시), 오후 3시 리프레시, 정시퇴근, 야근 위로를 자동으로 건넵니다.
+- **대화 속 인-게임 상호작용**: 대화창에서 *"물 줄게"*, *"햇빛 쬐자"*, *"쓰담쓰담"*을 말하면 AI가 반응하여 화분 상태가 실제로 회복되고 파티클이 생성됩니다.
+- **데스크 마이크로 비서 칩**:
+  - `✉️ 문장 다듬기`: 공문서/메일 초안을 공직자용 정중한 톤으로 수정
+  - `💡 3줄 아이디어`: 기획/회의 브레인스토밍 3가지 추천
+  - `📝 오늘의 3줄 일기`: 오늘 나눈 대화를 토대로 하루 관찰 일기 요약
+- **다양한 AI API 호환**: 범정부 AI(`dev.ai.go.kr`), OpenAI(`GPT-4o`), 로컬 Ollama/LM Studio 지원 및 원클릭 연결 테스트 기능 탑재.
+
+### 3. 📈 마음 날씨 감정 그래프 & 멘탈 케어 (Mood Trends)
+- AI 대화 속에서 사용자의 감정(기쁨, 열정, 평온, 피로, 스트레스)을 자동으로 분석하여 SQLite DB에 기록합니다.
+- **벡터 라인 차트**: 최근 7~14일간의 마음 날씨 추이를 아름다운 그래디언트 차트로 시각화합니다.
+
+### 4. 🥠 일일 포춘 쿠키 (행운 메시지)
+- 매일 1회 포춘 쿠키를 열어 긍정적인 하루 운세와 보너스 경험치(+25 EXP)를 획득할 수 있습니다.
+
+---
+
+## 🌱 5종 반려식물 품종 & 6단계 성장 시스템
+
+| 품종 | 이름 | 성격 & 특징 | 대표 색상 |
+| :---: | :--- | :--- | :---: |
+| 🌸 | **다정한 화분** | 은은하고 포근한 핑크빛 꽃을 피우는 다정한 반려화분 | `#EC4899` |
+| 🌻 | **햇살 해바라기** | 활기찬 비타민 에너지와 긍정의 힘을 주는 황금빛 해바라기 | `#F59E0B` |
+| 🌵 | **동글 선인장** | 사막에서도 꿋꿋한 츤데레 성격의 씩씩한 노란꽃 선인장 | `#10B981` |
+| 🍀 | **행운의 클로버** | 공직자님에게 매일 행운과 기적을 가져다주는 네잎클로버 | `#059669` |
+| 🌺 | **봄날 벚꽃나무** | 봄바람처럼 낭만적이고 따뜻한 위로를 건네는 감성 화분 | `#F43F5E` |
+
+### 📈 6단계 진화 여정
+1. **1단계**: 🌱 씨앗 & 새싹 (Seedling)
+2. **2단계**: 🌿 어린 줄기 (Sprout)
+3. **3단계**: 🪴 자라나는 잎새 (Growing Stem)
+4. **4단계**: 🌷 첫 꽃망울 (Budding)
+5. **5단계**: 🌸 탐스러운 개화 (Blooming)
+6. **6단계 (Master)**: 👑 영광의 만개 & 결실 (Full Bloom & Graduation)
+   - 6단계 만개 달성 시 **"화원 명예의 전당"에 영구 졸업 등록** 후 새로운 품종의 씨앗을 입양할 수 있습니다.
+
+---
+
+## 🏆 100종 대규모 업적 도감 시스템
+
+10개 테마별 총 100종의 다양한 업적이 마련되어 있어 장기적인 성취감을 제공합니다.
+
+| 카테고리 테마 | 수량 | 주요 업적 예시 |
+| :--- | :---: | :--- |
+| **🌱 첫걸음 & 시작** | 10개 | 첫 만남, 첫 이름 짓기, 첫 대화, 첫 물주기, 첫 포춘 등 |
+| **💧 촉촉한 물주기** | 10개 | 물주기 1회 ~ 300회 마스터 달성 |
+| **☀️ 따스한 햇빛** | 10개 | 햇빛 1회 ~ 300회 솔라 마스터 달성 |
+| **💕 다정한 손길** | 10개 | 쓰다듬기 1회 ~ 500회, 애정도 50, 애정도 100 만점 가드너 |
+| **💬 AI 대화 & 우정** | 10개 | AI 화분과 누적 대화 1회 ~ 500회 달성 |
+| **📈 마음 날씨 케어** | 10개 | 기쁨/열정/평온/피로/스트레스 감정 기록, 마음 일기 5~50회 |
+| **🥠 일일 포춘 쿠키** | 10개 | 포춘 쿠키 1회 ~ 100회 백 개의 기적 |
+| **🌸 6단계 성장·진화** | 10개 | 2~6단계 진화, 누적 경험치 300 ~ 5,000 EXP 획득 |
+| **🪴 5종 품종 & 화원** | 10개 | 화원 1~10회 졸업, 5종 품종 각각 만개 졸업 달성 |
+| **⏰ 공직자 일과 & 힐링** | 10개 | 모닝커피(08시), 오전집중, 점심, 3시 스트레칭, 칼퇴, 야근위로 |
+
+---
+
+## 🚀 빠른 시작 & 실행 방법
+
+### 방법 1. 단독 실행 파일 (무설치 포터블)
+1. [`Releases`](https://github.com/wookoon2024-cloud/flower/releases)에서 `AI_Companion_Plant_v1.0.0_Portable.zip` 다운로드
+2. 압축 해제 후 `AICompanionPlant.exe` 더블클릭 실행! (Python 설치 불필요)
+
+### 방법 2. 파이썬 소스코드 직접 실행
+```bash
+# 1. 저장소 클론
+git clone https://github.com/wookoon2024-cloud/flower.git
+cd flower
+
+# 2. 필수 패키지 설치
+pip install PySide6 requests pillow pyinstaller
+
+# 3. 단위 테스트 검증 (9개 테스트)
+python test_suite.py
+
+# 4. 프로그램 실행
+python main.py
+```
+
+### 방법 3. 단독 실행 파일(.exe) 직접 빌드
+```bash
+# 빌드 스크립트 실행
+python build_exe.py
+# dist/AICompanionPlant.exe 생성 완료
+```
+
+---
+
+## 📁 프로젝트 구조
+
 ```text
-멀티클립보드/
+flower/
 ├── ai_plant/
 │   ├── __init__.py
-│   ├── config.py              # 설정 파일 로더 및 경로 유틸
-│   ├── database.py            # SQLite3 DB 매니저 및 슬라이딩 윈도우
-│   ├── plant_engine.py        # 다마고치 육성/감쇠/진화 엔진
-│   ├── ai_client.py           # QThread 비동기 API 통신 및 Fallback
+│   ├── config.py              # 설정 파일 로더 및 크기/사운드 설정
+│   ├── database.py            # SQLite3 영속화 & 누적 통계 & 마음 날씨
+│   ├── plant_engine.py        # 6단계 진화/감쇠 엔진 및 정시 알림
+│   ├── achievements_data.py   # 10대 카테고리 100종 업적 정의 데이터
+│   ├── ai_client.py           # 비동기 LLM 워커, 페르소나 및 액션 태그 파싱
 │   └── ui/
 │       ├── __init__.py
-│       ├── floating_widget.py # 메인 투명 플로팅 윈도우
-│       ├── bubble_widget.py   # 가변형 말풍선 위젯
-│       ├── character_widget.py# 화분 캐릭터 스프라이트 & 파티클 애니메이션
-│       ├── control_bar.py     # 하단 상태 게이지 및 버튼바
-│       ├── chat_dialog.py     # 대화 팝업창
-│       └── settings_dialog.py # 환경 설정 대화상자
-├── assets/                    # 화분 단계별 PNG 및 아이콘 리소스
-├── config.json                # API 및 위젯 설정 파일
-├── main.py                    # 프로그램 진입점
-├── build_exe.py               # PyInstaller 빌드 자동화 스크립트
-├── build_exe.bat              # 윈도우 간편 빌드 배치 파일
-├── test_suite.py              # 단위/통합 테스트 스위트
-├── INSTALL_GUIDE.md           # 상세 설치 및 설정 가이드
+│       ├── floating_widget.py # 메인 최상위 플로팅 창 & 자석 스냅 & 줌
+│       ├── bubble_widget.py   # 상단 가변형 말풍선 위젯
+│       ├── character_widget.py# 5종 품종/6단계 스프라이트 & 파티클 애니메이션
+│       ├── control_bar.py     # 클릭 팝업 상태바 & 메뉴 버튼
+│       ├── chat_dialog.py     # AI 힐링 & 데스크 업무 어시스턴트 대화창
+│       ├── garden_dialog.py   # 나의 화원, 100종 업적 도감, 감정 그래프, 포춘
+│       ├── settings_dialog.py # 환경 설정 및 API 연결 테스트 창
+│       └── welcome_dialog.py  # 최초 실행 시 나만의 화분 입양 환영창
+├── assets/                    # 30종 고화질 성장 그래픽 및 파티클 에셋
+├── releases/                  # 포터블 배포 압축 패키지 (.zip)
+├── config.json                # 기본 환경 설정 파일
+├── main.py                    # 프로그램 진입점 및 중복 실행 방지
+├── build_exe.py               # PyInstaller 단독 배포 빌드 스크립트
+├── package_release.py         # 릴리즈 자동 패키징 및 SHA-256 생성기
+├── test_suite.py              # 9개 모듈 단위/통합 테스트 스위트
+├── INSTALL_GUIDE.md           # 상세 설치 및 설정 매뉴얼
 └── README.md                  # 프로젝트 설명서
 ```
 
 ---
 
-## 🚀 빠른 시작 (개발 환경)
-```bash
-# 1. 의존성 패키지 확인
-pip install PySide6 requests pillow pyinstaller
+## 📜 릴리즈 버전 히스토리
 
-# 2. 그래픽 리소스 생성
-python generate_assets.py
-
-# 3. 단위 테스트 실행
-python test_suite.py
-
-# 4. 프로그램 실행
-python main.py
-
-# 5. 독립 실행 파일(.exe) 빌드
-python build_exe.py
-# 또는 build_exe.bat 더블클릭
-```
+| 버전 | 출시일 | 주요 변경 및 신규 기능 |
+| :---: | :---: | :--- |
+| **`v1.0.0`** | 2026-08-20 | • **공식 최초 정식 릴리즈**<br>• 5종 품종 및 6단계 마스터 성장 진화 시스템 구축<br>• 10대 테마 100종 업적 도감 및 필터링 브라우저 탑재<br>• 범정부 AI / OpenAI / 로컬 LLM 연동 및 품종별 AI 페르소나 적용<br>• 작업표시줄 0px 자석 스냅, HWND_TOPMOST 최상위 고정, Ctrl+휠 줌 크기 조절 지원<br>• 마음 날씨 감정 그래프, 일일 포춘 쿠키, 온보딩 환영창 탑재 |
 
 ---
 
 ## 📄 라이선스
-MIT License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
