@@ -1,0 +1,23 @@
+{
+    "api_endpoint": "https://dev.ai.go.kr/api/v1/chat/completions",
+    "api_key": "",
+    "model": "gov-gpt-4o",
+    "ssl_verify": false,
+    "timeout_sec": 5,
+    "decay_interval_minutes": 30,
+    "water_decay_per_interval": 3,
+    "sunlight_decay_per_interval": 3,
+    "affection_decay_per_interval": 1,
+    "always_on_top": true,
+    "sound_enabled": true,
+    "user_nickname": "공직자님",
+    "plant_name": "초록이",
+    "bubble_duration_sec": 4,
+    "window_pos_x": 1334,
+    "window_pos_y": 671,
+    "compact_hover_mode": true,
+    "ghost_mode": false,
+    "hourly_peek": true,
+    "idle_peek": true,
+    "plant_scale": 75
+}
