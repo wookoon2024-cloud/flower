@@ -102,8 +102,12 @@ class MoodChartWidget(QWidget):
             painter.setPen(QPen(QColor(16, 185, 129), 2.5))
             painter.drawPath(line_path)
 
-        # 4. Draw Points & Date Labels
-        for x, y, rec in points:
+        # 4. Draw Points & Smart Date/Time Labels
+        unique_dates = {r.get("date", "") for r in self.records if r.get("date")}
+        is_single_day = len(unique_dates) <= 1
+        prev_date = ""
+
+        for i, (x, y, rec) in enumerate(points):
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor(16, 185, 129, 60))
             painter.drawEllipse(QPointF(x, y), 7, 7)
@@ -112,10 +116,27 @@ class MoodChartWidget(QWidget):
             painter.setBrush(QColor(m_info["color"]))
             painter.drawEllipse(QPointF(x, y), 4, 4)
 
+            # Smart Label: If all entries are today, show Time (HH:MM); else show Date/Time
+            ts = rec.get("timestamp", "")
+            time_part = ""
+            if "T" in ts:
+                time_part = ts.split("T")[1][:5]
+            elif " " in ts:
+                time_part = ts.split(" ")[1][:5]
+
             d_str = rec.get("date", "")
+            if is_single_day:
+                lbl_text = time_part if time_part else d_str
+            else:
+                if d_str != prev_date:
+                    lbl_text = d_str
+                    prev_date = d_str
+                else:
+                    lbl_text = time_part if time_part else d_str
+
             painter.setPen(QColor(100, 116, 139))
-            painter.setFont(QFont("Malgun Gothic", 9))
-            painter.drawText(QRectF(x - 25, padding_top + chart_h + 8, 50, 20), Qt.AlignmentFlag.AlignCenter, d_str)
+            painter.setFont(QFont("Malgun Gothic", 8))
+            painter.drawText(QRectF(x - 28, padding_top + chart_h + 6, 56, 22), Qt.AlignmentFlag.AlignCenter, lbl_text)
 
 
 class GardenDialog(QDialog):
@@ -451,10 +472,12 @@ class GardenDialog(QDialog):
         s_layout = QHBoxLayout(stat_card)
         s_layout.setContentsMargins(12, 10, 12, 10)
 
-        s_left = QLabel(f"📈 <b>최근 마음 날씨 평균:</b> <span style='color: #2563EB; font-size: 14px;'><b>{avg_score:.1f}</b> / 5.0</span>")
-        s_left.setStyleSheet("color: #1E293B; font-size: 12px;")
-        
-        s_right = QLabel(f"총 <b>{len(mood_records)}회</b>의 대화 분석")
+        unique_dates = {r.get("date", "") for r in mood_records if r.get("date")}
+        if len(unique_dates) == 1 and mood_records:
+            t_date = mood_records[0].get("date", "")
+            s_right = QLabel(f"오늘({t_date}) 총 <b>{len(mood_records)}회</b> 대화 추이")
+        else:
+            s_right = QLabel(f"최근 총 <b>{len(mood_records)}회</b> 대화 추이")
         s_right.setStyleSheet("color: #64748B; font-size: 11px;")
 
         s_layout.addWidget(s_left, 1)

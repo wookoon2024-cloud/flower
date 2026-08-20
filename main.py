@@ -24,6 +24,7 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("AI Companion Plant")
     app.setOrganizationName("GovAI")
+    app.setQuitOnLastWindowClosed(False)  # Keep desktop companion plant alive when dialogs close
 
     # Single-Instance Enforcement to prevent duplicate overlapping windows
     server_name = "AICompanionPlant_SingleInstance_GovAI"
