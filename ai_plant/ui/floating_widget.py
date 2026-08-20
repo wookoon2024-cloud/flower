@@ -218,21 +218,16 @@ class FloatingPlantWindow(QWidget):
         self.menu_auto_close_timer.setSingleShot(True)
         self.menu_auto_close_timer.timeout.connect(self.hide_menu_gracefully)
 
-        # Heartbeat Topmost enforcement timer (every 2.5s) to stay above 3rd-party docks/quickbars
-        self.topmost_timer = QTimer(self)
-        self.topmost_timer.timeout.connect(self.force_topmost)
-        self.topmost_timer.start(2500)
-
         # Decay and Smart Peeking timer (every 1 minute)
         self.decay_timer = QTimer(self)
         self.decay_timer.timeout.connect(self.on_decay_timer_tick)
         self.decay_timer.start(60 * 1000)
         self.minutes_elapsed = 0
 
-        # Fast idle check & Proactive Speech timer (every 15 seconds)
+        # Gentle idle check & Proactive Speech timer (every 30 seconds)
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self.on_idle_timer_tick)
-        self.idle_timer.start(15 * 1000)
+        self.idle_timer.start(30 * 1000)
 
         self.last_user_interaction_time = datetime.datetime.now()
         self.notified_proactive_events = set()
