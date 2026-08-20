@@ -219,155 +219,161 @@ class PlantCharacterWidget(QWidget):
 
     def _draw_facial_expression(self, painter: QPainter, px: int, py: int, sprite_w: int):
         """Draws animated eyes/mouth overlay on the flowerpot face without moving the pot."""
-        scale = sprite_w / 200.0
-        progress = self.expr_frame / float(self.expr_total_frames)
+        try:
+            if sprite_w <= 0 or self.expr_total_frames <= 0:
+                return
+            scale = max(0.1, sprite_w / 200.0)
+            progress = max(0.0, min(1.0, self.expr_frame / float(self.expr_total_frames)))
 
-        # Face anchor coordinates
-        lx = px + int(89 * scale)   # Left eye center
-        rx = px + int(111 * scale)  # Right eye center
-        ey = py + int(162 * scale)  # Eye vertical center
-        mx = px + int(100 * scale)  # Mouth center X
-        my = py + int(166 * scale)  # Mouth center Y
+            # Face anchor coordinates
+            lx = px + int(89 * scale)   # Left eye center
+            rx = px + int(111 * scale)  # Right eye center
+            ey = py + int(162 * scale)  # Eye vertical center
+            mx = px + int(100 * scale)  # Mouth center X
+            my = py + int(166 * scale)  # Mouth center Y
 
-        eye_radius = int(5 * scale)
-        pen_dark = QPen(QColor("#3E2723"), max(2.0, 2.4 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-        brush_dark = QBrush(QColor("#3E2723"))
-        brush_pot = QBrush(QColor("#D27D46"))  # Pot surface color to mask default face
+            eye_radius = max(2, int(5 * scale))
+            pen_dark = QPen(QColor("#3E2723"), max(2.0, 2.4 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+            brush_dark = QBrush(QColor("#3E2723"))
+            brush_pot = QBrush(QColor("#D27D46"))  # Pot surface color to mask default face
 
-        # Mask default eye & mouth positions
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(brush_pot)
-        painter.drawEllipse(QPoint(lx, ey), eye_radius + 2, eye_radius + 2)
-        painter.drawEllipse(QPoint(rx, ey), eye_radius + 2, eye_radius + 2)
-        painter.drawEllipse(QPoint(mx, my + int(2*scale)), int(11 * scale), int(8 * scale))
+            # Mask default eye & mouth positions
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(brush_pot)
+            painter.drawEllipse(QPoint(lx, ey), eye_radius + 2, eye_radius + 2)
+            painter.drawEllipse(QPoint(rx, ey), eye_radius + 2, eye_radius + 2)
+            painter.drawEllipse(QPoint(mx, my + int(2*scale)), max(4, int(11 * scale)), max(3, int(8 * scale)))
 
-        # --- A. BLINK (눈 깜빡임) ---
-        if self.expr_type == "blink":
-            # Natural double-blink timing curve
-            is_closed = (4 <= self.expr_frame <= 12) or (18 <= self.expr_frame <= 24)
-            if is_closed:
-                # Closed happy curve eyes: ⌒  ⌒
+            # --- A. BLINK (눈 깜빡임) ---
+            if self.expr_type == "blink":
+                # Natural double-blink timing curve
+                is_closed = (4 <= self.expr_frame <= 12) or (18 <= self.expr_frame <= 24)
+                if is_closed:
+                    # Closed happy curve eyes: ⌒  ⌒
+                    painter.setPen(pen_dark)
+                    arc_w = max(4, int(10 * scale))
+                    arc_h = max(3, int(6 * scale))
+                    painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+                    painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+                else:
+                    # Open round eyes with white reflection dot
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.setBrush(brush_dark)
+                    painter.drawEllipse(QPoint(lx, ey), eye_radius, eye_radius)
+                    painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
+                    # White eye highlights
+                    painter.setBrush(QBrush(QColor("#FFFFFF")))
+                    painter.drawEllipse(QPoint(lx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(1.8*scale)), max(1, int(1.8*scale)))
+                    painter.drawEllipse(QPoint(rx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(1.8*scale)), max(1, int(1.8*scale)))
+
+                # Sweet smile mouth
                 painter.setPen(pen_dark)
-                arc_w = int(10 * scale)
-                arc_h = int(6 * scale)
+                painter.drawArc(mx - int(6*scale), my - int(4*scale), max(6, int(12*scale)), max(4, int(8*scale)), 0, -180*16)
+
+            # --- B. YAWN (하품 & 졸림) ---
+            elif self.expr_type == "yawn":
+                # Sleepy eyes
+                painter.setPen(pen_dark)
+                arc_w = max(4, int(10 * scale))
+                arc_h = max(3, int(7 * scale))
                 painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
                 painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
-            else:
-                # Open round eyes with white reflection dot
+
+                # Mouth opens wide then closes
+                sine_open = math.sin(progress * math.pi)
+                mouth_w = max(4, int((8 + 4 * sine_open) * scale))
+                mouth_h = max(3, int((6 + 8 * sine_open) * scale))
+
+                painter.setPen(QPen(QColor("#2C1810"), max(1.5, 2.0 * scale)))
+                painter.setBrush(QBrush(QColor("#3E2723")))
+                painter.drawEllipse(QPoint(mx, my + int(3*scale)), mouth_w // 2, mouth_h // 2)
+
+                # Little pink tongue inside yawn mouth
+                if sine_open > 0.4:
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.setBrush(QBrush(QColor("#FF8A80")))
+                    painter.drawEllipse(QPoint(mx, my + int((3 + mouth_h*0.25)*scale)), max(2, int(mouth_w*0.35)), max(2, int(mouth_h*0.25)))
+
+                # Floating sleepy "zZZ" indicator
+                if progress > 0.25:
+                    painter.setFont(QFont("Malgun Gothic", max(8, int(9 * scale)), QFont.Weight.Bold))
+                    painter.setPen(QColor(100, 116, 139, int(220 * sine_open)))
+                    float_y = my - int((18 + 15 * progress) * scale)
+                    painter.drawText(mx + int(14 * scale), float_y, "zZZ")
+
+            # --- C. TONGUE OUT (메롱 😋) ---
+            elif self.expr_type == "tongue":
+                # Left eye wink (⌒), Right eye sparkle open (⊙)
+                painter.setPen(pen_dark)
+                arc_w = max(4, int(10 * scale))
+                arc_h = max(3, int(6 * scale))
+                painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+
+                # Right eye open with sparkle
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(brush_dark)
-                painter.drawEllipse(QPoint(lx, ey), eye_radius, eye_radius)
                 painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
-                # White eye highlights
                 painter.setBrush(QBrush(QColor("#FFFFFF")))
-                painter.drawEllipse(QPoint(lx - int(1.5*scale), ey - int(1.5*scale)), int(1.8*scale), int(1.8*scale))
-                painter.drawEllipse(QPoint(rx - int(1.5*scale), ey - int(1.5*scale)), int(1.8*scale), int(1.8*scale))
+                painter.drawEllipse(QPoint(rx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(2*scale)), max(1, int(2*scale)))
 
-            # Sweet smile mouth
-            painter.setPen(pen_dark)
-            painter.drawArc(mx - int(6*scale), my - int(4*scale), int(12*scale), int(8*scale), 0, -180*16)
+                # Cute wide smile mouth
+                painter.setPen(pen_dark)
+                painter.drawArc(mx - int(8*scale), my - int(4*scale), max(6, int(16*scale)), max(4, int(9*scale)), 0, -180*16)
 
-        # --- B. YAWN (하품 & 졸림) ---
-        elif self.expr_type == "yawn":
-            # Sleepy eyes (> < or ⌒ ⌒)
-            painter.setPen(pen_dark)
-            arc_w = int(10 * scale)
-            arc_h = int(7 * scale)
-            painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
-            painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+                # Cute pink tongue sticking out downwards (메롱)
+                tongue_len = max(2.0, 7.0 * scale * min(1.0, progress * 3.0))
+                tongue_w = max(3.0, 7.0 * scale)
+                tongue_rect = QRectF(mx - tongue_w / 2.0, my + 1.0 * scale, tongue_w, tongue_len)
+                painter.setPen(QPen(QColor("#D32F2F"), max(1.0, 1.2 * scale)))
+                painter.setBrush(QBrush(QColor("#FF5252")))
+                painter.drawRoundedRect(tongue_rect, tongue_w / 2.0, tongue_w / 2.0)
 
-            # Mouth opens wide then closes
-            sine_open = math.sin(progress * math.pi)
-            mouth_w = int((8 + 4 * sine_open) * scale)
-            mouth_h = int((6 + 8 * sine_open) * scale)
-
-            painter.setPen(QPen(QColor("#2C1810"), max(1.5, 2.0 * scale)))
-            painter.setBrush(QBrush(QColor("#3E2723")))
-            painter.drawEllipse(QPoint(mx, my + int(3*scale)), mouth_w // 2, mouth_h // 2)
-
-            # Little pink tongue inside yawn mouth
-            if sine_open > 0.4:
+                # Rosy blushing cheeks
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QBrush(QColor("#FF8A80")))
-                painter.drawEllipse(QPoint(mx, my + int((3 + mouth_h*0.25)*scale)), int(mouth_w*0.35), int(mouth_h*0.25))
+                painter.setBrush(QColor(255, 138, 128, 180))
+                painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
 
-            # Floating sleepy "zZZ" indicator
-            if progress > 0.25:
-                painter.setFont(QFont("Malgun Gothic", max(8, int(9 * scale)), QFont.Weight.Bold))
-                painter.setPen(QColor(100, 116, 139, int(220 * sine_open)))
-                float_y = my - int((18 + 15 * progress) * scale)
-                painter.drawText(mx + int(14 * scale), float_y, "zZZ")
+            # --- D. WINK & BLUSH (윙크 & 방긋) ---
+            elif self.expr_type == "wink":
+                # Left eye wink (⌒), Right eye open (●)
+                painter.setPen(pen_dark)
+                arc_w = max(4, int(10 * scale))
+                arc_h = max(3, int(6 * scale))
+                painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
 
-        # --- C. TONGUE OUT (메롱 😋) ---
-        elif self.expr_type == "tongue":
-            # Left eye wink (⌒), Right eye sparkle open (⊙)
-            painter.setPen(pen_dark)
-            arc_w = int(10 * scale)
-            arc_h = int(6 * scale)
-            painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(brush_dark)
+                painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
+                painter.setBrush(QBrush(QColor("#FFFFFF")))
+                painter.drawEllipse(QPoint(rx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(2*scale)), max(1, int(2*scale)))
 
-            # Right eye open with sparkle
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(brush_dark)
-            painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
-            painter.setBrush(QBrush(QColor("#FFFFFF")))
-            painter.drawEllipse(QPoint(rx - int(1.5*scale), ey - int(1.5*scale)), int(2*scale), int(2*scale))
+                # Happy open smile
+                painter.setPen(pen_dark)
+                painter.drawArc(mx - int(7*scale), my - int(4*scale), max(6, int(14*scale)), max(4, int(8*scale)), 0, -180*16)
 
-            # Cute wide smile mouth
-            painter.setPen(pen_dark)
-            painter.drawArc(mx - int(8*scale), my - int(4*scale), int(16*scale), int(9*scale), 0, -180*16)
+                # Blushing rosy glow
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(255, 138, 128, 200))
+                painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), max(2, int(5.5*scale)), max(2, int(4*scale)))
+                painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), max(2, int(5.5*scale)), max(2, int(4*scale)))
 
-            # Cute pink tongue sticking out downwards (메롱)
-            tongue_len = int(7 * scale * min(1.0, progress * 3.0))
-            tongue_rect = QRectF(mx - 3.5 * scale, my + 1.0 * scale, 7.0 * scale, tongue_len)
-            painter.setPen(QPen(QColor("#D32F2F"), 1.2 * scale))
-            painter.setBrush(QBrush(QColor("#FF5252")))
-            painter.drawRoundedRect(tongue_rect, 3.5 * scale, 3.5 * scale)
+            # --- E. HAPPY / SQUEE (방긋방긋) ---
+            else:
+                # Both eyes happy curves ⌒  ⌒
+                painter.setPen(pen_dark)
+                arc_w = max(4, int(10 * scale))
+                arc_h = max(3, int(7 * scale))
+                painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
+                painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
 
-            # Rosy blushing cheeks
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(255, 138, 128, 180))
-            painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), int(5*scale), int(3.5*scale))
-            painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), int(5*scale), int(3.5*scale))
+                # Wide joyful smile
+                painter.drawArc(mx - int(8*scale), my - int(4*scale), max(6, int(16*scale)), max(4, int(10*scale)), 0, -180*16)
 
-        # --- D. WINK & BLUSH (윙크 & 방긋) ---
-        elif self.expr_type == "wink":
-            # Left eye wink (⌒), Right eye open (●)
-            painter.setPen(pen_dark)
-            arc_w = int(10 * scale)
-            arc_h = int(6 * scale)
-            painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
-
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(brush_dark)
-            painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
-            painter.setBrush(QBrush(QColor("#FFFFFF")))
-            painter.drawEllipse(QPoint(rx - int(1.5*scale), ey - int(1.5*scale)), int(2*scale), int(2*scale))
-
-            # Happy open smile
-            painter.setPen(pen_dark)
-            painter.drawArc(mx - int(7*scale), my - int(4*scale), int(14*scale), int(8*scale), 0, -180*16)
-
-            # Blushing rosy glow
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(255, 138, 128, 200))
-            painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), int(5.5*scale), int(4*scale))
-            painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), int(5.5*scale), int(4*scale))
-
-        # --- E. HAPPY / SQUEE (방긋방긋) ---
-        else:
-            # Both eyes happy curves ⌒  ⌒
-            painter.setPen(pen_dark)
-            arc_w = int(10 * scale)
-            arc_h = int(7 * scale)
-            painter.drawArc(lx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
-            painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
-
-            # Wide joyful smile
-            painter.drawArc(mx - int(8*scale), my - int(4*scale), int(16*scale), int(10*scale), 0, -180*16)
-
-            # Rosy cheeks
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(255, 138, 128, 190))
-            painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), int(5*scale), int(3.5*scale))
-            painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), int(5*scale), int(3.5*scale))
+                # Rosy cheeks
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(255, 138, 128, 190))
+                painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
+        except Exception as e:
+            pass

@@ -273,80 +273,113 @@ class FloatingPlantWindow(QWidget):
 
     # --- Interaction Handlers ---
     def handle_water(self):
-        self.menu_auto_close_timer.start(6000)
-        success, msg = self.engine.give_water()
-        self.character.spawn_particle("drop")
-        self.bubble.show_message(msg, 3)
+        try:
+            self.menu_auto_close_timer.start(6000)
+            success, msg = self.engine.give_water()
+            self.character.spawn_particle("drop")
+            self.bubble.show_message(msg, 3)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] handle_water error: {e}")
 
     def handle_sunlight(self):
-        self.menu_auto_close_timer.start(6000)
-        success, msg = self.engine.give_sunlight()
-        self.character.spawn_particle("sun")
-        self.bubble.show_message(msg, 3)
+        try:
+            self.menu_auto_close_timer.start(6000)
+            success, msg = self.engine.give_sunlight()
+            self.character.spawn_particle("sun")
+            self.bubble.show_message(msg, 3)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] handle_sunlight error: {e}")
 
     def on_engine_state_changed(self, state: dict):
-        self.character.set_species(self.engine.get_species())
-        self.character.set_stage(state.get("stage", 1))
-        self.control_bar.update_status(state)
+        try:
+            self.character.set_species(self.engine.get_species())
+            self.character.set_stage(state.get("stage", 1))
+            self.control_bar.update_status(state)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_engine_state_changed error: {e}")
 
     def on_plant_evolved(self, new_stage: int, message: str):
-        self.character.set_species(self.engine.get_species())
-        self.character.set_stage(new_stage)
-        self.bubble.show_message(message, 5)
-        for _ in range(6):
-            self.character.spawn_particle("heart")
+        try:
+            self.character.set_species(self.engine.get_species())
+            self.character.set_stage(new_stage)
+            self.bubble.show_message(message, 5)
+            for _ in range(6):
+                self.character.spawn_particle("heart")
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_plant_evolved error: {e}")
 
     def on_plant_warning(self, message: str):
-        self.bubble.show_message(message, 4)
+        try:
+            self.bubble.show_message(message, 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_plant_warning error: {e}")
 
     def on_plant_interaction(self, action_name: str, bubble_text: str):
-        if action_name == "pet":
-            self.character.spawn_particle("heart")
-        self.bubble.show_message(bubble_text, 3)
+        try:
+            if action_name == "pet":
+                self.character.spawn_particle("heart")
+            self.bubble.show_message(bubble_text, 3)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_plant_interaction error: {e}")
 
     def on_achievement_unlocked(self, ach: dict):
-        for _ in range(5):
-            self.character.spawn_particle("heart")
-        self.bubble.show_message(f"🏆 업적 달성! [{ach.get('title')}] 뱃지 획득! ✨", 5)
+        try:
+            for _ in range(5):
+                self.character.spawn_particle("heart")
+            self.bubble.show_message(f"🏆 업적 달성! [{ach.get('title')}] 뱃지 획득! ✨", 5)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_achievement_unlocked error: {e}")
 
     # --- AI Chat Handling ---
     def open_chat_dialog(self):
-        self.menu_auto_close_timer.stop()
-        self.control_bar.hide()
-        if not self.chat_dialog:
-            self.chat_dialog = ChatDialog(self.db, self.config, None)
-            self.chat_dialog.message_sent.connect(self.start_ai_chat)
-        
-        self.chat_dialog.refresh_header()
-        self.chat_dialog.load_history()
-        self.chat_dialog.show()
-        self.chat_dialog.raise_()
-        self.chat_dialog.activateWindow()
+        try:
+            self.menu_auto_close_timer.stop()
+            self.control_bar.hide()
+            if not self.chat_dialog:
+                self.chat_dialog = ChatDialog(self.db, self.config, None)
+                self.chat_dialog.message_sent.connect(self.start_ai_chat)
+            
+            self.chat_dialog.refresh_header()
+            self.chat_dialog.load_history()
+            self.chat_dialog.show()
+            self.chat_dialog.raise_()
+            self.chat_dialog.activateWindow()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] open_chat_dialog error: {e}")
 
     # --- Garden & Collection Dialog ---
     def open_garden_dialog(self):
-        self.menu_auto_close_timer.stop()
-        self.control_bar.hide()
-        if not self.garden_dialog:
-            self.garden_dialog = GardenDialog(self.engine, self.db, self.config, None)
-            self.garden_dialog.plant_graduated.connect(self.on_plant_graduated)
-            self.garden_dialog.fortune_drawn.connect(self.on_fortune_drawn)
-        
-        self.garden_dialog.show()
-        self.garden_dialog.raise_()
-        self.garden_dialog.activateWindow()
+        try:
+            self.menu_auto_close_timer.stop()
+            self.control_bar.hide()
+            if not self.garden_dialog:
+                self.garden_dialog = GardenDialog(self.engine, self.db, self.config, None)
+                self.garden_dialog.plant_graduated.connect(self.on_plant_graduated)
+                self.garden_dialog.fortune_drawn.connect(self.on_fortune_drawn)
+            
+            self.garden_dialog.show()
+            self.garden_dialog.raise_()
+            self.garden_dialog.activateWindow()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] open_garden_dialog error: {e}")
 
     def on_plant_graduated(self, new_species: str, new_name: str):
-        self.character.set_species(new_species)
-        self.character.set_stage(1)
-        self.control_bar.update_status(self.engine.get_state())
-        for _ in range(6):
-            self.character.spawn_particle("heart")
-        self.bubble.show_message(f"🎓 축하합니다! 새로운 {new_name} 화분을 키우기 시작했어요! 🌱", 5)
+        try:
+            self.character.set_species(new_species)
+            self.character.set_stage(1)
+            self.control_bar.update_status(self.engine.get_state())
+            for _ in range(6):
+                self.character.spawn_particle("heart")
+            self.bubble.show_message(f"🎓 축하합니다! 새로운 {new_name} 화분을 키우기 시작했어요! 🌱", 5)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_plant_graduated error: {e}")
 
     def on_fortune_drawn(self, msg: str):
-        self.character.spawn_particle("sun")
-        self.bubble.show_message(f"🥠 {msg}", 4)
+        try:
+            self.character.spawn_particle("sun")
+            self.bubble.show_message(f"🥠 {msg}", 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_fortune_drawn error: {e}")
 
     def start_ai_chat(self, user_text: str):
         try:
@@ -409,15 +442,20 @@ class FloatingPlantWindow(QWidget):
 
     # --- Settings Dialog ---
     def open_settings_dialog(self):
-        self.menu_auto_close_timer.stop()
-        self.control_bar.hide()
-        if not self.settings_dialog:
-            self.settings_dialog = SettingsDialog(self.config, None)
-            self.settings_dialog.settings_saved.connect(self.apply_settings_changes)
-            self.settings_dialog.clear_chat_requested.connect(self.on_clear_chat)
-            self.settings_dialog.reset_plant_requested.connect(self.on_reset_plant)
-        
-        self.settings_dialog.exec()
+        try:
+            self.menu_auto_close_timer.stop()
+            self.control_bar.hide()
+            if not self.settings_dialog:
+                self.settings_dialog = SettingsDialog(self.config, None)
+                self.settings_dialog.settings_saved.connect(self.apply_settings_changes)
+                self.settings_dialog.clear_chat_requested.connect(self.on_clear_chat)
+                self.settings_dialog.reset_plant_requested.connect(self.on_reset_plant)
+            
+            self.settings_dialog.show()
+            self.settings_dialog.raise_()
+            self.settings_dialog.activateWindow()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] open_settings_dialog error: {e}")
 
     def paintEvent(self, event):
         painter = QPainter(self)
