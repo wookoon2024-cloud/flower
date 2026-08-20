@@ -120,11 +120,11 @@ class FloatingPlantWindow(QWidget):
         self.character.set_stage(self.engine.get_state().get("stage", 1))
 
     def apply_scale(self):
-        """Dynamically resize window and scale components cleanly with perfect horizontal centering."""
+        """Dynamically resize window and scale components cleanly with perfect horizontal centering (100% baseline = 120px pot)."""
         scale_pct = self.config.get("plant_scale", 100)
-        s = max(70, min(160, scale_pct)) / 100.0
-        w = max(290, int(290 * s))
-        h = int(320 * s)
+        s = max(60, min(160, scale_pct)) / 100.0
+        w = max(220, int(220 * s))
+        h = int(245 * s)
 
         old_geo = self.geometry()
         old_bottom = old_geo.bottom() if old_geo.isValid() else -1
@@ -132,16 +132,17 @@ class FloatingPlantWindow(QWidget):
         self.setFixedSize(w, h)
 
         # Center speech bubble horizontally with safe margins
-        w_b = min(w - 24, int(252 * s))
-        h_b = int(76 * s)
+        w_b = min(w - 14, int(196 * s))
+        h_b = int(58 * s)
         self.bubble.setGeometry((w - w_b) // 2, int(4 * s), w_b, h_b)
 
         # Center control bar horizontally (never clipped!)
-        w_c = min(w - 20, int(236 * s))
-        self.control_bar.setGeometry((w - w_c) // 2, int(80 * s), w_c, int(72 * s))
+        w_c = min(w - 12, int(184 * s))
+        h_c = int(60 * s)
+        self.control_bar.setGeometry((w - w_c) // 2, int(60 * s), w_c, h_c)
 
         # Center character horizontally at bottom
-        char_sz = int(160 * s)
+        char_sz = int(120 * s)
         char_x = (w - char_sz) // 2
         char_y = h - char_sz
         self.character.setGeometry(char_x, char_y, char_sz, char_sz)
@@ -166,7 +167,7 @@ class FloatingPlantWindow(QWidget):
             if delta > 0:
                 new_s = min(150, curr_s + 10)
             else:
-                new_s = max(70, curr_s - 10)
+                new_s = max(60, curr_s - 10)
             if new_s != curr_s:
                 self.set_user_scale(new_s)
             event.accept()
@@ -779,12 +780,12 @@ class FloatingPlantWindow(QWidget):
         scale_menu = menu.addMenu("🔍 화분 크기 조절")
         curr_s = self.config.get("plant_scale", 100)
         scale_options = [
-            ("75% (아담한 미니 화분)", 75),
+            ("75% (아주 아담한 미니 화분)", 75),
             ("85% (약간 작게)", 85),
-            ("100% (보통 크기 - 기본)", 100),
+            ("100% (표준 크기 - 기본)", 100),
             ("115% (약간 크게)", 115),
             ("130% (크게 보기)", 130),
-            ("145% (시원한 대형 화분)", 145)
+            ("150% (시원한 대형 화분)", 150)
         ]
         for label, s_val in scale_options:
             act = scale_menu.addAction(label)

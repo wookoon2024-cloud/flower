@@ -184,8 +184,8 @@ class PlantCharacterWidget(QWidget):
     def __init__(self, parent=None, scale_pct: int = 100):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.scale_pct = max(70, min(160, scale_pct))
-        sz = int(160 * (self.scale_pct / 100.0))
+        self.scale_pct = max(60, min(160, scale_pct))
+        sz = int(120 * (self.scale_pct / 100.0))
         self.setFixedSize(sz, sz)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -195,7 +195,7 @@ class PlantCharacterWidget(QWidget):
         self.particle_pixmaps = {}
         self.particles = []
 
-        # Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋)
+        # Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋, etc.)
         self.eco_visitor: Optional[EcoVisitor] = None
         self.eco_timer = QTimer(self)
         self.eco_timer.timeout.connect(self._on_eco_tick)
@@ -223,9 +223,9 @@ class PlantCharacterWidget(QWidget):
         self._schedule_next_eco_visitor()
 
     def set_scale(self, scale_pct: int):
-        """Dynamically adjust flowerpot scale."""
-        self.scale_pct = max(70, min(160, scale_pct))
-        sz = int(160 * (self.scale_pct / 100.0))
+        """Dynamically adjust flowerpot scale (100% = 120px)."""
+        self.scale_pct = max(60, min(160, scale_pct))
+        sz = int(120 * (self.scale_pct / 100.0))
         self.setFixedSize(sz, sz)
         self.load_resources(self.current_species)
         self.update()
@@ -233,7 +233,7 @@ class PlantCharacterWidget(QWidget):
     def load_resources(self, species: str = "classic"):
         """Load stage sprites and particle icons for specified species (stages 1~6)."""
         self.current_species = species
-        scaled_sz = int(150 * (self.scale_pct / 100.0))
+        scaled_sz = int(112 * (self.scale_pct / 100.0))
         for stg in range(1, 7):
             path = get_resource_path(os.path.join("assets", f"stage_{species}_{stg}.png"))
             if not os.path.exists(path):
@@ -250,14 +250,16 @@ class PlantCharacterWidget(QWidget):
                 self.pixmaps[stg] = QPixmap()
 
         # Load particles
+        part_sz = max(18, int(22 * (self.scale_pct / 100.0)))
         for p_name in ["heart", "drop", "sun"]:
             path = get_resource_path(os.path.join("assets", f"{p_name}.png"))
             if os.path.exists(path):
                 pm = QPixmap(path).scaled(
-                    28, 28,
+                    part_sz, part_sz,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
+                self.particle_pixmaps[p_name] = pm
                 self.particle_pixmaps[p_name] = pm
 
     def set_species(self, species: str):
