@@ -5,13 +5,13 @@ Defines items for Pot Saucers (화분 받침대) and Pet Companions (반려동�
 from typing import Dict, Any
 
 SAUCER_CATALOG: Dict[str, Dict[str, Any]] = {
-    "none": {
-        "id": "none",
-        "name": "기본 받침 없음",
+    "basic": {
+        "id": "basic",
+        "name": "포근한 기본 도자기 받침",
         "emoji": "🪴",
         "cost": 0,
-        "desc": "받침대 없이 심플하게 놓여있는 기본 상태입니다.",
-        "color": "#94A3B8"
+        "desc": "화분을 작업표시줄 위에 안정감 있게 안착시켜주는 기본 도자기 받침대입니다.",
+        "color": "#D27D46"
     },
     "wood": {
         "id": "wood",

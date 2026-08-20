@@ -374,20 +374,22 @@ class GardenDialog(QDialog):
 
         # Graduation Button Area (Active if Stage 6)
         if stage_int >= 6:
-            grad_btn = QPushButton("🎓 6단계 만개 달성! 화원에 졸업 등록하고 새 씨앗 심기! ✨")
+            grad_btn = QPushButton("🌸 축하합니다! 6단계 만개 완료 ➔ 화원 명예 졸업 & 새 씨앗 심기 🌱")
             grad_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            grad_btn.setFixedHeight(44)
             grad_btn.setStyleSheet("""
                 QPushButton {
-                    background-color: #F59E0B;
-                    color: white;
-                    border: none;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:0.5 #059669, stop:1 #047857);
+                    color: #FFFFFF;
+                    border: 1.5px solid #065F46;
                     border-radius: 8px;
-                    padding: 10px 14px;
-                    font-size: 12px;
+                    padding: 8px 16px;
+                    font-size: 12.5px;
                     font-weight: bold;
                 }
                 QPushButton:hover {
-                    background-color: #D97706;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #059669, stop:1 #047857);
+                    border-color: #022C22;
                 }
             """)
             grad_btn.clicked.connect(self.show_graduation_dialog)
@@ -685,67 +687,72 @@ class GardenDialog(QDialog):
         self.pet_card_widgets = {}
 
         def refresh_shop_ui():
-            curr_coins = self.engine.get_coins()
-            self.shop_coin_lbl.setText(f"💰 <b>나의 보유 씨앗 주화:</b> <span style='color: #D97706; font-size: 16px; font-weight: bold;'>{curr_coins:,}</span> 🪙")
+            try:
+                if not hasattr(self, "shop_coin_lbl") or self.shop_coin_lbl is None:
+                    return
+                curr_coins = self.engine.get_coins()
+                curr_saucer = self.engine.get_equipped_saucer()
+                curr_pet = self.engine.get_equipped_pet()
 
-            curr_saucer = self.engine.get_equipped_saucer()
-            curr_pet = self.engine.get_equipped_pet()
+                self.shop_coin_lbl.setText(f"💰 <b>나의 보유 씨앗 주화:</b> <span style='color: #D97706; font-size: 16px; font-weight: bold;'>{curr_coins:,}</span> 🪙")
 
-            # Update Saucers
-            for s_id, (card, btn) in self.saucer_card_widgets.items():
-                is_owned = self.db.is_item_purchased("saucer", s_id)
-                is_eq = (s_id == curr_saucer)
-                s_info = SAUCER_CATALOG.get(s_id, {})
-                cost = s_info.get("cost", 0)
+                # Update Saucers
+                for s_id, (card, btn) in self.saucer_card_widgets.items():
+                    is_owned = self.db.is_item_purchased("saucer", s_id) or (s_id == "basic")
+                    is_eq = (s_id == curr_saucer) or (s_id == "basic" and curr_saucer in ["none", "basic"])
+                    s_info = SAUCER_CATALOG.get(s_id, {})
+                    cost = s_info.get("cost", 0)
 
-                if is_eq:
-                    card.setStyleSheet("QFrame { background-color: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; } QLabel { border: none; background: transparent; }")
-                    btn.setText("장착 중")
-                    btn.setStyleSheet("QPushButton { background-color: #10B981; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
-                    btn.setEnabled(False)
-                elif is_owned:
-                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
-                    btn.setText("장착하기")
-                    btn.setStyleSheet("QPushButton { background-color: #EFF6FF; color: #2563EB; font-weight: bold; border: 1px solid #BFDBFE; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #DBEAFE; }")
-                    btn.setEnabled(True)
-                else:
-                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
-                    can_buy = (curr_coins >= cost)
-                    btn.setText(f"구매 (🪙{cost})")
-                    if can_buy:
-                        btn.setStyleSheet("QPushButton { background-color: #F59E0B; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #D97706; }")
+                    if is_eq:
+                        card.setStyleSheet("QFrame { background-color: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                        btn.setText("장착 중")
+                        btn.setStyleSheet("QPushButton { background-color: #10B981; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
+                        btn.setEnabled(False)
+                    elif is_owned:
+                        card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
+                        btn.setText("장착하기")
+                        btn.setStyleSheet("QPushButton { background-color: #EFF6FF; color: #2563EB; font-weight: bold; border: 1px solid #BFDBFE; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #DBEAFE; }")
                         btn.setEnabled(True)
                     else:
-                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
-                        btn.setEnabled(True)
+                        card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
+                        can_buy = (curr_coins >= cost)
+                        btn.setText(f"구매 (🪙{cost})")
+                        if can_buy:
+                            btn.setStyleSheet("QPushButton { background-color: #F59E0B; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #D97706; }")
+                            btn.setEnabled(True)
+                        else:
+                            btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
+                            btn.setEnabled(True)
 
-            # Update Pets
-            for p_id, (card, btn) in self.pet_card_widgets.items():
-                is_owned = self.db.is_item_purchased("pet", p_id)
-                is_eq = (p_id == curr_pet)
-                p_info = PET_CATALOG.get(p_id, {})
-                cost = p_info.get("cost", 0)
+                # Update Pets
+                for p_id, (card, btn) in self.pet_card_widgets.items():
+                    is_owned = self.db.is_item_purchased("pet", p_id)
+                    is_eq = (p_id == curr_pet)
+                    p_info = PET_CATALOG.get(p_id, {})
+                    cost = p_info.get("cost", 0)
 
-                if is_eq:
-                    card.setStyleSheet("QFrame { background-color: #FDF4FF; border: 1.5px solid #A855F7; border-radius: 8px; } QLabel { border: none; background: transparent; }")
-                    btn.setText("동행 중" if p_id != "none" else "기본 선택")
-                    btn.setStyleSheet("QPushButton { background-color: #A855F7; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
-                    btn.setEnabled(False)
-                elif is_owned:
-                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
-                    btn.setText("데려오기")
-                    btn.setStyleSheet("QPushButton { background-color: #FAF5FF; color: #7E22CE; font-weight: bold; border: 1px solid #E9D5FF; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #F3E8FF; }")
-                    btn.setEnabled(True)
-                else:
-                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
-                    can_buy = (curr_coins >= cost)
-                    btn.setText(f"입양 (🪙{cost})")
-                    if can_buy:
-                        btn.setStyleSheet("QPushButton { background-color: #8B5CF6; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #7C3AED; }")
+                    if is_eq:
+                        card.setStyleSheet("QFrame { background-color: #FDF4FF; border: 1.5px solid #A855F7; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                        btn.setText("동행 중" if p_id != "none" else "기본 선택")
+                        btn.setStyleSheet("QPushButton { background-color: #A855F7; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
+                        btn.setEnabled(False)
+                    elif is_owned:
+                        card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
+                        btn.setText("데려오기")
+                        btn.setStyleSheet("QPushButton { background-color: #FAF5FF; color: #7E22CE; font-weight: bold; border: 1px solid #E9D5FF; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #F3E8FF; }")
                         btn.setEnabled(True)
                     else:
-                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
-                        btn.setEnabled(True)
+                        card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
+                        can_buy = (curr_coins >= cost)
+                        btn.setText(f"입양 (🪙{cost})")
+                        if can_buy:
+                            btn.setStyleSheet("QPushButton { background-color: #8B5CF6; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #7C3AED; }")
+                            btn.setEnabled(True)
+                        else:
+                            btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
+                            btn.setEnabled(True)
+            except Exception:
+                pass
 
         # Build Saucer Cards (2 Columns)
         grid1.setColumnStretch(0, 1)
@@ -781,7 +788,7 @@ class GardenDialog(QDialog):
 
             def make_saucer_cb(sid=s_id, sname=s_info["name"], cost=s_info["cost"]):
                 def action():
-                    if self.db.is_item_purchased("saucer", sid):
+                    if sid == "basic" or self.db.is_item_purchased("saucer", sid):
                         self.engine.equip_item("saucer", sid)
                         refresh_shop_ui()
                         return
@@ -892,9 +899,15 @@ class GardenDialog(QDialog):
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll, 1)
 
-        refresh_shop_ui()
-        self.engine.coins_changed.connect(lambda _: refresh_shop_ui())
-        self.engine.item_equipped.connect(lambda _t, _i: refresh_shop_ui())
+        def safe_refresh():
+            try:
+                refresh_shop_ui()
+            except Exception:
+                pass
+
+        safe_refresh()
+        self.engine.coins_changed.connect(lambda _: safe_refresh())
+        self.engine.item_equipped.connect(lambda _t, _i: safe_refresh())
 
         return widget
 
@@ -1365,7 +1378,7 @@ class GardenDialog(QDialog):
         """Modal dialog displaying 6 plant species as a 2-column visual grid (3 rows x 2 cols) with full-bloom previews and completion badges."""
         dlg = QDialog(self)
         dlg.setWindowTitle("🎓 화원 졸업 및 새 씨앗 심기")
-        dlg.resize(680, 560)
+        dlg.resize(740, 560)
         dlg.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
@@ -1381,34 +1394,28 @@ class GardenDialog(QDialog):
         d_layout.setContentsMargins(18, 14, 18, 14)
         d_layout.setSpacing(10)
 
-        # Header celebration banner
+        # Header celebration banner (concise & clean)
         h_card = QFrame()
-        h_card.setStyleSheet("""
-            QFrame {
-                background-color: #F0FDF4;
-                border: 1px solid #BBF7D0;
-                border-radius: 10px;
-            }
-            QLabel {
-                border: none;
-                background: transparent;
-            }
-        """)
+        h_card.setStyleSheet("QFrame { background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; } QLabel { border: none; background: transparent; }")
         h_l = QVBoxLayout(h_card)
-        h_l.setContentsMargins(12, 9, 12, 9)
-        t_lbl = QLabel("🌸 <b>축하합니다! 영광의 6단계 만개를 달성했습니다!</b><br><span style='color: #047857; font-size: 11px;'>현재 화분을 화원에 영구 등록하고, 다음에 함께할 <b>새로운 씨앗 품종</b>을 아래 카드에서 선택해주세요.</span>")
-        t_lbl.setStyleSheet("color: #065F46; font-size: 12px; line-height: 1.4;")
+        h_l.setContentsMargins(14, 10, 14, 10)
+        h_l.setSpacing(2)
+        t_lbl = QLabel("🎉 <b>축하합니다! 6단계 만개 달성</b>")
+        t_lbl.setStyleSheet("color: #065F46; font-size: 13px;")
+        sub_lbl = QLabel("현재 화분을 화원에 명예 등록하고, 새로 함께할 씨앗 품종을 선택해주세요.")
+        sub_lbl.setStyleSheet("color: #047857; font-size: 11px;")
         h_l.addWidget(t_lbl)
+        h_l.addWidget(sub_lbl)
         d_layout.addWidget(h_card)
-
-        d_layout.addWidget(QLabel("🌱 <b>새로 심을 식물 품종 카드 선택 (1줄에 2개씩 한눈에 보기):</b>"))
 
         # 2-Column Grid Container for all 6 species
         grid_container = QWidget()
         grid_layout = QGridLayout(grid_container)
         grid_layout.setContentsMargins(2, 2, 2, 2)
-        grid_layout.setHorizontalSpacing(10)
+        grid_layout.setHorizontalSpacing(8)
         grid_layout.setVerticalSpacing(8)
+        grid_layout.setColumnStretch(0, 1)
+        grid_layout.setColumnStretch(1, 1)
 
         graduated = self.db.get_graduated_plants()
         grad_species_set = set(p.get("species", "classic") for p in graduated if p.get("species"))
@@ -1431,16 +1438,9 @@ class GardenDialog(QDialog):
         def update_card_styles():
             for sp_id, (card, badge, is_unlocked, is_grad) in card_widgets.items():
                 if not is_unlocked:
-                    card.setStyleSheet("""
-                        QFrame {
-                            background-color: #F1F5F9;
-                            border: 1px dashed #CBD5E1;
-                            border-radius: 10px;
-                        }
-                        QLabel { border: none; background: transparent; }
-                    """)
-                    badge.setText("🔒 잠김")
-                    badge.setStyleSheet("color: #94A3B8; font-weight: bold; font-size: 10.5px; background-color: #E2E8F0; border-radius: 6px; padding: 4px 6px; border: none;")
+                    card.setStyleSheet("QFrame { background-color: #F1F5F9; border: 1px dashed #CBD5E1; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                    badge.setText("잠김 🔒")
+                    badge.setStyleSheet("color: #94A3B8; font-size: 10.5px; background-color: #E2E8F0; border-radius: 5px; padding: 4px 4px; border: none;")
                     continue
 
                 is_sel = (sp_id == selected_species[0])
@@ -1449,64 +1449,18 @@ class GardenDialog(QDialog):
 
                 if is_sel:
                     if is_secret:
-                        card.setStyleSheet("""
-                            QFrame {
-                                background-color: #FAF5FF;
-                                border: 2.5px solid #8B5CF6;
-                                border-radius: 10px;
-                            }
-                            QLabel { border: none; background: transparent; }
-                        """)
-                        badge.setText("전설 선택됨 ✨")
-                        badge.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 10.5px; background-color: #8B5CF6; border-radius: 6px; padding: 4px 6px; border: none;")
+                        card.setStyleSheet("QFrame { background-color: #FAF5FF; border: 2px solid #8B5CF6; border-radius: 8px; } QLabel { border: none; background: transparent; }")
                     else:
-                        card.setStyleSheet("""
-                            QFrame {
-                                background-color: #ECFDF5;
-                                border: 2px solid #10B981;
-                                border-radius: 10px;
-                            }
-                            QLabel { border: none; background: transparent; }
-                        """)
-                        badge.setText("선택됨 ✨")
-                        badge.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 10.5px; background-color: #10B981; border-radius: 6px; padding: 4px 6px; border: none;")
+                        card.setStyleSheet("QFrame { background-color: #ECFDF5; border: 2px solid #10B981; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                    badge.setText("선택됨 ✅")
+                    badge.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 11px; background-color: #10B981; border-radius: 5px; padding: 4px 4px; border: none;")
                 else:
                     if is_secret:
-                        card.setStyleSheet("""
-                            QFrame {
-                                background-color: #FDF4FF;
-                                border: 1.5px solid #E879F9;
-                                border-radius: 10px;
-                            }
-                            QFrame:hover { background-color: #FAE8FF; border-color: #C084FC; }
-                            QLabel { border: none; background: transparent; }
-                        """)
-                        badge.setText("👑 전설 선택")
-                        badge.setStyleSheet("color: #7E22CE; font-size: 10.5px; font-weight: bold; background-color: #F3E8FF; border-radius: 6px; padding: 4px 6px; border: none;")
-                    elif is_grad:
-                        card.setStyleSheet("""
-                            QFrame {
-                                background-color: #FFFFFF;
-                                border: 1px solid #CBD5E1;
-                                border-radius: 10px;
-                            }
-                            QFrame:hover { border-color: #94A3B8; background-color: #F8FAFC; }
-                            QLabel { border: none; background: transparent; }
-                        """)
-                        badge.setText("다시 키우기")
-                        badge.setStyleSheet("color: #2563EB; font-size: 10.5px; font-weight: bold; background-color: #EFF6FF; border-radius: 6px; padding: 4px 6px; border: none;")
+                        card.setStyleSheet("QFrame { background-color: #FDF4FF; border: 1px solid #E879F9; border-radius: 8px; } QFrame:hover { border-color: #C084FC; background-color: #FAF5FF; } QLabel { border: none; background: transparent; }")
                     else:
-                        card.setStyleSheet("""
-                            QFrame {
-                                background-color: #FFFFFF;
-                                border: 1px solid #E2E8F0;
-                                border-radius: 10px;
-                            }
-                            QFrame:hover { border-color: #CBD5E1; background-color: #F8FAFC; }
-                            QLabel { border: none; background: transparent; }
-                        """)
-                        badge.setText("선택하기")
-                        badge.setStyleSheet("color: #475569; font-size: 10.5px; background-color: #F1F5F9; border-radius: 6px; padding: 4px 6px; border: none;")
+                        card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; background-color: #F8FAFC; } QLabel { border: none; background: transparent; }")
+                    badge.setText("선택")
+                    badge.setStyleSheet("color: #2563EB; font-weight: bold; font-size: 11px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 5px; padding: 4px 4px;")
 
         # Order of 6 species in 3x2 grid
         species_list = ["classic", "sunflower", "cactus", "clover", "cherry", "starlight_rose"]
@@ -1521,58 +1475,48 @@ class GardenDialog(QDialog):
             card = QFrame()
             card.setCursor(Qt.CursorShape.PointingHandCursor if is_unlocked else Qt.CursorShape.ForbiddenCursor)
             c_layout = QHBoxLayout(card)
-            c_layout.setContentsMargins(10, 8, 10, 8)
-            c_layout.setSpacing(10)
+            c_layout.setContentsMargins(8, 6, 8, 6)
+            c_layout.setSpacing(6)
 
             # Left: Full-bloom Preview Image
             img_lbl = QLabel()
-            img_lbl.setFixedSize(50, 50)
+            img_lbl.setFixedSize(42, 42)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             img_path = get_resource_path(os.path.join("assets", f"stage_{sp_id}_6.png"))
             if os.path.exists(img_path):
-                pm = QPixmap(img_path).scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                pm = QPixmap(img_path).scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 img_lbl.setPixmap(pm)
             else:
                 img_lbl.setText(info["emoji"])
-                img_lbl.setStyleSheet("font-size: 26px;")
+                img_lbl.setStyleSheet("font-size: 24px;")
 
             # Middle: Title + Completion Badge + Description
             info_layout = QVBoxLayout()
             info_layout.setSpacing(2)
 
-            # Title Row with Completion Badge
-            title_row = QHBoxLayout()
-            title_row.setSpacing(4)
-            name_text = f"<b>{info['emoji']} {info['name']}</b>"
-            title_lbl = QLabel(name_text)
-            title_lbl.setStyleSheet("font-size: 12.5px; color: #1E293B;" if not is_secret else "font-size: 12.5px; color: #6B21A8;")
-            title_row.addWidget(title_lbl)
-
             if is_grad:
-                comp_badge = QLabel("🎓 졸업 완료")
-                comp_badge.setStyleSheet("color: #1E40AF; font-size: 9.5px; font-weight: bold; background-color: #DBEAFE; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(comp_badge)
+                badge_html = "<span style='color: #1E40AF; font-size: 9.5px; font-weight: bold; background-color: #DBEAFE; border-radius: 3px; padding: 1px 4px;'>🎓 졸업</span>"
             elif is_secret and not is_unlocked:
-                lock_badge = QLabel(f"🔒 잠김 ({completed_cnt}/{total_req})")
-                lock_badge.setStyleSheet("color: #991B1B; font-size: 9.5px; font-weight: bold; background-color: #FEE2E2; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(lock_badge)
+                badge_html = "<span style='color: #991B1B; font-size: 9.5px; font-weight: bold; background-color: #FEE2E2; border-radius: 3px; padding: 1px 4px;'>🔒 잠김</span>"
             elif is_secret and is_unlocked:
-                legend_badge = QLabel("👑 전설 해금")
-                legend_badge.setStyleSheet("color: #7E22CE; font-size: 9.5px; font-weight: bold; background-color: #F3E8FF; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(legend_badge)
+                badge_html = "<span style='color: #7E22CE; font-size: 9.5px; font-weight: bold; background-color: #F3E8FF; border-radius: 3px; padding: 1px 4px;'>👑 전설</span>"
+            else:
+                badge_html = "<span style='color: #059669; font-size: 9.5px; font-weight: bold; background-color: #D1FAE5; border-radius: 3px; padding: 1px 4px;'>🌱 해금</span>"
 
-            title_row.addStretch()
-            info_layout.addLayout(title_row)
+            title_lbl = QLabel(f"<b>{info['name']}</b> &nbsp;{badge_html}")
+            title_lbl.setStyleSheet("font-size: 11.5px; color: #1E293B;" if not is_secret else "font-size: 11.5px; color: #6B21A8;")
+            title_lbl.setWordWrap(True)
+            info_layout.addWidget(title_lbl)
 
             # Description (short 1 line)
             desc_lbl = QLabel(info.get("desc", ""))
-            desc_lbl.setStyleSheet("font-size: 10.5px; color: #64748B;" if not is_secret else "font-size: 10.5px; color: #7E22CE; font-weight: bold;")
+            desc_lbl.setStyleSheet("font-size: 10px; color: #64748B;" if not is_secret else "font-size: 10px; color: #7E22CE;")
             desc_lbl.setWordWrap(True)
             info_layout.addWidget(desc_lbl)
 
             # Right: Selection Badge
-            badge_lbl = QLabel("선택하기")
-            badge_lbl.setFixedSize(74, 26)
+            badge_lbl = QLabel("선택")
+            badge_lbl.setFixedSize(64, 26)
             badge_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             c_layout.addWidget(img_lbl, 0)
@@ -1597,15 +1541,15 @@ class GardenDialog(QDialog):
 
         # Name input
         name_box = QHBoxLayout()
-        name_box.addWidget(QLabel("🏷️ <b>새 화분의 애칭:</b>"))
+        name_box.addWidget(QLabel("🏷️ <b>새 화분 애칭:</b>"))
         name_edit = QLineEdit("초록이", dlg)
         name_edit.setStyleSheet("""
             QLineEdit {
                 background-color: #FFFFFF;
                 border: 1px solid #CBD5E1;
-                border-radius: 8px;
-                padding: 7px 12px;
-                font-size: 12px;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 11.5px;
                 color: #1E293B;
             }
             QLineEdit:focus {
@@ -1621,11 +1565,11 @@ class GardenDialog(QDialog):
         btn_cancel.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_cancel.setStyleSheet("""
             QPushButton {
-                padding: 9px 18px;
+                padding: 8px 18px;
                 background-color: #F1F5F9;
                 border: 1px solid #CBD5E1;
-                border-radius: 8px;
-                font-size: 12px;
+                border-radius: 6px;
+                font-size: 11.5px;
                 color: #475569;
                 font-weight: bold;
             }
@@ -1635,17 +1579,17 @@ class GardenDialog(QDialog):
         """)
         btn_cancel.clicked.connect(dlg.reject)
 
-        btn_ok = QPushButton("🎓 이 씨앗으로 심고 키우기! ✨", dlg)
+        btn_ok = QPushButton("🌱 새 씨앗 심기", dlg)
         btn_ok.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_ok.setStyleSheet("""
             QPushButton {
-                padding: 9px 22px;
+                padding: 8px 22px;
                 background-color: #10B981;
                 color: white;
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                font-size: 12px;
+                border-radius: 6px;
+                font-size: 11.5px;
             }
             QPushButton:hover {
                 background-color: #059669;

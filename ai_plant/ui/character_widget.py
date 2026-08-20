@@ -276,7 +276,7 @@ class PlantCharacterWidget(QWidget):
         self.particles: List[FloatingParticle] = []
 
         # Shop Equipment: Saucers & Pet Companions
-        self.equipped_saucer: str = "none"
+        self.equipped_saucer: str = "basic"
         self.equipped_pet: str = "none"
         self.pet_state: str = "sitting" # "walking", "sitting", "sleeping", "wandering", "greeting"
         self.pet_x: float = 36.0
@@ -1039,25 +1039,43 @@ class PlantCharacterWidget(QWidget):
 
     def _draw_saucer(self, painter: QPainter, px: int, py: int, pw: int, ph: int):
         """Draw equipped pot saucer (화분 받침대) directly underneath the pot base."""
-        if self.equipped_saucer == "none":
-            return
-
         painter.save()
         base_cx = px + pw * 0.5
         pot_bottom_y = py + ph - 2.0
-        s_id = self.equipped_saucer
+        s_id = self.equipped_saucer if self.equipped_saucer not in ["none", ""] else "basic"
 
         # Wide saucer plate supporting the pot base cleanly
-        tray_w = max(72.0, pw * 0.72)
-        tray_h = 7.5
+        tray_w = max(74.0, pw * 0.74)
+        tray_h = 7.8
         tray_rect = QRectF(base_cx - tray_w / 2, pot_bottom_y - 1.0, tray_w, tray_h)
         lip_rect = QRectF(base_cx - (tray_w + 6) / 2, pot_bottom_y - 2.2, tray_w + 6, 3.2)
 
-        if s_id == "wood":
-            # Warm Natural Wood Tray
+        if s_id in ["basic", "none", ""]:
+            # 1. Warm Terracotta Ceramic Saucer (포근한 기본 도자기 받침대)
+            painter.setBrush(QColor(0, 0, 0, 45))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(tray_rect.adjusted(2, 2, -2, 3), 4, 4)
+
+            grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
+            grad.setColorAt(0.0, QColor("#E08855"))
+            grad.setColorAt(0.5, QColor("#C56834"))
+            grad.setColorAt(1.0, QColor("#9E4516"))
+            painter.setBrush(grad)
+            painter.setPen(QPen(QColor("#7C2D12"), 1.0))
+            painter.drawRoundedRect(tray_rect, 4.0, 4.0)
+
+            painter.setBrush(QColor("#F97316"))
+            painter.setPen(QPen(QColor("#C2410C"), 0.9))
+            painter.drawRoundedRect(lip_rect, 2.0, 2.0)
+
+            painter.setPen(QPen(QColor("#FED7AA"), 0.8))
+            painter.drawLine(int(tray_rect.left() + 5), int(tray_rect.top() + 4), int(tray_rect.right() - 5), int(tray_rect.top() + 4))
+
+        elif s_id == "wood":
+            # 2. Warm Natural Walnut Wood Tray (내추럴 원목 받침대)
             painter.setBrush(QColor(0, 0, 0, 50))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(2, 3, -2, 4), 4, 4)
+            painter.drawRoundedRect(tray_rect.adjusted(2, 2, -2, 4), 4, 4)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#D97706"))
@@ -1073,15 +1091,15 @@ class PlantCharacterWidget(QWidget):
             painter.drawRoundedRect(lip_rect, 2.5, 2.5)
 
             painter.setPen(QPen(QColor("#FDE68A"), 0.9))
-            painter.drawLine(int(tray_rect.left() + 6), int(tray_rect.top() + 6), int(tray_rect.right() - 6), int(tray_rect.top() + 6))
+            painter.drawLine(int(tray_rect.left() + 6), int(tray_rect.top() + 4), int(tray_rect.right() - 6), int(tray_rect.top() + 4))
             painter.setPen(QPen(QColor("#542207"), 0.8))
-            painter.drawLine(int(tray_rect.left() + 12), int(tray_rect.bottom() - 3), int(tray_rect.right() - 12), int(tray_rect.bottom() - 3))
+            painter.drawLine(int(tray_rect.left() + 12), int(tray_rect.bottom() - 2), int(tray_rect.right() - 12), int(tray_rect.bottom() - 2))
 
         elif s_id == "marble":
-            # Royal Pure White Marble Pedestal
+            # 3. Royal Pure White Marble Pedestal (로열 대리석 받침대)
             painter.setBrush(QColor(0, 0, 0, 45))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(2, 3, -2, 4), 5, 5)
+            painter.drawRoundedRect(tray_rect.adjusted(2, 2, -2, 4), 5, 5)
 
             grad_base = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad_base.setColorAt(0.0, QColor("#FFFFFF"))
@@ -1096,14 +1114,14 @@ class PlantCharacterWidget(QWidget):
             painter.drawRoundedRect(lip_rect, 3, 3)
 
             painter.setPen(QPen(QColor(148, 163, 184, 160), 1.1))
-            painter.drawLine(int(tray_rect.left() + 10), int(tray_rect.top() + 3), int(tray_rect.left() + 32), int(tray_rect.bottom() - 2))
-            painter.drawLine(int(tray_rect.right() - 28), int(tray_rect.top() + 2), int(tray_rect.right() - 10), int(tray_rect.bottom() - 3))
+            painter.drawLine(int(tray_rect.left() + 10), int(tray_rect.top() + 2), int(tray_rect.left() + 32), int(tray_rect.bottom() - 2))
+            painter.drawLine(int(tray_rect.right() - 28), int(tray_rect.top() + 2), int(tray_rect.right() - 10), int(tray_rect.bottom() - 2))
 
         elif s_id == "gold":
-            # Royal Golden Imperial Saucer
+            # 4. Royal Golden Imperial Saucer (임페리얼 황금 받침대)
             painter.setBrush(QColor(234, 179, 8, 70))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(-4, -2, 4, 5), 6, 6)
+            painter.drawRoundedRect(tray_rect.adjusted(-4, -2, 4, 4), 6, 6)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#FEF08A"))
@@ -1118,22 +1136,22 @@ class PlantCharacterWidget(QWidget):
             painter.setPen(QPen(QColor("#CA8A04"), 1.0))
             painter.drawRoundedRect(lip_rect, 3, 3)
 
-            # Gems on rim
+            # Gems on rim (Ruby, Sapphire, Emerald)
             painter.setBrush(QColor("#EF4444")) # Ruby
             painter.setPen(QPen(QColor("#991B1B"), 0.8))
-            painter.drawEllipse(QPointF(tray_rect.left() + 7, tray_rect.top() + tray_rect.height() * 0.55), 2.8, 2.8)
+            painter.drawEllipse(QPointF(tray_rect.left() + 7, tray_rect.top() + tray_rect.height() * 0.5), 2.5, 2.5)
             painter.setBrush(QColor("#3B82F6")) # Sapphire
             painter.setPen(QPen(QColor("#1E40AF"), 0.8))
-            painter.drawEllipse(QPointF(tray_rect.right() - 7, tray_rect.top() + tray_rect.height() * 0.55), 2.8, 2.8)
+            painter.drawEllipse(QPointF(tray_rect.right() - 7, tray_rect.top() + tray_rect.height() * 0.5), 2.5, 2.5)
             painter.setBrush(QColor("#10B981")) # Emerald
             painter.setPen(QPen(QColor("#065F46"), 0.8))
-            painter.drawEllipse(QPointF(base_cx, tray_rect.top() + tray_rect.height() * 0.55), 2.5, 2.5)
+            painter.drawEllipse(QPointF(base_cx, tray_rect.top() + tray_rect.height() * 0.5), 2.2, 2.2)
 
         elif s_id == "amethyst":
-            # Mystic Amethyst Crystal Saucer
+            # 5. Mystic Amethyst Crystal Saucer (미스틱 자수정 크리스탈)
             painter.setBrush(QColor(168, 85, 247, 80))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(-5, -3, 5, 6), 7, 7)
+            painter.drawRoundedRect(tray_rect.adjusted(-4, -2, 4, 4), 6, 6)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#F3E8FF"))
@@ -1150,13 +1168,13 @@ class PlantCharacterWidget(QWidget):
             sparkle_phase = (self.expr_frame % 25) / 25.0
             sparkle_x = tray_rect.left() + 8 + (tray_rect.width() - 16) * sparkle_phase
             painter.setBrush(QColor(255, 255, 255, 240))
-            painter.drawEllipse(QPointF(sparkle_x, tray_rect.top() + 5), 2.0, 2.0)
+            painter.drawEllipse(QPointF(sparkle_x, tray_rect.top() + 4), 1.8, 1.8)
 
         elif s_id == "rainbow":
-            # Aurora Rainbow Magic Saucer
+            # 6. Aurora Rainbow Magic Saucer (환상의 오로라 레인보우)
             painter.setBrush(QColor(236, 72, 153, 60))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(-5, -3, 5, 6), 7, 7)
+            painter.drawRoundedRect(tray_rect.adjusted(-4, -2, 4, 4), 6, 6)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.topRight())
             grad.setColorAt(0.0, QColor("#EC4899"))
@@ -1165,7 +1183,7 @@ class PlantCharacterWidget(QWidget):
             grad.setColorAt(0.75, QColor("#10B981"))
             grad.setColorAt(1.0, QColor("#F59E0B"))
             painter.setBrush(grad)
-            painter.setPen(QPen(QColor("#FFFFFF"), 1.4))
+            painter.setPen(QPen(QColor("#FFFFFF"), 1.3))
             painter.drawRoundedRect(tray_rect, 6, 6)
 
             painter.setBrush(QColor(255, 255, 255, 180))

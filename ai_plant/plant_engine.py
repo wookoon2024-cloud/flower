@@ -711,8 +711,11 @@ class PlantEngine(QObject):
         return ok
 
     def get_equipped_saucer(self) -> str:
-        """Get equipped pot saucer ID (default 'none')."""
-        return self.db.get_equipped_item("saucer")
+        """Get equipped pot saucer ID (default 'basic')."""
+        val = self.db.get_equipped_item("saucer")
+        if not val or val == "none":
+            return "basic"
+        return val
 
     def get_equipped_pet(self) -> str:
         """Get equipped pet ID (default 'none')."""
