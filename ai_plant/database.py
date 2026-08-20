@@ -213,8 +213,10 @@ class DatabaseManager:
             now_str = datetime.datetime.now().isoformat()
             cursor.execute("""
                 INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
-                VALUES ('saucer', 'none', ?, 1)
+                VALUES ('saucer', 'basic', ?, 1)
             """, (now_str,))
+            # Migrate old 'none' saucer to 'basic' if equipped
+            cursor.execute("UPDATE user_inventory SET item_id = 'basic' WHERE item_type = 'saucer' AND item_id = 'none'")
             cursor.execute("""
                 INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
                 VALUES ('pet', 'none', ?, 1)
@@ -641,7 +643,7 @@ class DatabaseManager:
 
     def is_item_purchased(self, item_type: str, item_id: str) -> bool:
         """Check if an item is purchased/owned."""
-        if item_id == "none":
+        if item_id in ("none", "basic"):
             return True
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -671,19 +673,23 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE user_inventory SET is_equipped = 0 WHERE item_type = ?", (item_type,))
-            cursor.execute("UPDATE user_inventory SET is_equipped = 1 WHERE item_type = ? AND item_id = ?", (item_type, item_id))
+            cursor.execute("""
+                INSERT INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
+                VALUES (?, ?, CURRENT_TIMESTAMP, 1)
+                ON CONFLICT(item_type, item_id) DO UPDATE SET is_equipped = 1
+            """, (item_type, item_id))
             conn.commit()
         return True
 
     def get_equipped_item(self, item_type: str) -> str:
-        """Get the currently equipped item ID for a given type (default 'none')."""
+        """Get the currently equipped item ID for a given type (default 'basic' for saucer, 'none' for pet)."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT item_id FROM user_inventory WHERE item_type = ? AND is_equipped = 1", (item_type,))
             row = cursor.fetchone()
             if row:
                 return row["item_id"]
-        return "none"
+        return "basic" if item_type == "saucer" else "none"
 
 
 
