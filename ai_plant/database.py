@@ -451,49 +451,85 @@ class DatabaseManager:
         if self._unlocked_achievements_cache is not None and ach_id in self._unlocked_achievements_cache:
             return False
         now_str = datetime.datetime.now().isoformat()
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM achievements WHERE id = ?", (ach_id,))
-            if cursor.fetchone():
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS achievements (
+                        id TEXT PRIMARY KEY,
+                        unlocked_at TIMESTAMP NOT NULL
+                    )
+                """)
+                cursor.execute("SELECT id FROM achievements WHERE id = ?", (ach_id,))
+                if cursor.fetchone():
+                    if self._unlocked_achievements_cache is not None:
+                        self._unlocked_achievements_cache.add(ach_id)
+                    return False
+                cursor.execute("INSERT INTO achievements (id, unlocked_at) VALUES (?, ?)", (ach_id, now_str))
+                conn.commit()
                 if self._unlocked_achievements_cache is not None:
                     self._unlocked_achievements_cache.add(ach_id)
-                return False
-            cursor.execute("INSERT INTO achievements (id, unlocked_at) VALUES (?, ?)", (ach_id, now_str))
-            conn.commit()
-            if self._unlocked_achievements_cache is not None:
-                self._unlocked_achievements_cache.add(ach_id)
-            return True
+                return True
+        except Exception:
+            return False
 
     def get_unlocked_achievements(self) -> List[str]:
         """Get list of unlocked achievement IDs."""
         if self._unlocked_achievements_cache is not None:
             return list(self._unlocked_achievements_cache)
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM achievements")
-            rows = cursor.fetchall()
-            ids = [r["id"] for r in rows]
-            self._unlocked_achievements_cache = set(ids)
-            return ids
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS achievements (
+                        id TEXT PRIMARY KEY,
+                        unlocked_at TIMESTAMP NOT NULL
+                    )
+                """)
+                cursor.execute("SELECT id FROM achievements")
+                rows = cursor.fetchall()
+                ids = [r["id"] for r in rows]
+                self._unlocked_achievements_cache = set(ids)
+                return ids
+        except Exception:
+            return []
 
     # --- Daily Fortune ---
     def get_daily_fortune(self, date_str: str) -> Optional[str]:
         """Fetch today's fortune message if already drawn."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT message FROM daily_fortunes WHERE date = ?", (date_str,))
-            row = cursor.fetchone()
-            return row["message"] if row else None
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS daily_fortunes (
+                        date TEXT PRIMARY KEY,
+                        message TEXT NOT NULL
+                    )
+                """)
+                cursor.execute("SELECT message FROM daily_fortunes WHERE date = ?", (date_str,))
+                row = cursor.fetchone()
+                return row["message"] if row else None
+        except Exception:
+            return None
 
     def save_daily_fortune(self, date_str: str, message: str):
         """Save today's fortune message."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT OR REPLACE INTO daily_fortunes (date, message)
-                VALUES (?, ?)
-            """, (date_str, message))
-            conn.commit()
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS daily_fortunes (
+                        date TEXT PRIMARY KEY,
+                        message TEXT NOT NULL
+                    )
+                """)
+                cursor.execute("""
+                    INSERT OR REPLACE INTO daily_fortunes (date, message)
+                    VALUES (?, ?)
+                """, (date_str, message))
+                conn.commit()
+        except Exception:
+            pass
 
     # --- Mood / Mental Wellness Trends ---
     def add_mood_entry(self, mood_type: str, score: int, snippet: str = ""):
@@ -501,39 +537,79 @@ class DatabaseManager:
         now = datetime.datetime.now()
         now_str = now.isoformat()
         date_str = now.strftime("%m/%d")
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO mood_history (timestamp, date, mood_type, score, snippet)
-                VALUES (?, ?, ?, ?, ?)
-            """, (now_str, date_str, mood_type, score, snippet[:100]))
-            conn.commit()
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS mood_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        timestamp TIMESTAMP NOT NULL,
+                        date TEXT NOT NULL,
+                        mood_type TEXT NOT NULL,
+                        score INTEGER NOT NULL,
+                        snippet TEXT
+                    )
+                """)
+                cursor.execute("""
+                    INSERT INTO mood_history (timestamp, date, mood_type, score, snippet)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (now_str, date_str, mood_type, score, snippet[:100]))
+                conn.commit()
+        except Exception:
+            pass
 
     def get_recent_mood_history(self, limit: int = 14) -> List[Dict[str, Any]]:
         """Fetch chronological mood records for trend charts."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT id, timestamp, date, mood_type, score, snippet
-                FROM mood_history
-                ORDER BY id DESC LIMIT ?
-            """, (limit,))
-            rows = cursor.fetchall()
-            return [dict(r) for r in reversed(rows)]
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS mood_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        timestamp TIMESTAMP NOT NULL,
+                        date TEXT NOT NULL,
+                        mood_type TEXT NOT NULL,
+                        score INTEGER NOT NULL,
+                        snippet TEXT
+                    )
+                """)
+                cursor.execute("""
+                    SELECT id, timestamp, date, mood_type, score, snippet
+                    FROM mood_history
+                    ORDER BY id DESC LIMIT ?
+                """, (limit,))
+                rows = cursor.fetchall()
+                return [dict(r) for r in reversed(rows)]
+        except Exception:
+            return []
 
     def get_daily_mood_summary(self, num_days: int = 7) -> List[Dict[str, Any]]:
         """
         Groups mood entries by calendar day (YYYY-MM-DD), calculates daily averages,
         and constructs a fixed 7-day timeline window with upcoming/future dates pre-populated.
         """
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT timestamp, date, score, mood_type
-                FROM mood_history
-                ORDER BY id ASC
-            """)
-            rows = cursor.fetchall()
+        rows = []
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS mood_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        timestamp TIMESTAMP NOT NULL,
+                        date TEXT NOT NULL,
+                        mood_type TEXT NOT NULL,
+                        score INTEGER NOT NULL,
+                        snippet TEXT
+                    )
+                """)
+                cursor.execute("""
+                    SELECT timestamp, date, score, mood_type
+                    FROM mood_history
+                    ORDER BY id ASC
+                """)
+                rows = cursor.fetchall()
+        except Exception:
+            rows = []
 
         daily_map = {}
         for r in rows:
@@ -597,11 +673,19 @@ class DatabaseManager:
     # --- Lifetime Action Counters ---
     def increment_stat(self, key: str, amount: int = 1) -> int:
         """Increment a persistent lifetime stat counter with instant in-memory update."""
+        if not hasattr(self, "_stats_cache") or self._stats_cache is None:
+            self._stats_cache = {}
         current_val = self._stats_cache.get(key, 0) + amount
         self._stats_cache[key] = current_val
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS lifetime_stats (
+                        key TEXT PRIMARY KEY,
+                        value INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
                 cursor.execute("""
                     INSERT INTO lifetime_stats (key, value)
                     VALUES (?, ?)
@@ -614,25 +698,47 @@ class DatabaseManager:
 
     def get_stat(self, key: str, default: int = 0) -> int:
         """Get a persistent lifetime stat value with instant in-memory lookup."""
+        if not hasattr(self, "_stats_cache") or self._stats_cache is None:
+            self._stats_cache = {}
         if key in self._stats_cache:
             return self._stats_cache[key]
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT value FROM lifetime_stats WHERE key = ?", (key,))
-            row = cursor.fetchone()
-            val = row[0] if row else default
-            self._stats_cache[key] = val
-            return val
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS lifetime_stats (
+                        key TEXT PRIMARY KEY,
+                        value INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+                cursor.execute("SELECT value FROM lifetime_stats WHERE key = ?", (key,))
+                row = cursor.fetchone()
+                val = row[0] if row else default
+                self._stats_cache[key] = val
+                return val
+        except Exception:
+            return default
 
     def get_all_stats(self) -> Dict[str, int]:
         """Get all lifetime stats as a dictionary."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT key, value FROM lifetime_stats")
-            rows = cursor.fetchall()
-            stats = {r["key"]: r["value"] for r in rows}
-            self._stats_cache.update(stats)
-            return stats
+        if not hasattr(self, "_stats_cache") or self._stats_cache is None:
+            self._stats_cache = {}
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS lifetime_stats (
+                        key TEXT PRIMARY KEY,
+                        value INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+                cursor.execute("SELECT key, value FROM lifetime_stats")
+                rows = cursor.fetchall()
+                stats = {r["key"]: r["value"] for r in rows}
+                self._stats_cache.update(stats)
+                return stats
+        except Exception:
+            return self._stats_cache.copy()
 
     # --- Secure Vault (Portable Encrypted Secret Storage) ---
     def set_secure_key(self, key: str, plaintext: str):

@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v2.0.4-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v2.0.5-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,11 +22,11 @@
 
 | 구분 | 버전 | 업데이트 | 배포 파일명 | 원클릭 다운로드 |
 | :---: | :---: | :---: | :---: | :---: |
-| 🚀 **단독 실행파일 (.exe)** | **`v2.0.4`** | **`2026-08-20`** | `마음지킴이_실행파일_v2.0.4.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v2.0.4.zip) |
-| 💻 **순수 소스코드 (.py)** | **`v2.0.4`** | **`2026-08-20`** | `마음지킴이_소스_v2.0.4.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v2.0.4.zip) |
+| 🚀 **단독 실행파일 (.exe)** | **`v2.0.5`** | **`2026-08-20`** | `마음지킴이_실행파일_v2.0.5.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v2.0.5.zip) |
+| 💻 **순수 소스코드 (.py)** | **`v2.0.5`** | **`2026-08-20`** | `마음지킴이_소스_v2.0.5.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v2.0.5.zip) |
 
-> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v2.0.4.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
-> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v2.0.4.zip` 압축 해제 후 `python main.py`를 실행하세요.
+> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v2.0.5.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
+> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v2.0.5.zip` 압축 해제 후 `python main.py`를 실행하세요.
 
 ---
 
@@ -175,6 +175,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v2.0.5`** | 2026-08-20 | • **🛡️ `lifetime_stats`, `achievements`, `user_inventory` 등 전역 10대 DB 테이블 제로 결함 완전 자동 치유(Self-Healing) 체계 완성:** 어떤 비정상 종료/구버전 DB 파일이 존재하더라도 쿼리 실행 즉시 누락 테이블 자동 생성 및 메모리 캐시 안전 보장 |
 | **`v2.0.4`** | 2026-08-20 | • **🛡️ DB 테이블 및 도감 탭 완전 결함 방지(Zero-Failure Auto-Healing) 시스템 구축:** `init_db()` 내 모든 10대 테이블 개별 트랜잭션 분리 및 전체 인벤토리/도감 쿼리 자동 테이블 복구 fallback 적용으로 어떤 구버전 DB 환경에서도 무결점 기동 보장<br>• **🐱🐰 반려동물(삼색 아기냥이 / 흰토끼) 초고퀄리티 그래픽 & 모션 탑재** |
 | **`v2.0.3`** | 2026-08-20 | • **🐱🐰 반려동물(삼색 아기냥이 / 흰토끼) 초고퀄리티 그래픽 & 모션 대폭 업그레이드**<br>• **🐱 아기냥이 디테일 혁신:** 통통한 찹쌀떡 볼살, 은은한 핑크 볼터치, 에메랄드/사파이어 반짝이 눈동자(이중 하이라이트 글림), 귀여운 'ω' 입모양과 앙증맞은 골드 방울 목걸이, 살랑살랑 흔들리는 흰색 꼬리 팁 및 포근한 식빵굽기/도넛 수면 모션 탑재<br>• **🐰 복토끼 디테일 혁신:** 동글동글 찹쌀 모찌 바디, 쫑긋쫑긋 실시간 귓속 펄럭임(Twitch), 솜사탕 솜꼬리, 루비빛 보석 눈동자, 뾱뾱 깡총 점프 시 부드러운 착지 그림자 스케일링 모션 탑재 |
 | **`v2.0.2`** | 2026-08-20 | • **🛡️ `graduated_plants` 도감 명예의 전당 테이블 자동 생성 & 결함 방지(Auto-healing):** DB 초기화 예외 시 테이블 누락 방지를 위한 이중 `CREATE TABLE IF NOT EXISTS` 보호 및 `get_graduated_plants` 예외 안전화 완료<br>• **🪴 기본 무료 도자기 받침대(Basic Saucer) 즉시 지급 및 장착 오류 완벽 해결**<br>• **🌸 품종 도감(Species Catalog) 2열 카드 레이아웃 전면 리팩토링:** 좌측 아바타 프레임, 중앙 품종명/상태 뱃지 수평 정렬, 균형 잡힌 카드 높이(76px)로 대칭과 시인성을 대폭 강화 |
