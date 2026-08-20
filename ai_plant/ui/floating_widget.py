@@ -222,10 +222,13 @@ class FloatingPlantWindow(QWidget):
         self.decay_timer.start(60 * 1000)
         self.minutes_elapsed = 0
 
-        # Fast idle check timer (every 10 seconds)
+        # Fast idle check & Proactive Speech timer (every 15 seconds)
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self.on_idle_timer_tick)
-        self.idle_timer.start(10 * 1000)
+        self.idle_timer.start(15 * 1000)
+
+        self.last_user_interaction_time = datetime.datetime.now()
+        self.notified_proactive_events = set()
 
     def on_decay_timer_tick(self):
         self.minutes_elapsed += 1
@@ -243,18 +246,54 @@ class FloatingPlantWindow(QWidget):
                 self.bubble.show_message(announcement, 4)
 
     def on_idle_timer_tick(self):
-        if not self.config.get("idle_peek", True):
+        if not self.config.get("proactive_speech", True):
             return
 
-        idle_sec = get_system_idle_seconds()
-        # If user has been idle for >= 3 minutes (180s)
-        if idle_sec >= 180:
-            if not self.idle_notified:
-                self.idle_notified = True
-                user_name = self.config.get("user_nickname", "공직자님")
-                self.bubble.show_message(f"잠시 쉬어가시는 중인가요, {user_name}? ☕ 심호흡 한 번 하고 편안한 휴식 되세요 🌿", 4)
-        elif idle_sec < 40:
-            self.idle_notified = False
+        try:
+            now = datetime.datetime.now()
+            today = datetime.date.today().isoformat()
+            state = self.engine.get_state()
+
+            # 1. Low Water / Low Sunlight State Triggers (< 20%)
+            if state.get("water", 80) < 20:
+                if "water_low" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add("water_low")
+                    self.trigger_proactive_speech("thirsty")
+            elif state.get("water", 80) >= 35 and "water_low" in self.notified_proactive_events:
+                self.notified_proactive_events.remove("water_low")
+
+            if state.get("sunlight", 80) < 20:
+                if "sun_low" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add("sun_low")
+                    self.trigger_proactive_speech("hungry_sun")
+            elif state.get("sunlight", 80) >= 35 and "sun_low" in self.notified_proactive_events:
+                self.notified_proactive_events.remove("sun_low")
+
+            # 2. Specific Time Triggers (12:00 Lunch, 18:00 Leaving, 21:00 Overtime)
+            if now.hour == 12 and now.minute <= 15:
+                if f"lunch_{today}" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add(f"lunch_{today}")
+                    self.trigger_proactive_speech("lunch")
+
+            elif now.hour == 18 and now.minute <= 15:
+                if f"leave_{today}" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add(f"leave_{today}")
+                    self.trigger_proactive_speech("leave_work")
+
+            elif now.hour >= 21 and now.minute <= 15:
+                if f"overtime_{today}" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add(f"overtime_{today}")
+                    self.trigger_proactive_speech("overtime")
+
+            # 3. 1~2 Hours Random Idle Nudge Trigger (No interaction for configured minutes)
+            idle_minutes = (now - self.last_user_interaction_time).total_seconds() / 60.0
+            nudge_thresh = self.config.get("proactive_idle_minutes", 90)
+            if idle_minutes >= nudge_thresh:
+                self.last_user_interaction_time = now
+                self.trigger_proactive_speech("idle_nudge")
+
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_idle_timer_tick error: {e}")
 
     def enterEvent(self, event):
         self.force_topmost()
@@ -274,6 +313,7 @@ class FloatingPlantWindow(QWidget):
     # --- Interaction Handlers ---
     def handle_water(self):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.start(6000)
             success, msg = self.engine.give_water()
             self.character.spawn_particle("drop")
@@ -283,6 +323,7 @@ class FloatingPlantWindow(QWidget):
 
     def handle_sunlight(self):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.start(6000)
             success, msg = self.engine.give_sunlight()
             self.character.spawn_particle("sun")
@@ -316,6 +357,7 @@ class FloatingPlantWindow(QWidget):
 
     def on_plant_interaction(self, action_name: str, bubble_text: str):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             if action_name == "pet":
                 self.character.spawn_particle("heart")
             self.bubble.show_message(bubble_text, 3)
@@ -333,6 +375,7 @@ class FloatingPlantWindow(QWidget):
     # --- AI Chat Handling ---
     def open_chat_dialog(self):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
             if not self.chat_dialog:
@@ -350,6 +393,7 @@ class FloatingPlantWindow(QWidget):
     # --- Garden & Collection Dialog ---
     def open_garden_dialog(self):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
             if not self.garden_dialog:
@@ -365,6 +409,7 @@ class FloatingPlantWindow(QWidget):
 
     def on_plant_graduated(self, new_species: str, new_name: str):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.character.set_species(new_species)
             self.character.set_stage(1)
             self.control_bar.update_status(self.engine.get_state())
@@ -376,6 +421,7 @@ class FloatingPlantWindow(QWidget):
 
     def on_fortune_drawn(self, msg: str):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             self.character.spawn_particle("sun")
             self.bubble.show_message(f"🥠 {msg}", 4)
         except Exception as e:
@@ -383,6 +429,7 @@ class FloatingPlantWindow(QWidget):
 
     def start_ai_chat(self, user_text: str):
         try:
+            self.last_user_interaction_time = datetime.datetime.now()
             # 1. Extract recent history BEFORE saving current message
             history = self.db.get_recent_chat_history(limit=6)
 
@@ -395,7 +442,10 @@ class FloatingPlantWindow(QWidget):
             if self.chat_dialog:
                 self.chat_dialog.load_history()
 
-            # 4. Start async AI worker thread safely with lifetime tracking
+            # 4. Start real-time streaming on speech bubble
+            self.bubble.start_streaming()
+
+            # 5. Start async AI worker thread safely with lifetime tracking
             worker = AIChatWorker(
                 config=dict(self.config.config),
                 plant_state=dict(self.engine.get_state()),
@@ -403,6 +453,7 @@ class FloatingPlantWindow(QWidget):
                 user_message=user_text
             )
             self._active_workers.append(worker)
+            worker.chunk_received.connect(self.bubble.append_chunk)
             worker.response_received.connect(self.on_ai_response_received)
             worker.finished.connect(lambda w=worker: self._on_worker_finished(w))
             worker.start()
@@ -410,6 +461,38 @@ class FloatingPlantWindow(QWidget):
             print(f"[FloatingPlantWindow] start_ai_chat error: {e}")
             if self.chat_dialog:
                 self.chat_dialog.set_loading(False)
+
+    def trigger_proactive_speech(self, mode: str):
+        """Triggers autonomous speech by the plant (Thirst, Sunlight, 1~2hr Idle Nudge, Lunch, Leaving)."""
+        if not self.config.get("proactive_speech", True):
+            return
+        try:
+            self.bubble.start_streaming()
+            history = self.db.get_recent_chat_history(limit=6)
+            worker = AIChatWorker(
+                config=dict(self.config.config),
+                plant_state=dict(self.engine.get_state()),
+                chat_history=list(history),
+                user_message="",
+                proactive_mode=mode
+            )
+            self._active_workers.append(worker)
+            worker.chunk_received.connect(self.bubble.append_chunk)
+            worker.response_received.connect(self.on_proactive_response_received)
+            worker.finished.connect(lambda w=worker: self._on_worker_finished(w))
+            worker.start()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] trigger_proactive_speech error: {e}")
+
+    def on_proactive_response_received(self, reply_text: str, is_fallback: bool, action_tags: list):
+        try:
+            self.db.add_chat_message("assistant", reply_text)
+            self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
+            self.character.spawn_particle("heart")
+            if self.chat_dialog:
+                self.chat_dialog.load_history()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_proactive_response_received error: {e}")
 
     def _on_worker_finished(self, worker):
         if worker in self._active_workers:
@@ -436,7 +519,7 @@ class FloatingPlantWindow(QWidget):
                 self.engine.pet()
                 self.character.spawn_particle("heart")
 
-            self.bubble.show_message(reply_text, 4)
+            self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
         except Exception as e:
             print(f"[FloatingPlantWindow] on_ai_response_received error: {e}")
 

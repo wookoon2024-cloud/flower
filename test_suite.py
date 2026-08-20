@@ -213,7 +213,49 @@ class TestAIPlantWidget(unittest.TestCase):
         unlocked = self.db.get_unlocked_achievements()
         self.assertGreaterEqual(len(unlocked), 4)
 
+    def test_clova_studio_gov_and_proactive_speech(self):
+        from ai_plant.ai_client import (
+            AIChatWorker, select_fallback_response, format_clean_user_name,
+            parse_action_tags, SPECIES_PERSONAS
+        )
+
+        # 1. Test Clean User Name formatting
+        self.assertEqual(format_clean_user_name("홍길동"), "홍길동님")
+        self.assertEqual(format_clean_user_name("공직자님"), "공직자님")
+
+        # 2. Test Proactive fallback responses
+        resp_thirsty = select_fallback_response("thirsty", "김주무관", "초록이", {"water": 10})
+        self.assertTrue(any(w in resp_thirsty for w in ["물", "수분", "목", "촉촉"]))
+
+        resp_lunch = select_fallback_response("lunch", "김주무관", "초록이", {})
+        self.assertTrue(any(w in resp_lunch for w in ["점심", "식사", "맛점"]))
+
+        resp_leave = select_fallback_response("leave_work", "김주무관", "초록이", {})
+        self.assertTrue(any(w in resp_leave for w in ["퇴근", "칼퇴", "고생", "완주", "쉬세요"]))
+
+        # 3. Test Action Tag parsing
+        cleaned, actions = parse_action_tags("물을 주셔서 감사해요! [ACTION:WATER]")
+        self.assertEqual(cleaned, "물을 주셔서 감사해요!")
+        self.assertIn("water", actions)
+
+        # 4. Test AIChatWorker creation with CLOVA Studio GOV configuration
+        worker = AIChatWorker(
+            config={
+                "api_endpoint": "https://api.clovastudio.go.kr/api/v1/chat/completions",
+                "api_key": "",
+                "model": "HCX-GOV-THINK-V1-32B",
+                "stream_enabled": True
+            },
+            plant_state={"species": "classic", "stage": 3, "water": 70, "sunlight": 70, "affection": 40},
+            chat_history=[{"role": "user", "content": "안녕"}, {"role": "assistant", "content": "반가워요"}],
+            user_message="",
+            proactive_mode="idle_nudge"
+        )
+        self.assertEqual(worker.proactive_mode, "idle_nudge")
+        self.assertEqual(worker.config["model"], "HCX-GOV-THINK-V1-32B")
+
 if __name__ == "__main__":
     unittest.main()
+
 
 

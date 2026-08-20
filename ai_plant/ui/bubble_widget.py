@@ -1,10 +1,10 @@
 """
 Speech Bubble Widget
 Renders dynamic auto-sizing speech bubble above plant character with tail,
-drop shadow, and auto-dismiss timer.
+drop shadow, auto-dismiss timer, and real-time token streaming typing effect.
 """
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QGraphicsDropShadowEffect
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPoint
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QBrush, QPen, QFont
 
 class SpeechBubbleWidget(QWidget):
@@ -18,6 +18,7 @@ class SpeechBubbleWidget(QWidget):
         self.hide_timer.timeout.connect(self.hide_bubble)
 
         self.is_active = False
+        self.streamed_text = ""
         self.init_ui()
 
     def init_ui(self):
@@ -65,16 +66,38 @@ class SpeechBubbleWidget(QWidget):
         shadow.setOffset(0, 2)
         self.setGraphicsEffect(shadow)
 
-        # Initially invisible contents
         self.content_widget.setVisible(False)
 
-    def show_message(self, text: str, duration_sec: int = 8):
+    def show_message(self, text: str, duration_sec: int = 5):
         """Display text with speech bubble and start auto-hide timer."""
+        self.hide_timer.stop()
         self.label.setText(text)
         self.is_active = True
         self.content_widget.setVisible(True)
         self.update()
 
+        if duration_sec > 0:
+            self.hide_timer.start(duration_sec * 1000)
+
+    def start_streaming(self):
+        """Prepares speech bubble for real-time token streaming."""
+        self.hide_timer.stop()
+        self.streamed_text = ""
+        self.label.setText("")
+        self.is_active = True
+        self.content_widget.setVisible(True)
+        self.update()
+
+    def append_chunk(self, chunk: str):
+        """Appends streaming token chunk in real-time."""
+        self.streamed_text += chunk
+        self.label.setText(self.streamed_text)
+        self.update()
+
+    def finish_streaming(self, final_text: str, duration_sec: int = 5):
+        """Finishes token streaming and activates auto-hide timer."""
+        self.label.setText(final_text)
+        self.update()
         if duration_sec > 0:
             self.hide_timer.start(duration_sec * 1000)
 
@@ -94,11 +117,9 @@ class SpeechBubbleWidget(QWidget):
         rect = self.rect()
         bubble_rect = rect.adjusted(3, 2, -3, -12)
 
-        # Bubble path with tail
         path = QPainterPath()
         path.addRoundedRect(bubble_rect.x(), bubble_rect.y(), bubble_rect.width(), bubble_rect.height(), 12, 12)
 
-        # Tail pointing down to plant
         tail_center_x = rect.width() // 2
         tail_top_y = bubble_rect.bottom()
         tail_bottom_y = rect.height() - 1
@@ -111,7 +132,6 @@ class SpeechBubbleWidget(QWidget):
 
         full_path = path.united(tail_path)
 
-        # Fill & border
         painter.fillPath(full_path, QBrush(QColor(255, 255, 255, 250)))
         pen = QPen(QColor(203, 213, 225, 255), 1.2)
         painter.setPen(pen)

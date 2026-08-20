@@ -1,9 +1,13 @@
 {
-    "api_endpoint": "https://dev.ai.go.kr/api/v1/chat/completions",
+    "api_endpoint": "https://api.clovastudio.go.kr/api/v1/chat/completions",
     "api_key": "",
-    "model": "gov-gpt-4o",
+    "model": "HCX-GOV-THINK-V1-32B",
+    "stream_enabled": true,
     "ssl_verify": false,
-    "timeout_sec": 5,
+    "timeout_sec": 10,
+    "max_retries": 3,
+    "proactive_speech": true,
+    "proactive_idle_minutes": 90,
     "decay_interval_minutes": 30,
     "water_decay_per_interval": 3,
     "sunlight_decay_per_interval": 3,
@@ -12,7 +16,7 @@
     "sound_enabled": true,
     "user_nickname": "공직자님",
     "plant_name": "초록이",
-    "bubble_duration_sec": 4,
+    "bubble_duration_sec": 5,
     "window_pos_x": 1640,
     "window_pos_y": 711,
     "compact_hover_mode": true,
@@ -20,37 +24,5 @@
     "hourly_peek": true,
     "idle_peek": true,
     "plant_scale": 100,
-    "initial_setup_done": true,
-    "api": {
-        "endpoint": "https://dev.ai.go.kr/api/v1/chat/completions",
-        "api_key": "",
-        "model": "gov-gpt-4o-mini",
-        "timeout_sec": 5,
-        "verify_ssl": false,
-        "max_tokens": 120,
-        "temperature": 0.7
-    },
-    "tamagotchi": {
-        "decay_interval_sec": 300,
-        "water_decay_rate": 2.0,
-        "sunlight_decay_rate": 2.0,
-        "offline_decay_hourly": 5.0,
-        "warning_threshold": 20,
-        "evolution_exp_stage2": 100,
-        "evolution_exp_stage3": 250,
-        "evolution_exp_stage4": 500
-    },
-    "ui": {
-        "always_on_top": true,
-        "auto_hide_speech_sec": 10,
-        "window_x": 1229,
-        "window_y": 798,
-        "transparency": 1.0,
-        "speech_typing_speed_ms": 30
-    },
-    "user": {
-        "nickname": "행정관님",
-        "plant_name": "초록이",
-        "department": "디지털혁신팀"
-    }
+    "initial_setup_done": true
 }

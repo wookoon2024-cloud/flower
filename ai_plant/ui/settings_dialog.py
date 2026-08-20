@@ -1,7 +1,7 @@
 """
 Settings Dialog Widget
-Allows users to configure dev.ai.go.kr API endpoints, API Key, intranet SSL bypass,
-plant names, decay rates, and perform reset actions.
+Allows users to configure CLOVA Studio GOV / OpenAI API endpoints, API Key, intranet SSL bypass,
+streaming options, plant names, proactive speech triggers, and decay rates.
 """
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLineEdit,
@@ -22,7 +22,7 @@ class SettingsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("⚙️ 반려화분 환경 설정")
-        self.resize(460, 420)
+        self.resize(480, 440)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
         self.setStyleSheet("""
             QDialog {
@@ -67,13 +67,14 @@ class SettingsDialog(QDialog):
         layout_api = QVBoxLayout(tab_api)
         layout_api.setSpacing(10)
 
-        group_api = QGroupBox("범정부 AI / OpenAI / 로컬 LLM 연동 설정", tab_api)
+        group_api = QGroupBox("CLOVA Studio GOV / 공공 AI / LLM 연동 설정", tab_api)
         form_api = QFormLayout(group_api)
         form_api.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         form_api.setSpacing(8)
 
         # Provider Presets
         self.combo_preset = QComboBox(group_api)
+        self.combo_preset.addItem("CLOVA Studio GOV (api.clovastudio.go.kr)", "clova_gov")
         self.combo_preset.addItem("범정부 AI (dev.ai.go.kr)", "gov")
         self.combo_preset.addItem("OpenAI (api.openai.com)", "openai")
         self.combo_preset.addItem("로컬 Ollama (localhost:11434)", "ollama")
@@ -83,8 +84,8 @@ class SettingsDialog(QDialog):
         form_api.addRow("API 프리셋:", self.combo_preset)
 
         self.edit_endpoint = QLineEdit(group_api)
-        self.edit_endpoint.setText(self.config.get("api_endpoint", "https://dev.ai.go.kr/api/v1/chat/completions"))
-        self.edit_endpoint.setPlaceholderText("https://dev.ai.go.kr/api/v1/chat/completions")
+        self.edit_endpoint.setText(self.config.get("api_endpoint", "https://api.clovastudio.go.kr/api/v1/chat/completions"))
+        self.edit_endpoint.setPlaceholderText("https://api.clovastudio.go.kr/api/v1/chat/completions")
         form_api.addRow("API 엔드포인트:", self.edit_endpoint)
 
         self.edit_apikey = QLineEdit(group_api)
@@ -94,14 +95,18 @@ class SettingsDialog(QDialog):
         form_api.addRow("API Key:", self.edit_apikey)
 
         self.edit_model = QLineEdit(group_api)
-        self.edit_model.setText(self.config.get("model", "gov-gpt-4o"))
+        self.edit_model.setText(self.config.get("model", "HCX-GOV-THINK-V1-32B"))
         form_api.addRow("모델명 (Model):", self.edit_model)
 
         self.spin_timeout = QSpinBox(group_api)
-        self.spin_timeout.setRange(2, 30)
-        self.spin_timeout.setValue(self.config.get("timeout_sec", 5))
+        self.spin_timeout.setRange(2, 60)
+        self.spin_timeout.setValue(self.config.get("timeout_sec", 10))
         self.spin_timeout.setSuffix(" 초")
         form_api.addRow("요청 타임아웃:", self.spin_timeout)
+
+        self.chk_stream = QCheckBox("실시간 토큰 스트리밍 (stream: true) 활성화", group_api)
+        self.chk_stream.setChecked(self.config.get("stream_enabled", True))
+        form_api.addRow("", self.chk_stream)
 
         self.chk_ssl = QCheckBox("SSL 인증서 검증 건너뛰기 (망분리/행정망 사설 인증서 대응)", group_api)
         self.chk_ssl.setChecked(not self.config.get("ssl_verify", False))
@@ -153,11 +158,15 @@ class SettingsDialog(QDialog):
         self.edit_user_name.setText(self.config.get("user_nickname", "공직자님"))
         form_profile.addRow("사용자 호칭:", self.edit_user_name)
 
+        self.chk_proactive = QCheckBox("🌿 화분의 자발적 말걸기 (상태이상/1.5시간 넛지/점심·퇴근 인사) 활성화", group_profile)
+        self.chk_proactive.setChecked(self.config.get("proactive_speech", True))
+        form_profile.addRow("", self.chk_proactive)
+
         self.chk_ontop = QCheckBox("항상 화면 최상위에 고정 (Always On Top)", group_profile)
         self.chk_ontop.setChecked(self.config.get("always_on_top", True))
         form_profile.addRow("", self.chk_ontop)
 
-        self.chk_compact = QCheckBox("✨ 클릭 시 메뉴 표시 모드 (화분 클릭 시 메뉴 토글, 이동 시 화분만 표시)", group_profile)
+        self.chk_compact = QCheckBox("✨ 클릭 시 메뉴 표시 모드 (화분 클릭 시 메뉴 토글)", group_profile)
         self.chk_compact.setChecked(self.config.get("compact_hover_mode", True))
         form_profile.addRow("", self.chk_compact)
 
@@ -165,138 +174,127 @@ class SettingsDialog(QDialog):
         self.chk_ghost.setChecked(self.config.get("ghost_mode", False))
         form_profile.addRow("", self.chk_ghost)
 
-        self.chk_hourly = QCheckBox("⏰ 정시 리프레시 알림 (매 시 정각 스트레칭/시간대별 응원)", group_profile)
-        self.chk_hourly.setChecked(self.config.get("hourly_peek", True))
-        form_profile.addRow("", self.chk_hourly)
-
-        self.chk_idle = QCheckBox("☕ PC 휴식(유휴 3분) 감지 힐링 알림 (작업 안 할 때 등장)", group_profile)
-        self.chk_idle.setChecked(self.config.get("idle_peek", True))
-        form_profile.addRow("", self.chk_idle)
-
         self.combo_scale = QComboBox(group_profile)
         self.combo_scale.setStyleSheet("""
             QComboBox {
                 background-color: #FFFFFF;
                 border: 1px solid #CBD5E1;
                 border-radius: 6px;
-                padding: 5px 10px;
-                font-size: 11px;
-                color: #1E293B;
+                padding: 4px 8px;
+                font-size: 12px;
             }
         """)
-        scale_presets = [
-            ("75% (아담한 미니 화분)", 75),
-            ("85% (약간 작게)", 85),
-            ("100% (보통 크기 - 기본값)", 100),
-            ("115% (약간 크게)", 115),
-            ("130% (크게 보기)", 130),
-            ("145% (시원한 대형 화분)", 145)
-        ]
-        curr_s = self.config.get("plant_scale", 100)
-        for label, val in scale_presets:
-            self.combo_scale.addItem(label, val)
-        idx = self.combo_scale.findData(curr_s)
+        for sc in [70, 80, 90, 100, 110, 120, 130, 140, 150]:
+            self.combo_scale.addItem(f"{sc}%", sc)
+        curr_scale = self.config.get("plant_scale", 100)
+        idx = self.combo_scale.findData(curr_scale)
         if idx >= 0:
             self.combo_scale.setCurrentIndex(idx)
-        else:
-            self.combo_scale.setCurrentIndex(2)
-        form_profile.addRow("🔍 화분 크기 조절:", self.combo_scale)
+        form_profile.addRow("화분 크기 배율:", self.combo_scale)
 
         self.spin_bubble_time = QSpinBox(group_profile)
-        self.spin_bubble_time.setRange(3, 30)
-        self.spin_bubble_time.setValue(self.config.get("bubble_duration_sec", 4))
+        self.spin_bubble_time.setRange(2, 15)
+        self.spin_bubble_time.setValue(self.config.get("bubble_duration_sec", 5))
         self.spin_bubble_time.setSuffix(" 초")
-        form_profile.addRow("말풍선 노출 시간:", self.spin_bubble_time)
+        form_profile.addRow("말풍선 지속 시간:", self.spin_bubble_time)
 
         self.spin_decay = QSpinBox(group_profile)
         self.spin_decay.setRange(5, 180)
         self.spin_decay.setValue(self.config.get("decay_interval_minutes", 30))
         self.spin_decay.setSuffix(" 분")
-        form_profile.addRow("자연 감쇠 주기:", self.spin_decay)
+        form_profile.addRow("상태 감소 주기:", self.spin_decay)
 
         layout_plant.addWidget(group_profile)
         layout_plant.addStretch()
-        tabs.addTab(tab_plant, "🌱 화분/위젯 설정")
+        tabs.addTab(tab_plant, "🌱 화분 & 인터랙션")
 
-        # Tab 3: Data Management & Reset
+        # Tab 3: Data Management
         tab_data = QWidget()
         layout_data = QVBoxLayout(tab_data)
         layout_data.setSpacing(12)
 
-        group_reset = QGroupBox("데이터 초기화 및 관리", tab_data)
-        layout_btn_group = QVBoxLayout(group_reset)
-        layout_btn_group.setSpacing(10)
+        group_danger = QGroupBox("데이터 초기화 및 관리", tab_data)
+        layout_danger = QVBoxLayout(group_danger)
+        layout_danger.setSpacing(10)
 
-        btn_clear_chat = QPushButton("🧹 대화 기록 전체 삭제", group_reset)
+        lbl_warn = QLabel("⚠️ 데이터 초기화 작업은 되돌릴 수 없으므로 신중히 선택해주세요.")
+        lbl_warn.setStyleSheet("color: #DC2626; font-size: 11px;")
+        layout_danger.addWidget(lbl_warn)
+
+        btn_clear_chat = QPushButton("🗑️ 대화 기록만 초기화", group_danger)
+        btn_clear_chat.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_clear_chat.setStyleSheet("""
             QPushButton {
-                background-color: #FEF3C7;
-                border: 1px solid #FCD34D;
+                background-color: #FEF2F2;
+                border: 1px solid #FECACA;
                 border-radius: 6px;
-                padding: 8px;
-                color: #92400E;
+                padding: 8px 12px;
+                color: #B91C1C;
                 font-weight: bold;
             }
-            QPushButton:hover { background-color: #FDE68A; }
+            QPushButton:hover { background-color: #FEE2E2; }
         """)
         btn_clear_chat.clicked.connect(self.on_clear_chat)
-        layout_btn_group.addWidget(btn_clear_chat)
+        layout_danger.addWidget(btn_clear_chat)
 
-        btn_reset_plant = QPushButton("🔄 화분 성장 상태 초기화 (1단계 새싹으로)", group_reset)
+        btn_reset_plant = QPushButton("🔄 화분 성장 상태 초기화 (1단계 새싹으로 리셋)", group_danger)
+        btn_reset_plant.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_reset_plant.setStyleSheet("""
             QPushButton {
-                background-color: #FEE2E2;
-                border: 1px solid #FCA5A5;
+                background-color: #FFF1F2;
+                border: 1px solid #FFE4E6;
                 border-radius: 6px;
-                padding: 8px;
-                color: #991B1B;
+                padding: 8px 12px;
+                color: #BE123C;
                 font-weight: bold;
             }
-            QPushButton:hover { background-color: #FECACA; }
+            QPushButton:hover { background-color: #FFE4E6; }
         """)
         btn_reset_plant.clicked.connect(self.on_reset_plant)
-        layout_btn_group.addWidget(btn_reset_plant)
+        layout_danger.addWidget(btn_reset_plant)
 
-        layout_data.addWidget(group_reset)
+        layout_data.addWidget(group_danger)
         layout_data.addStretch()
         tabs.addTab(tab_data, "💾 데이터 관리")
 
         layout.addWidget(tabs)
 
-        # Bottom Button Box
+        # Bottom Buttons
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
-        btn_cancel = QPushButton("취소", self)
-        btn_cancel.setStyleSheet("""
+        self.btn_cancel = QPushButton("취소", self)
+        self.btn_cancel.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_cancel.setStyleSheet("""
             QPushButton {
-                background-color: #E2E8F0;
-                border: none;
+                background-color: #F1F5F9;
+                border: 1px solid #CBD5E1;
                 border-radius: 6px;
                 padding: 8px 16px;
-                font-weight: bold;
                 color: #475569;
+                font-weight: bold;
             }
-            QPushButton:hover { background-color: #CBD5E1; }
+            QPushButton:hover { background-color: #E2E8F0; }
         """)
-        btn_cancel.clicked.connect(self.reject)
+        self.btn_cancel.clicked.connect(self.close)
 
-        btn_save = QPushButton("저장하기 💾", self)
-        btn_save.setStyleSheet("""
+        self.btn_save = QPushButton("💾 설정 저장", self)
+        self.btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_save.setStyleSheet("""
             QPushButton {
-                background-color: #10B981;
+                background-color: #059669;
                 border: none;
                 border-radius: 6px;
-                padding: 8px 18px;
+                padding: 8px 20px;
+                color: #FFFFFF;
                 font-weight: bold;
-                color: white;
             }
-            QPushButton:hover { background-color: #059669; }
+            QPushButton:hover { background-color: #047857; }
         """)
-        btn_save.clicked.connect(self.save_settings)
+        self.btn_save.clicked.connect(self.save_settings)
 
-        btn_row.addWidget(btn_cancel)
-        btn_row.addWidget(btn_save)
+        btn_row.addWidget(self.btn_cancel)
+        btn_row.addWidget(self.btn_save)
         layout.addLayout(btn_row)
 
     def save_settings(self):
@@ -305,25 +303,29 @@ class SettingsDialog(QDialog):
         self.config.set("api_key", self.edit_apikey.text().strip(), auto_save=False)
         self.config.set("model", self.edit_model.text().strip(), auto_save=False)
         self.config.set("timeout_sec", self.spin_timeout.value(), auto_save=False)
+        self.config.set("stream_enabled", self.chk_stream.isChecked(), auto_save=False)
         self.config.set("ssl_verify", not self.chk_ssl.isChecked(), auto_save=False)
         self.config.set("plant_name", self.edit_plant_name.text().strip() or "초록이", auto_save=False)
         self.config.set("user_nickname", self.edit_user_name.text().strip() or "공직자님", auto_save=False)
+        self.config.set("proactive_speech", self.chk_proactive.isChecked(), auto_save=False)
         self.config.set("always_on_top", self.chk_ontop.isChecked(), auto_save=False)
         self.config.set("compact_hover_mode", self.chk_compact.isChecked(), auto_save=False)
         self.config.set("ghost_mode", self.chk_ghost.isChecked(), auto_save=False)
-        self.config.set("hourly_peek", self.chk_hourly.isChecked(), auto_save=False)
-        self.config.set("idle_peek", self.chk_idle.isChecked(), auto_save=False)
         self.config.set("bubble_duration_sec", self.spin_bubble_time.value(), auto_save=False)
         self.config.set("decay_interval_minutes", self.spin_decay.value(), auto_save=False)
         self.config.set("plant_scale", self.combo_scale.currentData(), auto_save=False)
 
         self.config.save()
         self.settings_saved.emit()
-        self.accept()
+        self.close()
 
     def on_preset_changed(self, index: int):
         preset = self.combo_preset.currentData()
-        if preset == "gov":
+        if preset == "clova_gov":
+            self.edit_endpoint.setText("https://api.clovastudio.go.kr/api/v1/chat/completions")
+            self.edit_model.setText("HCX-GOV-THINK-V1-32B")
+            self.chk_stream.setChecked(True)
+        elif preset == "gov":
             self.edit_endpoint.setText("https://dev.ai.go.kr/api/v1/chat/completions")
             self.edit_model.setText("gov-gpt-4o")
         elif preset == "openai":
@@ -400,4 +402,3 @@ class SettingsDialog(QDialog):
             self.close()
         else:
             super().keyPressEvent(event)
-
