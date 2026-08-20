@@ -56,6 +56,98 @@ def get_resource_path(relative_path: str) -> str:
         
     return os.path.abspath(relative_path)
 
+import base64
+import ctypes
+from ctypes import wintypes
+
+SENSITIVE_KEYS = {"api_key", "clova_api_key", "api_gateway_key", "clova_apigw_key", "secret_key"}
+
+class DATA_BLOB(ctypes.Structure):
+    _fields_ = [
+        ('cbData', wintypes.DWORD),
+        ('pbData', ctypes.POINTER(ctypes.c_byte))
+    ]
+
+def encrypt_secret(plaintext: str) -> str:
+    """
+    Encrypt plaintext string using Windows Enterprise DPAPI (CryptProtectData).
+    The ciphertext is bound to the current Windows user and machine.
+    """
+    if not plaintext:
+        return ""
+    if plaintext.startswith("ENC:"):
+        return plaintext
+
+    # 1. Windows Native DPAPI (100% standard built into Windows crypt32.dll)
+    try:
+        data = plaintext.encode('utf-8')
+        blob_in = DATA_BLOB(len(data), ctypes.cast(ctypes.create_string_buffer(data, len(data)), ctypes.POINTER(ctypes.c_byte)))
+        blob_out = DATA_BLOB()
+        if ctypes.windll.crypt32.CryptProtectData(
+            ctypes.byref(blob_in),
+            "PlantWidgetSecret",
+            None,
+            None,
+            None,
+            0x1, # CRYPTPROTECT_UI_FORBIDDEN
+            ctypes.byref(blob_out)
+        ):
+            encrypted_bytes = ctypes.string_at(blob_out.pbData, blob_out.cbData)
+            ctypes.windll.kernel32.LocalFree(blob_out.pbData)
+            return "ENC:" + base64.b64encode(encrypted_bytes).decode('utf-8')
+    except Exception:
+        pass
+
+    # 2. Universal Machine-Bound Fallback (XOR + SHA256)
+    try:
+        import platform, hashlib
+        uname = os.getlogin() if hasattr(os, 'getlogin') else 'user'
+        salt = hashlib.sha256(f"PlantWidget_{platform.node()}_{uname}".encode()).digest()
+        raw = plaintext.encode('utf-8')
+        enc = bytes([b ^ salt[i % len(salt)] for i, b in enumerate(raw)])
+        return "ENC:" + base64.b64encode(enc).decode('utf-8')
+    except Exception:
+        return plaintext
+
+def decrypt_secret(ciphertext: str) -> str:
+    """
+    Decrypt ciphertext string using Windows DPAPI or fallback cipher.
+    """
+    if not ciphertext or not isinstance(ciphertext, str) or not ciphertext.startswith("ENC:"):
+        return ciphertext
+
+    raw_b64 = ciphertext[4:]
+    # 1. Windows Native DPAPI
+    try:
+        encrypted_bytes = base64.b64decode(raw_b64)
+        blob_in = DATA_BLOB(len(encrypted_bytes), ctypes.cast(ctypes.create_string_buffer(encrypted_bytes, len(encrypted_bytes)), ctypes.POINTER(ctypes.c_byte)))
+        blob_out = DATA_BLOB()
+        if ctypes.windll.crypt32.CryptUnprotectData(
+            ctypes.byref(blob_in),
+            None,
+            None,
+            None,
+            None,
+            0x1,
+            ctypes.byref(blob_out)
+        ):
+            decrypted_bytes = ctypes.string_at(blob_out.pbData, blob_out.cbData)
+            ctypes.windll.kernel32.LocalFree(blob_out.pbData)
+            return decrypted_bytes.decode('utf-8')
+    except Exception:
+        pass
+
+    # 2. Fallback XOR Decrypt
+    try:
+        import platform, hashlib
+        uname = os.getlogin() if hasattr(os, 'getlogin') else 'user'
+        salt = hashlib.sha256(f"PlantWidget_{platform.node()}_{uname}".encode()).digest()
+        enc = base64.b64decode(raw_b64)
+        dec = bytes([b ^ salt[i % len(salt)] for i, b in enumerate(enc)])
+        return dec.decode('utf-8')
+    except Exception:
+        return ciphertext
+
 class ConfigManager:
     def __init__(self, config_file: str = "config.json"):
         self.config_path = os.path.join(get_base_dir(), config_file)
@@ -63,11 +155,17 @@ class ConfigManager:
         self.load()
 
     def load(self):
-        """Load configuration from JSON file or create with defaults."""
+        """Load configuration from JSON file and automatically decrypt encrypted fields."""
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     user_cfg = json.load(f)
+
+                    # Decrypt sensitive fields seamlessly
+                    for k in SENSITIVE_KEYS:
+                        if k in user_cfg and isinstance(user_cfg[k], str) and user_cfg[k].startswith("ENC:"):
+                            user_cfg[k] = decrypt_secret(user_cfg[k])
+
                     self.config.update(user_cfg)
             except Exception as e:
                 print(f"[ConfigManager] Error reading config: {e}. Using defaults.")
@@ -75,10 +173,17 @@ class ConfigManager:
             self.save()
 
     def save(self):
-        """Save current configuration to JSON file."""
+        """Save current configuration to JSON file with sensitive fields encrypted via Windows DPAPI."""
         try:
+            dump_data = dict(self.config)
+            for k in SENSITIVE_KEYS:
+                if k in dump_data and dump_data[k]:
+                    val = str(dump_data[k])
+                    if not val.startswith("ENC:"):
+                        dump_data[k] = encrypt_secret(val)
+
             with open(self.config_path, "w", encoding="utf-8") as f:
-                json.dump(self.config, f, indent=4, ensure_ascii=False)
+                json.dump(dump_data, f, indent=4, ensure_ascii=False)
         except Exception as e:
             print(f"[ConfigManager] Error writing config: {e}")
 
