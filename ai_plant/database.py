@@ -211,16 +211,20 @@ class DatabaseManager:
 
             # Ensure default free items are present
             now_str = datetime.datetime.now().isoformat()
+            cursor.execute("DELETE FROM user_inventory WHERE item_type = 'saucer' AND item_id = 'none'")
             cursor.execute("""
                 INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
                 VALUES ('saucer', 'basic', ?, 1)
             """, (now_str,))
-            # Migrate old 'none' saucer to 'basic' if equipped
-            cursor.execute("UPDATE user_inventory SET item_id = 'basic' WHERE item_type = 'saucer' AND item_id = 'none'")
             cursor.execute("""
                 INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
                 VALUES ('pet', 'none', ?, 1)
             """, (now_str,))
+
+            # Ensure at least one saucer is equipped
+            cursor.execute("SELECT COUNT(*) FROM user_inventory WHERE item_type = 'saucer' AND is_equipped = 1")
+            if cursor.fetchone()[0] == 0:
+                cursor.execute("UPDATE user_inventory SET is_equipped = 1 WHERE item_type = 'saucer' AND item_id = 'basic'")
 
             # Insert initial state if not present
             cursor.execute("SELECT COUNT(*) FROM plant_state WHERE id = 1")
