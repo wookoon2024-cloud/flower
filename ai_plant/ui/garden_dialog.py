@@ -199,7 +199,7 @@ class GardenDialog(QDialog):
     def init_ui(self):
         plant_name = self.config.get("plant_name", "초록이")
         self.setWindowTitle(f"🌿 나의 화원 & 도감 - {plant_name}")
-        self.resize(750, 600)
+        self.resize(790, 610)
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowCloseButtonHint |
@@ -778,33 +778,36 @@ class GardenDialog(QDialog):
                         btn.setEnabled(True)
 
         # Build Saucer Cards (2 Columns)
+        grid1.setColumnStretch(0, 1)
+        grid1.setColumnStretch(1, 1)
         for idx, (s_id, s_info) in enumerate(SAUCER_CATALOG.items()):
             row = idx // 2
             col = idx % 2
             card = QFrame()
             c_l = QHBoxLayout(card)
-            c_l.setContentsMargins(10, 8, 10, 8)
-            c_l.setSpacing(8)
+            c_l.setContentsMargins(8, 6, 8, 6)
+            c_l.setSpacing(6)
 
             icon_lbl = QLabel(s_info["emoji"])
-            icon_lbl.setStyleSheet("font-size: 24px; border: none; background: transparent;")
-            icon_lbl.setFixedWidth(30)
+            icon_lbl.setStyleSheet("font-size: 22px; border: none; background: transparent;")
+            icon_lbl.setFixedWidth(28)
             icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             info_l = QVBoxLayout()
-            info_l.setSpacing(2)
-            cost_str = f"🪙 {s_info['cost']} 주화" if s_info['cost'] > 0 else "무료"
-            title_l = QLabel(f"<b>{s_info['name']}</b> <span style='font-size:10px; color:#D97706; font-weight:bold;'>({cost_str})</span>")
-            title_l.setStyleSheet("font-size: 11.5px; color: #1E293B;")
+            info_l.setSpacing(1)
+            cost_str = f"🪙 {s_info['cost']} 주화" if s_info['cost'] > 0 else "기본 무료"
+            title_l = QLabel(f"<b>{s_info['name']}</b><br><span style='font-size:10px; color:#D97706; font-weight:bold;'>{cost_str}</span>")
+            title_l.setStyleSheet("font-size: 11px; color: #1E293B;")
+            title_l.setWordWrap(True)
             desc_l = QLabel(s_info["desc"])
-            desc_l.setStyleSheet("font-size: 10px; color: #64748B;")
+            desc_l.setStyleSheet("font-size: 9.5px; color: #64748B;")
             desc_l.setWordWrap(True)
             info_l.addWidget(title_l)
             info_l.addWidget(desc_l)
 
             btn = QPushButton("구매")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setFixedWidth(82)
+            btn.setFixedWidth(72)
 
             def make_saucer_cb(sid=s_id, cost=s_info["cost"]):
                 def action():
@@ -830,33 +833,36 @@ class GardenDialog(QDialog):
         scroll_layout.addWidget(sec2_lbl)
 
         # Build Pet Cards (2 Columns)
+        grid2.setColumnStretch(0, 1)
+        grid2.setColumnStretch(1, 1)
         for idx, (p_id, p_info) in enumerate(PET_CATALOG.items()):
             row = idx // 2
             col = idx % 2
             card = QFrame()
             c_l = QHBoxLayout(card)
-            c_l.setContentsMargins(10, 8, 10, 8)
-            c_l.setSpacing(8)
+            c_l.setContentsMargins(8, 6, 8, 6)
+            c_l.setSpacing(6)
 
             icon_lbl = QLabel(p_info["emoji"])
-            icon_lbl.setStyleSheet("font-size: 24px; border: none; background: transparent;")
-            icon_lbl.setFixedWidth(30)
+            icon_lbl.setStyleSheet("font-size: 22px; border: none; background: transparent;")
+            icon_lbl.setFixedWidth(28)
             icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             info_l = QVBoxLayout()
-            info_l.setSpacing(2)
-            cost_str = f"🪙 {p_info['cost']} 주화" if p_info['cost'] > 0 else "무료"
-            title_l = QLabel(f"<b>{p_info['name']}</b> <span style='font-size:10px; color:#7E22CE; font-weight:bold;'>({cost_str})</span>")
-            title_l.setStyleSheet("font-size: 11.5px; color: #1E293B;")
+            info_l.setSpacing(1)
+            cost_str = f"🪙 {p_info['cost']} 주화" if p_info['cost'] > 0 else "기본 무료"
+            title_l = QLabel(f"<b>{p_info['name']}</b><br><span style='font-size:10px; color:#7E22CE; font-weight:bold;'>{cost_str}</span>")
+            title_l.setStyleSheet("font-size: 11px; color: #1E293B;")
+            title_l.setWordWrap(True)
             desc_l = QLabel(p_info["desc"])
-            desc_l.setStyleSheet("font-size: 10px; color: #64748B;")
+            desc_l.setStyleSheet("font-size: 9.5px; color: #64748B;")
             desc_l.setWordWrap(True)
             info_l.addWidget(title_l)
             info_l.addWidget(desc_l)
 
             btn = QPushButton("입양")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setFixedWidth(84)
+            btn.setFixedWidth(72)
 
             def make_pet_cb(pid=p_id, cost=p_info["cost"]):
                 def action():

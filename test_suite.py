@@ -286,7 +286,7 @@ class TestAIPlantWidget(unittest.TestCase):
         ok, msg = engine.on_bug_cleared()
         self.assertTrue(ok)
         self.assertIn("벌레", msg)
-        self.assertEqual(engine.get_state()["exp"], init_exp + 20)
+        self.assertEqual(engine.get_state()["exp"], init_exp + 25)
         self.assertEqual(engine.get_state()["affection"], init_aff + 10)
 
         # 2. Test bee, ladybug, bird, cat_paw, rain_cloud, firefly

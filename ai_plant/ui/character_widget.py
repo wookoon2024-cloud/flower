@@ -262,12 +262,11 @@ class PlantCharacterWidget(QWidget):
     eco_visitor_arrived = Signal(str) # visitor type
     pet_clicked = Signal(str)         # pet_id ("cat_calico", "dog_shiba", etc.)
 
-    def __init__(self, parent=None, scale_pct: int = 100):
+    def __init__(self, parent=None, scale_pct: int = 100, width: int = 240, height: int = 135):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.scale_pct = max(60, min(160, scale_pct))
-        sz = int(120 * (self.scale_pct / 100.0))
-        self.setFixedSize(sz, sz)
+        self.setFixedSize(width, height)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.current_stage = 1
@@ -280,8 +279,8 @@ class PlantCharacterWidget(QWidget):
         self.equipped_saucer: str = "none"
         self.equipped_pet: str = "none"
         self.pet_state: str = "sitting" # "walking", "sitting", "sleeping", "wandering", "greeting"
-        self.pet_x: float = 24.0
-        self.pet_target_x: float = 24.0
+        self.pet_x: float = 36.0
+        self.pet_target_x: float = 36.0
         self.pet_dir: int = 1
         self.pet_frame: int = 0
         self.pet_state_timer: int = 0
@@ -318,16 +317,27 @@ class PlantCharacterWidget(QWidget):
         """Set active pet companion roaming around the flowerpot."""
         self.equipped_pet = pet_id
         self.pet_state = "sitting"
-        self.pet_x = 24.0
+        self.pet_x = 36.0
+        self.pet_target_x = 36.0
         self.pet_state_timer = 0
         self._ensure_master_anim_running()
         self.update()
 
     def set_scale(self, scale_pct: int):
         self.scale_pct = max(60, min(160, scale_pct))
-        sz = int(120 * (self.scale_pct / 100.0))
-        self.setFixedSize(sz, sz)
+        s = self.scale_pct / 100.0
+        w = max(240, int(240 * s))
+        h = max(135, int(135 * s))
+        self.setFixedSize(w, h)
         self.load_resources(self.current_species)
+        self.update()
+
+    def set_scale_and_size(self, scale_pct: int, w: int, h: int):
+        self.scale_pct = max(60, min(160, scale_pct))
+        self.setFixedSize(w, h)
+        self.load_resources(self.current_species)
+        if self.pet_x < 18.0 or self.pet_x > self.width() - 18:
+            self.pet_x = 36.0
         self.update()
 
     def load_resources(self, species: str = "classic"):
@@ -463,7 +473,9 @@ class PlantCharacterWidget(QWidget):
                     r = random.random()
                     if r < 0.55:
                         self.pet_state = "walking"
-                        self.pet_target_x = float(random.randint(14, max(18, self.width() - 18)))
+                        target_left = random.randint(20, 52)
+                        target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
+                        self.pet_target_x = float(random.choice([target_left, target_right]))
                         self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
                     elif r < 0.85:
                         self.pet_state = "sleeping"
@@ -491,7 +503,9 @@ class PlantCharacterWidget(QWidget):
                 if abs(dx) < 1.0:
                     if self.pet_state_timer > 90:
                         self.pet_state = "walking"
-                        self.pet_target_x = float(random.randint(16, max(20, self.width() - 20)))
+                        target_left = random.randint(20, 52)
+                        target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
+                        self.pet_target_x = float(random.choice([target_left, target_right]))
                         self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
                         self.pet_state_timer = 0
                         self.spawn_particle("heart")
@@ -511,11 +525,11 @@ class PlantCharacterWidget(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            # Check click on active Pet Companion
+            # Check click on active Pet Companion (on the floor)
             if self.equipped_pet != "none":
                 pet_center_y = self.height() - 14
                 dist_pet = math.hypot(event.pos().x() - self.pet_x, event.pos().y() - pet_center_y)
-                if dist_pet <= 22.0:
+                if dist_pet <= 24.0:
                     self.pet_state = "greeting"
                     self.pet_state_timer = 0
                     self.spawn_particle("heart")
@@ -1013,7 +1027,6 @@ class PlantCharacterWidget(QWidget):
                 painter.setPen(QPen(QColor("#0284C7"), 1))
                 painter.setBrush(QColor("#38BDF8"))
                 painter.drawEllipse(QRectF(rx + int(9*scale), ey - int(8*scale), 4*scale, 6*scale))
-
             # DEFAULT / HAPPY
             else:
                 painter.setPen(pen_dark)
@@ -1024,92 +1037,102 @@ class PlantCharacterWidget(QWidget):
             pass
 
     def _draw_saucer(self, painter: QPainter, px: int, py: int, pw: int, ph: int):
-        """Draw equipped pot saucer (화분 받침대) underneath the pot base."""
+        """Draw equipped pot saucer (화분 받침대) prominently underneath the pot base."""
         if self.equipped_saucer == "none":
             return
 
         painter.save()
         base_cx = px + pw * 0.5
-        base_y = py + ph * 0.94
+        base_y = py + ph * 0.88
         s_id = self.equipped_saucer
 
+        # Wide, substantial saucer plate (clearly extends beyond pot base)
+        tray_w = max(78.0, pw * 0.78)
+        tray_h = max(13.0, ph * 0.12)
+        tray_rect = QRectF(base_cx - tray_w / 2, base_y, tray_w, tray_h)
+        lip_rect = QRectF(base_cx - (tray_w + 6) / 2, base_y, tray_w + 6, 4.5)
+
         if s_id == "wood":
-            # Warm Wooden Tray
-            tray_w = pw * 0.46
-            tray_h = max(4.0, ph * 0.05)
-            tray_rect = QRectF(base_cx - tray_w / 2, base_y - tray_h * 0.2, tray_w, tray_h)
-            
-            painter.setBrush(QColor(0, 0, 0, 30))
+            # Warm Natural Wood Tray
+            painter.setBrush(QColor(0, 0, 0, 50))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(1, 2, -1, 3), 3, 3)
+            painter.drawRoundedRect(tray_rect.adjusted(2, 3, -2, 4), 4, 4)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#D97706"))
-            grad.setColorAt(0.5, QColor("#B45309"))
+            grad.setColorAt(0.4, QColor("#B45309"))
+            grad.setColorAt(0.8, QColor("#92400E"))
             grad.setColorAt(1.0, QColor("#78350F"))
             painter.setBrush(grad)
             painter.setPen(QPen(QColor("#451A03"), 1.2))
-            painter.drawRoundedRect(tray_rect, 3.5, 3.5)
+            painter.drawRoundedRect(tray_rect, 4.5, 4.5)
 
-            painter.setPen(QPen(QColor("#FDE68A"), 0.8))
-            painter.drawLine(int(tray_rect.left() + 4), int(tray_rect.top() + 2), int(tray_rect.right() - 4), int(tray_rect.top() + 2))
+            painter.setBrush(QColor("#F59E0B"))
+            painter.setPen(QPen(QColor("#78350F"), 1.0))
+            painter.drawRoundedRect(lip_rect, 2.5, 2.5)
+
+            painter.setPen(QPen(QColor("#FDE68A"), 0.9))
+            painter.drawLine(int(tray_rect.left() + 6), int(tray_rect.top() + 6), int(tray_rect.right() - 6), int(tray_rect.top() + 6))
+            painter.setPen(QPen(QColor("#542207"), 0.8))
+            painter.drawLine(int(tray_rect.left() + 12), int(tray_rect.bottom() - 3), int(tray_rect.right() - 12), int(tray_rect.bottom() - 3))
 
         elif s_id == "marble":
-            # White Royal Marble Saucer
-            tray_w = pw * 0.48
-            tray_h = max(4.5, ph * 0.055)
-            tray_rect = QRectF(base_cx - tray_w / 2, base_y - tray_h * 0.2, tray_w, tray_h)
-
-            painter.setBrush(QColor(0, 0, 0, 35))
+            # Royal Pure White Marble Pedestal
+            painter.setBrush(QColor(0, 0, 0, 45))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(1, 2, -1, 3), 4, 4)
+            painter.drawRoundedRect(tray_rect.adjusted(2, 3, -2, 4), 5, 5)
 
-            grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
-            grad.setColorAt(0.0, QColor("#FFFFFF"))
-            grad.setColorAt(0.5, QColor("#F1F5F9"))
-            grad.setColorAt(1.0, QColor("#CBD5E1"))
-            painter.setBrush(grad)
+            grad_base = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
+            grad_base.setColorAt(0.0, QColor("#FFFFFF"))
+            grad_base.setColorAt(0.5, QColor("#F1F5F9"))
+            grad_base.setColorAt(1.0, QColor("#CBD5E1"))
+            painter.setBrush(grad_base)
             painter.setPen(QPen(QColor("#94A3B8"), 1.2))
-            painter.drawRoundedRect(tray_rect, 4, 4)
+            painter.drawRoundedRect(tray_rect, 5, 5)
 
-            painter.setPen(QPen(QColor(148, 163, 184, 140), 1.0))
-            painter.drawLine(int(tray_rect.left() + 10), int(tray_rect.top() + 2), int(tray_rect.left() + 25), int(tray_rect.bottom() - 2))
-            painter.drawLine(int(tray_rect.right() - 20), int(tray_rect.top() + 2), int(tray_rect.right() - 10), int(tray_rect.bottom() - 2))
+            painter.setBrush(QColor("#FFFFFF"))
+            painter.setPen(QPen(QColor("#CBD5E1"), 1.0))
+            painter.drawRoundedRect(lip_rect, 3, 3)
+
+            painter.setPen(QPen(QColor(148, 163, 184, 160), 1.1))
+            painter.drawLine(int(tray_rect.left() + 10), int(tray_rect.top() + 3), int(tray_rect.left() + 32), int(tray_rect.bottom() - 2))
+            painter.drawLine(int(tray_rect.right() - 28), int(tray_rect.top() + 2), int(tray_rect.right() - 10), int(tray_rect.bottom() - 3))
 
         elif s_id == "gold":
-            # Royal Golden Saucer
-            tray_w = pw * 0.50
-            tray_h = max(5.0, ph * 0.06)
-            tray_rect = QRectF(base_cx - tray_w / 2, base_y - tray_h * 0.25, tray_w, tray_h)
-
-            painter.setBrush(QColor(234, 179, 8, 50))
+            # Royal Golden Imperial Saucer
+            painter.setBrush(QColor(234, 179, 8, 70))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(-2, -1, 2, 3), 5, 5)
+            painter.drawRoundedRect(tray_rect.adjusted(-4, -2, 4, 5), 6, 6)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#FEF08A"))
-            grad.setColorAt(0.4, QColor("#EAB308"))
-            grad.setColorAt(0.8, QColor("#CA8A04"))
+            grad.setColorAt(0.3, QColor("#FACC15"))
+            grad.setColorAt(0.7, QColor("#CA8A04"))
             grad.setColorAt(1.0, QColor("#854D0E"))
             painter.setBrush(grad)
-            painter.setPen(QPen(QColor("#A16207"), 1.2))
-            painter.drawRoundedRect(tray_rect, 4, 4)
+            painter.setPen(QPen(QColor("#A16207"), 1.3))
+            painter.drawRoundedRect(tray_rect, 5, 5)
 
-            painter.setBrush(QColor("#EF4444"))
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(QPointF(tray_rect.left() + 6, tray_rect.center().y()), 2, 2)
-            painter.setBrush(QColor("#3B82F6"))
-            painter.drawEllipse(QPointF(tray_rect.right() - 6, tray_rect.center().y()), 2, 2)
+            painter.setBrush(QColor("#FEF08A"))
+            painter.setPen(QPen(QColor("#CA8A04"), 1.0))
+            painter.drawRoundedRect(lip_rect, 3, 3)
+
+            # Gems on rim
+            painter.setBrush(QColor("#EF4444")) # Ruby
+            painter.setPen(QPen(QColor("#991B1B"), 0.8))
+            painter.drawEllipse(QPointF(tray_rect.left() + 7, tray_rect.top() + tray_rect.height() * 0.55), 2.8, 2.8)
+            painter.setBrush(QColor("#3B82F6")) # Sapphire
+            painter.setPen(QPen(QColor("#1E40AF"), 0.8))
+            painter.drawEllipse(QPointF(tray_rect.right() - 7, tray_rect.top() + tray_rect.height() * 0.55), 2.8, 2.8)
+            painter.setBrush(QColor("#10B981")) # Emerald
+            painter.setPen(QPen(QColor("#065F46"), 0.8))
+            painter.drawEllipse(QPointF(base_cx, tray_rect.top() + tray_rect.height() * 0.55), 2.5, 2.5)
 
         elif s_id == "amethyst":
-            # Crystal Amethyst Saucer
-            tray_w = pw * 0.50
-            tray_h = max(5.0, ph * 0.065)
-            tray_rect = QRectF(base_cx - tray_w / 2, base_y - tray_h * 0.25, tray_w, tray_h)
-
-            painter.setBrush(QColor(168, 85, 247, 60))
+            # Mystic Amethyst Crystal Saucer
+            painter.setBrush(QColor(168, 85, 247, 80))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(tray_rect.adjusted(-3, -2, 3, 4), 6, 6)
+            painter.drawRoundedRect(tray_rect.adjusted(-5, -3, 5, 6), 7, 7)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.bottomLeft())
             grad.setColorAt(0.0, QColor("#F3E8FF"))
@@ -1117,19 +1140,22 @@ class PlantCharacterWidget(QWidget):
             grad.setColorAt(0.7, QColor("#9333EA"))
             grad.setColorAt(1.0, QColor("#581C87"))
             painter.setBrush(grad)
-            painter.setPen(QPen(QColor("#FFD700"), 1.2))
-            painter.drawRoundedRect(tray_rect, 4.5, 4.5)
+            painter.setPen(QPen(QColor("#E9D5FF"), 1.3))
+            painter.drawRoundedRect(tray_rect, 5.5, 5.5)
 
-            sparkle_phase = (self.expr_frame % 20) / 20.0
-            sparkle_x = tray_rect.left() + tray_rect.width() * sparkle_phase
-            painter.setBrush(QColor(255, 255, 255, 220))
-            painter.drawEllipse(QPointF(sparkle_x, tray_rect.top() + 3), 1.5, 1.5)
+            painter.setBrush(QColor("#E879F9"))
+            painter.drawRoundedRect(lip_rect, 3, 3)
+
+            sparkle_phase = (self.expr_frame % 25) / 25.0
+            sparkle_x = tray_rect.left() + 8 + (tray_rect.width() - 16) * sparkle_phase
+            painter.setBrush(QColor(255, 255, 255, 240))
+            painter.drawEllipse(QPointF(sparkle_x, tray_rect.top() + 5), 2.0, 2.0)
 
         elif s_id == "rainbow":
-            # Aurora Rainbow Saucer
-            tray_w = pw * 0.52
-            tray_h = max(5.0, ph * 0.07)
-            tray_rect = QRectF(base_cx - tray_w / 2, base_y - tray_h * 0.3, tray_w, tray_h)
+            # Aurora Rainbow Magic Saucer
+            painter.setBrush(QColor(236, 72, 153, 60))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(tray_rect.adjusted(-5, -3, 5, 6), 7, 7)
 
             grad = QLinearGradient(tray_rect.topLeft(), tray_rect.topRight())
             grad.setColorAt(0.0, QColor("#EC4899"))
@@ -1138,24 +1164,28 @@ class PlantCharacterWidget(QWidget):
             grad.setColorAt(0.75, QColor("#10B981"))
             grad.setColorAt(1.0, QColor("#F59E0B"))
             painter.setBrush(grad)
-            painter.setPen(QPen(QColor("#FFFFFF"), 1.2))
-            painter.drawRoundedRect(tray_rect, 5, 5)
+            painter.setPen(QPen(QColor("#FFFFFF"), 1.4))
+            painter.drawRoundedRect(tray_rect, 6, 6)
+
+            painter.setBrush(QColor(255, 255, 255, 180))
+            painter.drawRoundedRect(lip_rect, 3, 3)
 
         painter.restore()
 
     def _draw_pet_companion(self, painter: QPainter):
-        """Draw cute animated pet companion (고양이/강아지/토끼) next to the pot."""
+        """Draw cute animated pet companion (고양이/강아지/토끼) on the floor beside the pot."""
         if self.equipped_pet == "none":
             return
 
         p_id = self.equipped_pet
         x = self.pet_x
-        y = self.height() - 14
+        # Ground floor level: feet touch the bottom!
+        floor_y = self.height() - 2
         state = self.pet_state
         frame = self.pet_frame
 
         painter.save()
-        painter.translate(x, y)
+        painter.translate(x, floor_y)
         if self.pet_dir < 0 and state != "sleeping":
             painter.scale(-1, 1)
 
@@ -1165,104 +1195,128 @@ class PlantCharacterWidget(QWidget):
             body_color = QColor("#1E293B") if is_black else QColor("#FFFDF5")
             belly_color = QColor("#F8FAFC")
             ear_inner = QColor("#FDA4AF")
-            tail_angle = math.sin(frame * 0.18) * 18.0
+            tail_angle = math.sin(frame * 0.18) * 20.0
 
             if state == "sleeping":
+                # Donut sleeping cat on the floor
                 breath = math.sin(frame * 0.08) * 1.0
                 painter.setBrush(body_color)
                 painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-12, -10 - breath, 24, 14 + breath))
+                painter.drawEllipse(QRectF(-12, -12 - breath, 24, 12 + breath))
                 if not is_black:
                     painter.setBrush(QColor("#EA580C"))
-                    painter.drawEllipse(QRectF(-8, -9, 8, 7))
+                    painter.drawEllipse(QRectF(-8, -10, 8, 6))
                 painter.setPen(QPen(QColor("#475569") if is_black else QColor("#78350F"), 1.2))
-                painter.drawArc(QRectF(2, -7, 6, 4), 0, 180 * 16)
+                painter.drawArc(QRectF(2, -8, 6, 4), 0, 180 * 16)
                 painter.setPen(QPen(body_color, 2.5))
-                painter.drawArc(QRectF(-14, -6, 12, 10), 90 * 16, 180 * 16)
+                painter.drawArc(QRectF(-14, -7, 12, 8), 90 * 16, 180 * 16)
                 if (frame // 25) % 2 == 0:
                     painter.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
                     painter.setPen(QColor("#9333EA"))
-                    painter.drawText(QPointF(4, -14 - (frame % 25) * 0.3), "zZZ")
+                    painter.drawText(QPointF(4, -15 - (frame % 25) * 0.3), "zZZ")
             else:
                 step_y = math.sin(frame * 0.3) * 1.5 if state == "walking" else 0.0
+                # Tail
                 painter.save()
-                painter.translate(-8, -4)
+                painter.translate(-7, -4)
                 painter.rotate(tail_angle)
                 painter.setPen(QPen(body_color, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-                painter.drawLine(0, 0, -8, -10)
+                painter.drawLine(0, 0, -7, -9)
                 painter.restore()
 
+                # Paws on floor
+                painter.setBrush(belly_color if is_black else body_color)
+                painter.setPen(QPen(QColor("#CBD5E1") if not is_black else QColor("#0F172A"), 0.8))
+                painter.drawEllipse(QRectF(-7, -3 - step_y, 4, 3))
+                painter.drawEllipse(QRectF(3, -3 - step_y, 4, 3))
+
+                # Body
                 painter.setBrush(body_color)
                 painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-9, -14 - step_y, 18, 16))
+                painter.drawEllipse(QRectF(-8, -14 - step_y, 16, 13))
 
+                # Bib
                 painter.setBrush(belly_color)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawEllipse(QRectF(-4, -10 - step_y, 8, 9))
+                painter.drawEllipse(QRectF(-4, -11 - step_y, 8, 8))
 
                 if not is_black:
                     painter.setBrush(QColor("#EA580C"))
-                    painter.drawEllipse(QRectF(-7, -13 - step_y, 6, 6))
+                    painter.drawEllipse(QRectF(-6, -13 - step_y, 5, 5))
 
+                # Head
                 painter.setBrush(body_color)
                 painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-7, -22 - step_y, 14, 12))
+                painter.drawEllipse(QRectF(-7, -23 - step_y, 14, 12))
 
+                # Ears
                 painter.setBrush(body_color)
-                painter.drawPolygon([QPointF(-6, -21 - step_y), QPointF(-8, -27 - step_y), QPointF(-2, -22 - step_y)])
-                painter.drawPolygon([QPointF(2, -22 - step_y), QPointF(8, -27 - step_y), QPointF(6, -21 - step_y)])
+                painter.drawPolygon([QPointF(-6, -22 - step_y), QPointF(-8, -28 - step_y), QPointF(-2, -23 - step_y)])
+                painter.drawPolygon([QPointF(2, -23 - step_y), QPointF(8, -28 - step_y), QPointF(6, -22 - step_y)])
                 painter.setBrush(ear_inner)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawPolygon([QPointF(-5, -21 - step_y), QPointF(-7, -25 - step_y), QPointF(-3, -22 - step_y)])
-                painter.drawPolygon([QPointF(3, -22 - step_y), QPointF(7, -25 - step_y), QPointF(5, -21 - step_y)])
+                painter.drawPolygon([QPointF(-5, -22 - step_y), QPointF(-7, -26 - step_y), QPointF(-3, -23 - step_y)])
+                painter.drawPolygon([QPointF(3, -23 - step_y), QPointF(7, -26 - step_y), QPointF(5, -22 - step_y)])
 
+                # Eyes & nose
                 painter.setBrush(QColor("#0F172A") if not is_black else QColor("#FEF08A"))
-                painter.drawEllipse(QRectF(-4, -18 - step_y, 2.5, 2.5))
-                painter.drawEllipse(QRectF(1.5, -18 - step_y, 2.5, 2.5))
+                painter.drawEllipse(QRectF(-4, -19 - step_y, 2.5, 2.5))
+                painter.drawEllipse(QRectF(1.5, -19 - step_y, 2.5, 2.5))
                 painter.setBrush(QColor("#FDA4AF"))
-                painter.drawPolygon([QPointF(-1, -15 - step_y), QPointF(1, -15 - step_y), QPointF(0, -14 - step_y)])
+                painter.drawPolygon([QPointF(-1, -16 - step_y), QPointF(1, -16 - step_y), QPointF(0, -15 - step_y)])
 
+                # Whiskers
                 painter.setPen(QPen(QColor("#CBD5E1") if is_black else QColor("#94A3B8"), 0.8))
-                painter.drawLine(QPointF(-5, -15 - step_y), QPointF(-9, -16 - step_y))
-                painter.drawLine(QPointF(5, -15 - step_y), QPointF(9, -16 - step_y))
+                painter.drawLine(QPointF(-5, -16 - step_y), QPointF(-9, -17 - step_y))
+                painter.drawLine(QPointF(5, -16 - step_y), QPointF(9, -17 - step_y))
 
         # 2. Dogs (Shiba & Golden Retriever)
         elif p_id in ["dog_shiba", "dog_retriever"]:
             is_retriever = (p_id == "dog_retriever")
             coat_color = QColor("#FDE047") if is_retriever else QColor("#D97706")
             chest_color = QColor("#FEF9C3") if is_retriever else QColor("#FFFDF5")
-            tail_angle = math.sin(frame * 0.25) * 25.0
+            tail_angle = math.sin(frame * 0.25) * 28.0
 
             if state == "sleeping":
                 breath = math.sin(frame * 0.08) * 1.0
                 painter.setBrush(coat_color)
                 painter.setPen(QPen(QColor("#92400E"), 1.0))
-                painter.drawEllipse(QRectF(-13, -11 - breath, 26, 15 + breath))
+                painter.drawEllipse(QRectF(-13, -12 - breath, 26, 12 + breath))
                 painter.setBrush(chest_color)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawEllipse(QRectF(-4, -7 - breath, 12, 8))
+                painter.drawEllipse(QRectF(-4, -8 - breath, 12, 7))
                 painter.setPen(QPen(QColor("#78350F"), 1.2))
-                painter.drawArc(QRectF(3, -8, 6, 4), 0, 180 * 16)
+                painter.drawArc(QRectF(3, -9, 6, 4), 0, 180 * 16)
                 if (frame // 25) % 2 == 0:
                     painter.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
                     painter.setPen(QColor("#2563EB"))
-                    painter.drawText(QPointF(5, -14 - (frame % 25) * 0.3), "zZZ")
+                    painter.drawText(QPointF(5, -15 - (frame % 25) * 0.3), "zZZ")
             else:
                 step_y = math.sin(frame * 0.35) * 1.8 if state == "walking" else 0.0
+                # Tail
                 painter.save()
-                painter.translate(-9, -6)
+                painter.translate(-8, -5)
                 painter.rotate(tail_angle)
                 painter.setPen(QPen(coat_color, 3.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
                 painter.drawLine(0, 0, -8, -10 if not is_retriever else -6)
                 painter.restore()
 
+                # Paws on floor
+                painter.setBrush(chest_color)
+                painter.setPen(QPen(QColor("#B45309"), 0.8))
+                painter.drawEllipse(QRectF(-7, -3 - step_y, 4.5, 3.5))
+                painter.drawEllipse(QRectF(3, -3 - step_y, 4.5, 3.5))
+
+                # Body
                 painter.setBrush(coat_color)
                 painter.setPen(QPen(QColor("#92400E"), 1.0))
-                painter.drawEllipse(QRectF(-10, -15 - step_y, 20, 17))
+                painter.drawEllipse(QRectF(-9, -15 - step_y, 18, 14))
+                # Chest
                 painter.setBrush(chest_color)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawEllipse(QRectF(-4, -11 - step_y, 9, 10))
+                painter.drawEllipse(QRectF(-4, -11 - step_y, 8, 9))
 
+                # Head
                 painter.setBrush(coat_color)
                 painter.setPen(QPen(QColor("#92400E"), 1.0))
                 painter.drawEllipse(QRectF(-7, -24 - step_y, 15, 13))

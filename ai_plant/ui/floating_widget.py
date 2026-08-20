@@ -137,18 +137,19 @@ class FloatingPlantWindow(QWidget):
 
         self.setFixedSize(w, h)
 
-        # 1. Bottom: Plant Character (sits at bottom of window)
-        self.character.set_scale(scale_pct)
-        char_sz = int(120 * s)
-        char_x = (w - char_sz) // 2
-        char_y = h - char_sz
-        self.character.setGeometry(char_x, char_y, char_sz, char_sz)
+        # 1. Bottom: Plant Character (sits at bottom of window spanning full width so pets walk on floor)
+        char_w = w
+        char_h = max(135, int(135 * s))
+        char_x = 0
+        char_y = h - char_h
+        self.character.set_scale_and_size(scale_pct, char_w, char_h)
+        self.character.setGeometry(char_x, char_y, char_w, char_h)
 
         # 2. Middle: Speech Bubble (sits right above plant leaves)
         bubble_w = min(w - 16, int(224 * s))
         bubble_h = max(60, int(68 * s))
         bubble_x = (w - bubble_w) // 2
-        bubble_y = char_y - bubble_h - int(4 * s)
+        bubble_y = char_y - bubble_h + int(14 * s)
         self.bubble.setGeometry(bubble_x, bubble_y, bubble_w, bubble_h)
 
         # 3. Top: Control Bar (sits cleanly ABOVE the speech bubble)
