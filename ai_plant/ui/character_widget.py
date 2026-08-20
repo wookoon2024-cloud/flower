@@ -740,18 +740,38 @@ class PlantCharacterWidget(QWidget):
             scale = max(0.1, sprite_w / 200.0)
             progress = max(0.0, min(1.0, self.expr_frame / float(self.expr_total_frames)))
 
-            lx = px + int(89 * scale)
-            rx = px + int(111 * scale)
-            ey = py + int(162 * scale)
-            mx = px + int(100 * scale)
-            my = py + int(171 * scale)
+            is_starlight = (self.species == "starlight_rose")
 
-            eye_radius = max(2, int(5 * scale))
-            pen_dark = QPen(QColor("#3E2723"), max(2.0, 2.4 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-            brush_dark = QBrush(QColor("#3E2723"))
-            brush_pot = QBrush(QColor("#D27D46"))
+            if is_starlight:
+                lx = px + int(88 * scale)
+                rx = px + int(112 * scale)
+                ey = py + int(174 * scale)
+                mx = px + int(100 * scale)
+                my = py + int(180 * scale)
+                eye_radius = max(2, int(4.5 * scale))
+                pen_dark = QPen(QColor("#FDE047"), max(1.8, 2.2 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+                brush_dark = QBrush(QColor("#FEF08A"))
+                brush_pot = QBrush(QColor("#4C1D95"))
+                blush_brush = QBrush(QColor(232, 121, 249, 200))
+                blush_lx = px + int(78 * scale)
+                blush_rx = px + int(122 * scale)
+                blush_y = py + int(176 * scale)
+            else:
+                lx = px + int(89 * scale)
+                rx = px + int(111 * scale)
+                ey = py + int(162 * scale)
+                mx = px + int(100 * scale)
+                my = py + int(171 * scale)
+                eye_radius = max(2, int(5 * scale))
+                pen_dark = QPen(QColor("#3E2723"), max(2.0, 2.4 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+                brush_dark = QBrush(QColor("#3E2723"))
+                brush_pot = QBrush(QColor("#D27D46"))
+                blush_brush = QBrush(QColor(255, 138, 128, 200))
+                blush_lx = px + int(76 * scale)
+                blush_rx = px + int(124 * scale)
+                blush_y = py + int(165 * scale)
 
-            # 1. Mask default eyes & smile
+            # 1. Mask default eyes & smile with accurate pot color
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(brush_pot)
             painter.drawEllipse(QPointF(lx, ey), 8.0 * scale, 8.0 * scale)
@@ -773,7 +793,7 @@ class PlantCharacterWidget(QWidget):
                     painter.setBrush(brush_dark)
                     painter.drawEllipse(QPoint(lx, ey), eye_radius, eye_radius)
                     painter.drawEllipse(QPoint(rx, ey), eye_radius, eye_radius)
-                    painter.setBrush(QColor("#FFFFFF"))
+                    painter.setBrush(QColor("#FFFFFF") if not is_starlight else QColor("#1E1B4B"))
                     painter.drawEllipse(QPoint(lx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(1.8*scale)), max(1, int(1.8*scale)))
                     painter.drawEllipse(QPoint(rx - max(1, int(1.5*scale)), ey - max(1, int(1.5*scale))), max(1, int(1.8*scale)), max(1, int(1.8*scale)))
                 painter.setPen(pen_dark)
@@ -793,7 +813,7 @@ class PlantCharacterWidget(QWidget):
                 painter.drawEllipse(QPointF(mx, my), mouth_w / 2.0, mouth_h / 2.0)
                 if progress > 0.25:
                     painter.setFont(QFont("Malgun Gothic", max(8, int(9 * scale)), QFont.Weight.Bold))
-                    painter.setPen(QColor(139, 92, 246, int(220 * sine_open)))
+                    painter.setPen(QColor(139, 92, 246, int(220 * sine_open)) if not is_starlight else QColor(253, 224, 71, int(220 * sine_open)))
                     painter.drawText(mx + int(14 * scale), my - int((18 + 15 * progress) * scale), "zZZ")
 
             # 3. TONGUE (메롱 😋)
@@ -821,14 +841,14 @@ class PlantCharacterWidget(QWidget):
                 painter.setPen(pen_dark)
                 painter.drawArc(mx - int(8*scale), my - int(4*scale), max(8, int(16*scale)), max(5, int(9*scale)), 0, -180*16)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(255, 138, 128, 200))
-                painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
-                painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.setBrush(blush_brush)
+                painter.drawEllipse(QPoint(blush_lx, blush_y), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.drawEllipse(QPoint(blush_rx, blush_y), max(2, int(5*scale)), max(2, int(3.5*scale)))
 
             # 5. SPARKLE JOY (초롱초롱 기쁨 ✨)
             elif self.expr_type == "sparkle":
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor("#F59E0B"))
+                painter.setBrush(QColor("#F59E0B") if not is_starlight else QColor("#FDE047"))
                 for ex in [lx, rx]:
                     painter.drawPolygon([
                         QPointF(ex, ey - 5 * scale), QPointF(ex + 2 * scale, ey),
@@ -860,7 +880,7 @@ class PlantCharacterWidget(QWidget):
                 painter.drawEllipse(QPoint(rx, ey + int(1*scale)), int(eye_radius * 0.7), int(eye_radius * 0.7))
                 painter.drawEllipse(QPointF(mx, my), 2.5 * scale, 2.5 * scale)
                 painter.setFont(QFont("Malgun Gothic", max(9, int(11 * scale)), QFont.Weight.Bold))
-                painter.setPen(QColor("#2563EB"))
+                painter.setPen(QColor("#2563EB") if not is_starlight else QColor("#A78BFA"))
                 painter.drawText(mx + int(12 * scale), ey - int(8 * scale), "?")
 
             # 8. MELODY (노래 흥얼흥얼 🎵)
@@ -870,7 +890,7 @@ class PlantCharacterWidget(QWidget):
                 painter.drawArc(rx - int(5*scale), ey - int(3*scale), int(10*scale), int(6*scale), 20 * 16, 140 * 16)
                 painter.drawEllipse(QPointF(mx, my), 3.0 * scale, 3.0 * scale)
                 painter.setFont(QFont("Malgun Gothic", max(8, int(10 * scale))))
-                painter.setPen(QColor("#8B5CF6"))
+                painter.setPen(QColor("#8B5CF6") if not is_starlight else QColor("#FDE047"))
                 painter.drawText(mx + int(10 * scale), ey - int(10 * scale + progress * 6 * scale), "🎵")
 
             # 9. CHEER (불끈 파이팅 🔥)
@@ -881,9 +901,9 @@ class PlantCharacterWidget(QWidget):
                 painter.setPen(pen_dark)
                 painter.drawArc(mx - int(7*scale), my - int(4*scale), int(14*scale), int(9*scale), 0, -180*16)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(239, 68, 68, 180))
-                painter.drawEllipse(QPoint(px + int(76*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
-                painter.drawEllipse(QPoint(px + int(124*scale), py + int(165*scale)), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.setBrush(QColor(239, 68, 68, 180) if not is_starlight else blush_brush)
+                painter.drawEllipse(QPoint(blush_lx, blush_y), max(2, int(5*scale)), max(2, int(3.5*scale)))
+                painter.drawEllipse(QPoint(blush_rx, blush_y), max(2, int(5*scale)), max(2, int(3.5*scale)))
 
             # 10. SWEAT POUT (안도/머쓱 😌)
             elif self.expr_type == "sweat_pout":

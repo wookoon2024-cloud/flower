@@ -119,7 +119,8 @@ class PlantEngine(QObject):
         """
         Determines whether a plant species is available for cultivation.
         Basic 5 species are always unlocked.
-        'starlight_rose' requires all 5 basic species to have graduated (at Stage 6).
+        'starlight_rose' requires all 5 basic species to have graduated (at Stage 6)
+        or been cultivated to Stage 6.
         """
         if species_id not in SPECIES_INFO:
             return False
@@ -127,14 +128,26 @@ class PlantEngine(QObject):
             return True
 
         graduated = self.db.get_graduated_plants()
-        grad_species_set = set(p.get("species") for p in graduated if p.get("species"))
+        grad_species_set = set(p.get("species", "classic") for p in graduated if p.get("species"))
+        # If current plant reached Stage 6, it counts as completed towards unlocking the next seed!
+        if self.state.get("stage", 1) >= 6:
+            curr_sp = self.get_species()
+            if curr_sp:
+                grad_species_set.add(curr_sp)
+
         base_species = ["classic", "sunflower", "cactus", "clover", "cherry"]
         return all(sp in grad_species_set for sp in base_species)
 
     def get_species_unlock_progress(self, species_id: str = "starlight_rose") -> Tuple[int, int]:
         """Returns (completed_count, required_count) for secret species unlock."""
         graduated = self.db.get_graduated_plants()
-        grad_species_set = set(p.get("species") for p in graduated if p.get("species"))
+        grad_species_set = set(p.get("species", "classic") for p in graduated if p.get("species"))
+        # If current plant reached Stage 6, it counts immediately!
+        if self.state.get("stage", 1) >= 6:
+            curr_sp = self.get_species()
+            if curr_sp:
+                grad_species_set.add(curr_sp)
+
         base_species = ["classic", "sunflower", "cactus", "clover", "cherry"]
         completed = sum(1 for sp in base_species if sp in grad_species_set)
         return completed, len(base_species)

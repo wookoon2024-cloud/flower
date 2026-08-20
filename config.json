@@ -14,9 +14,9 @@
     "always_on_top": true,
     "sound_enabled": true,
     "user_nickname": "공직자님",
-    "plant_name": "초록이",
+    "plant_name": "벚꽃",
     "bubble_duration_sec": 5,
-    "window_pos_x": 1540,
+    "window_pos_x": 1554,
     "window_pos_y": 751,
     "compact_hover_mode": true,
     "ghost_mode": false,
@@ -24,5 +24,6 @@
     "idle_peek": true,
     "plant_scale": 100,
     "auto_start": true,
-    "initial_setup_done": true
+    "initial_setup_done": true,
+    "plant_species": "classic"
 }
