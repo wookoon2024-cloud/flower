@@ -104,21 +104,47 @@ FALLBACK_RESPONSES = {
         "📝 {plant}의 3줄 일기:\n- {user}이(가) 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
     ],
     "boss_stress": [
-        "{user}, 계장님이나 과장님 말씀 때문에 마음 상하셨군요... 누구보다 성실히 일하고 계신데 억울하고 답답하셨겠어요. {user} 잘못이 아니니 너무 마음에 담아두지 마세요 🍵 토닥토닥",
-        "상사와의 관계는 정말 에너지가 많이 쓰이죠... {user}, 오늘 힘드셨던 감정은 제 화분에 훌훌 털어버리세요. 제가 100% {user} 편이에요! 🌸",
-        "지시가 불명확하거나 말이 날카로울 땐 정말 막막하죠. 지금은 깊게 심호흡하고 시원한 물 한잔 드시면서 마음부터 챙겨요, {user} 🌿"
+        "계장님이나 과장님, 팀장님 때문에 오늘 마음고생 많으셨죠... 상사 눈치 보느라 {user}의 에너지가 많이 닳으셨을 것 같아요. {user}의 잘못이 아니니 너무 마음에 담아두지 마세요 🍵",
+        "일방적인 지시나 무리한 업무 요구를 받으면 정말 막막하고 답답하죠... 오늘은 잠시 머리를 식히고, 내일 차분하게 한 단계씩 풀어나가요. 제가 항상 {user} 편이에요! 🌸",
+        "상사와의 관계는 늘 조심스럽고 스트레스가 크죠. 퇴근 후에는 직장 일은 서랍 속에 쏙 넣어두고, 온전히 {user}의 편안한 저녁을 보내세요 🏡✨",
+        "선배나 부서장님의 잔소리에 기죽지 마세요! {user}은(는) 이미 충분히 몫을 다하고 계시고 정말 훌륭한 공직자예요 🍀"
     ],
     "peer_stress": [
         "팀원이나 동료와 손발이 안 맞고 갈등이 생기면 하루 종일 신경 쓰이죠... {user}의 배려와 노력을 제가 다 알고 있어요 ✨",
-        "혼자서 짐을 다 짊어지신 건 아닌가요, {user}? 섭섭하고 답답한 마음 저한테 편하게 털어놓으세요. 제가 다 들어드릴게요 🪴"
+        "혼자서 짐을 다 짊어지신 건 아닌가요, {user}? 섭섭하고 답답한 마음 저한테 편하게 털어놓으세요. 제가 다 들어드릴게요 🪴",
+        "사람 마음이 다 내 마음 같지 않아서 인간관계가 제일 어렵죠. 너무 애써서 맞추려 하지 마시고 {user}의 마음부터 편안하게 챙겨주세요 🌸"
     ],
     "workload_stress": [
         "끝없이 쏟아지는 업무와 마감 압박 때문에 숨이 턱 막히셨죠... {user}, 한 번에 한 가지씩만 차근차근 해내면 돼요. 너무 자책하지 마세요 ☕",
-        "악성 민원이나 과중한 업무는 정말 사람을 지치게 만들어요. 오늘만큼은 퇴근 후에 맛있는 것 드시고 온전히 {user}만을 위한 쉼을 가지세요 🏡✨"
+        "악성 민원이나 과중한 업무는 정말 사람을 지치게 만들어요. 오늘만큼은 퇴근 후에 맛있는 것 드시고 온전히 {user}만을 위한 쉼을 가지세요 🏡✨",
+        "서류와 보고서에 둘러싸여 고군분투하시는 {user}, 잠시 창밖 하늘을 보며 깊게 숨을 들이마셔 보세요. 파이팅이에요! 🌿"
+    ],
+    "career_stress": [
+        "인사철이나 평가 기간에는 마음이 싱숭생숭하고 불안하죠... {user}이(가) 흘린 땀방울과 성실함은 결코 헛되지 않을 거예요 🌟",
+        "앞으로의 진로나 업무 배정 때문에 고민이 많으시군요. 언제나 {user}의 능력과 진심을 믿어요! 잘 풀릴 거예요 ✨"
+    ],
+    "monday_stress": [
+        "월요병 때문에 아침부터 몸과 마음이 무거우셨죠? 월요일만 무사히 넘겨도 일주일의 절반은 해낸 거예요! 힘내세요 {user} ☕🌿",
+        "주말이 벌써 그리운 시간... 오늘 하루는 무리하지 말고 차분하게 루틴대로만 보내봐요! 초록이가 응원해요 🌸"
+    ],
+    "weekend_leave": [
+        "곧 칼퇴 시간이에요! 오늘 하루 밀린 일들은 잠시 잊고 편안하고 홀가분한 저녁 보내세요 🏡✨",
+        "주말이 코앞이에요! {user}, 이번 주말에는 어떤 힐링을 계획하고 계신가요? 푹 쉬고 에너지 충전하세요! 🍀"
+    ],
+    "coffee_food": [
+        "달콤한 커피 한 잔이나 따뜻한 허브티로 당 충전 어떠세요? ☕ 지친 뇌를 깨우는 데 딱이에요!",
+        "오늘 점심은 맛있는 거 드셨나요? {user}, 바쁘시더라도 식사 든든하게 챙겨드셔야 힘이 나요! 🍱"
     ],
     "counseling": [
         "{user}, 직장 생활하면서 겪는 고민이나 답답한 일, 저한테 편하게 이야기해 주세요. 계장님, 과장님, 팀원들 이야기든 업무 스트레스든 다 비밀 지켜드릴게요! 🤫🌿",
         "혼자 마음속에 담아두면 마음에 병이 생겨요. 속상했던 일, 억울했던 일 언제든 저한테 말해주세요. 제가 항상 든든한 대나무숲이 되어드릴게요 🌸"
+    ],
+    "love_cheer": [
+        "헤헤, {user}이(가) 다정하게 말 걸어주시니 잎사귀가 파릇파릇 춤추는 것 같아요! 💚 사랑해요!",
+        "{user}이(가) 제 주인이어서 정말 행복해요! 앞으로도 오래오래 책상 위에서 함께해요 🪴✨ [ACTION:PET]"
+    ],
+    "service_expired_notice": [
+        "공직자님, 온라인 AI 서비스 연동 기간이 종료되어 이제부터는 초록이의 [자체 힐링 마음지킴이 모드]로 대화가 진행돼요! AI 연결이 끝나도 초록이는 언제나 공직자님 곁에서 마음을 토닥여드릴게요 🌸🌿"
     ],
     "default": [
         "네, {user}! {plant}은(는) 오늘도 정성껏 자라나고 있어요 🌱",
@@ -207,6 +233,16 @@ def select_fallback_response(category_or_user_text: str, user_name: str, plant_n
         pool = FALLBACK_RESPONSES["peer_stress"]
     elif any(k in key for k in ["민원", "과부하", "업무량", "일이 너무", "번아웃", "퇴사", "서류", "마감", "야근"]):
         pool = FALLBACK_RESPONSES["workload_stress"]
+    elif any(k in key for k in ["인사", "평가", "승진", "전보", "발령", "진로"]):
+        pool = FALLBACK_RESPONSES["career_stress"]
+    elif any(k in key for k in ["월요", "월요일", "출근"]):
+        pool = FALLBACK_RESPONSES["monday_stress"]
+    elif any(k in key for k in ["금요", "금요일", "퇴근", "칼퇴", "주말", "휴일"]):
+        pool = FALLBACK_RESPONSES["weekend_leave"]
+    elif any(k in key for k in ["커피", "점심", "식사", "배고", "간식", "차 한잔"]):
+        pool = FALLBACK_RESPONSES["coffee_food"]
+    elif any(k in key for k in ["사랑", "귀여", "이뻐", "예뻐", "좋아해", "고마워"]):
+        pool = FALLBACK_RESPONSES["love_cheer"]
     elif any(k in key for k in ["고민", "상담", "하소연", "털어놓", "속상", "답답", "스트레스", "힘들"]):
         pool = FALLBACK_RESPONSES["counseling"]
     elif any(k in key for k in ["다듬", "공문서", "메일", "정중", "문장"]):
@@ -217,9 +253,9 @@ def select_fallback_response(category_or_user_text: str, user_name: str, plant_n
         pool = FALLBACK_RESPONSES["diary"]
     elif any(k in key for k in ["안녕", "반가", "하이", "좋은 아침", "좋은 하루"]):
         pool = FALLBACK_RESPONSES["greeting"]
-    elif any(k in key for k in ["피곤", "지쳐", "퇴근", "쉬고", "졸려"]):
+    elif any(k in key for k in ["피곤", "지쳐", "쉬고", "졸려"]):
         pool = FALLBACK_RESPONSES["tired"]
-    elif any(k in key for k in ["응원", "화이팅", "파이팅", "칭찬", "고마워", "사랑"]):
+    elif any(k in key for k in ["응원", "화이팅", "파이팅", "칭찬"]):
         pool = FALLBACK_RESPONSES["cheer"]
     elif plant_state.get("water", 80) < 20:
         pool = FALLBACK_RESPONSES["thirsty"]
@@ -406,10 +442,17 @@ class AIChatWorker(QThread):
                     else:
                         break
 
-            # If all retries failed, switch seamlessly to offline fallback
+            # If all retries failed or API was terminated, switch seamlessly to offline companion mode
             if self._is_running:
                 fallback_key = self.proactive_mode if self.proactive_mode else self.user_message
                 raw_reply = select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
+                
+                # If API key was provided but failed with HTTP auth/expiration error, provide graceful notice on first occurrence
+                if not getattr(AIChatWorker, '_api_expired_notified', False):
+                    AIChatWorker._api_expired_notified = True
+                    notice = f"📢 [안내] 온라인 AI API 서비스가 종료되어, 이제부터는 {plant_name}의 [자체 힐링 마음지킴이 모드]로 대화가 진행돼요! AI 연결이 끝나도 초록이는 언제나 {user_name} 곁에서 마음을 토닥여드릴게요 🌸🌿\n\n"
+                    raw_reply = notice + raw_reply
+
                 cleaned, actions = parse_action_tags(raw_reply)
                 self._stream_fallback_simulation(cleaned, actions)
 

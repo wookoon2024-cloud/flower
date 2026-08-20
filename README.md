@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.5.7-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.5.8-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.5.8`** | 2026-08-20 | • **온라인 AI API 서비스 종료 대비 영구 자체 힐링 마음지킴이 모드 & 만료 인지 시스템 탑재**<br>• **API 만료/종료 자동 인지 및 친절한 전환 안내:** 올해 말 또는 향후 CLOVA Studio API 연동이 만료되거나 중단되더라도 프로그램이 멈추거나 에러를 뿜지 않고, *"온라인 AI API 서비스가 종료되어, 이제부터는 초록이의 [자체 힐링 마음지킴이 모드]로 대화가 진행돼요! 언제나 곁에서 응원할게요 🌸"*라고 따뜻하게 안내하며 매끄럽게 전환<br>• **100여 종 이상의 자체 감성 힐링 대사 풀 대폭 확장:** 상사/팀원과의 직장 스트레스, 인사/평가, 월요병, 칼퇴/주말, 민원 과부하, 위로와 칭찬 등 15개 이상의 핵심 상황별로 정교한 휴리스틱 감성 대사 풀을 구축하여 인터넷망/폐쇄망/API 종료 후에도 영구적으로 살아 숨 쉬는 반려화분 대화 지원<br>• **대화창 실시간 연결 상태 배지 표시:** 대화창 상단에 `🟢 AI 온라인` / `🌿 자체 힐링 모드` 배지를 실시간으로 표시하여 사용자가 현재 대화 모드를 직관적으로 확인 가능 |
 | **`v1.5.7`** | 2026-08-20 | • **주기적 윈도우 최상위 API 호출 타이머 제거로 마우스 커서 로딩 깜빡임 완전 박멸**<br>• **원인 해결:** 2.5초마다 실행되던 윈도우 최상위 유지 타이머(`topmost_timer` ➡️ Win32 `SetWindowPos`)가 Windows 셸에 지속적으로 Z-Order 재배치를 통보하여, 업무망/VDI 마우스 커서가 2~3초 주기로 모래시계/빙빙 도는 로딩 커서로 깜빡이던 현상을 원천 차단<br>• **네이티브 최상위 유지 전환:** PySide6의 `WindowStaysOnTopHint` 네이티브 플래그와 클릭/생성 시 이벤트로만 최상위를 유지하도록 전환하여, 백그라운드 주기적 API 호출을 0회로 만들고 마우스 커서 깜빡임과 CPU 부하를 완벽히 제거 |
 | **`v1.5.6`** | 2026-08-20 | • **장문 말풍선 자동 순차 흐름(Flowing Paging) 애니메이션 & 대화창 오픈 시 중복 말풍선 스트리밍 차단**<br>• **대화창 오픈 시 위젯 말풍선 중복 노출 완전 제거:** 대화창(`ChatDialog`)을 열고 AI와 대화할 때는 위젯 바탕화면 말풍선에 답변 텍스트를 중복으로 스트리밍하지 않고 대화창 내에만 깔끔하게 표시되도록 개선 (대화창 오픈 시 기존 말풍선도 즉시 자동 닫힘)<br>• **장문 대사 자동 순차 흐름(Flowing Text Paging):** 오늘의 운세나 긴 안내문 등 말풍선 크기보다 긴 텍스트가 전달될 경우, 텍스트가 잘리거나 넘치지 않고 자연스러운 문장 단위로 페이지(`(1/2)`, `(2/2)`)를 나누어 3.5초 간격으로 물 흐르듯 순차적으로 보여준 뒤 자동 종료 |
 | **`v1.5.5`** | 2026-08-20 | • **`mouseReleaseEvent` 내 구버전 `expr_timer` 참조 누락 예외 긴급 복구**<br>• 마스터 애니메이션 엔진 리팩토링 중 `character_widget.py`의 마우스 릴리즈/클릭 핸들러에 남아있던 구버전 `self.expr_timer.start(33)` 참조를 신규 통합 엔진인 `self._ensure_master_anim_running()`으로 완전히 교체하여 `AttributeError` 예외 원천 해결 |

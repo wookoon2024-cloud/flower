@@ -508,8 +508,15 @@ class ChatDialog(QDialog):
     def refresh_header(self):
         plant_name = self.config.get("plant_name", "초록이")
         user_name = self.config.get("user_nickname", "공직자님")
+        api_key = self.config.get("api_key", "").strip()
+        
+        if api_key:
+            status_badge = "<span style='font-size:10px; color:#059669; background:#ECFDF5; padding:2px 6px; border-radius:10px; border:1px solid #A7F3D0;'>🟢 AI 온라인</span>"
+        else:
+            status_badge = "<span style='font-size:10px; color:#0284C7; background:#F0F9FF; padding:2px 6px; border-radius:10px; border:1px solid #BAE6FD;'>🌿 자체 힐링 모드</span>"
+
         self.setWindowTitle(f"🌱 {plant_name}와(과) 대화하기")
-        self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 힐링 대화방")
+        self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 대화방 {status_badge}")
         self.shuffle_chips()
 
     def load_history(self):
