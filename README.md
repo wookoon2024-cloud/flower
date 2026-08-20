@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.7.4-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.7.5-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,11 +22,11 @@
 
 | 구분 | 버전 | 업데이트 | 배포 파일명 | 원클릭 다운로드 |
 | :---: | :---: | :---: | :---: | :---: |
-| 🚀 **단독 실행파일 (.exe)** | **`v1.7.4`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.4.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.4.zip) |
-| 💻 **순수 소스코드 (.py)** | **`v1.7.4`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.4.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.4.zip) |
+| 🚀 **단독 실행파일 (.exe)** | **`v1.7.5`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.5.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.5.zip) |
+| 💻 **순수 소스코드 (.py)** | **`v1.7.5`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.5.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.5.zip) |
 
-> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.4.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
-> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.4.zip` 압축 해제 후 `python main.py`를 실행하세요.
+> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.5.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
+> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.5.zip` 압축 해제 후 `python main.py`를 실행하세요.
 
 ---
 
@@ -175,6 +175,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.7.5`** | 2026-08-20 | • **대화창(`ChatDialog`) 및 환경설정창 무반응/화면 가림 현상 완전 해결**<br>• **원인 해결:** PC 해상도나 활성화된 전체화면 프로그램(브라우저, 오피스 등)에 따라 새로 생성된 대화창이 기존 창 뒤편에 가려지거나 화면 밖(Off-screen)으로 배치되어 사용자가 "버튼을 눌러도 창이 안 뜬다"고 인지하던 문제를 해결<br>• **화면 정중앙 자동 정렬 & Z-Order 최상위 활성화 강제:** 대화창(`ChatDialog`), 환경설정창(`SettingsDialog`), 화원 도감(`GardenDialog`) 모두 현재 사용자의 주 모니터 사용 가능 영역(`primaryScreen.availableGeometry()`)의 정중앙에 정확히 배치되고, `setWindowState` 및 `activateWindow()`를 통해 100% 화면 맨 앞에 팝업되도록 보강 |
 | **`v1.7.4`** | 2026-08-20 | • **'나의 화원 & 도감' 및 '환경설정' 버튼 클릭 시 다이얼로그 무반응/숨김 현상 완전 해결**<br>• **원인 해결:** 기존 화원/도감 다이얼로그(`GardenDialog`)가 백그라운드로 내려갔거나 최소화되었을 때, 이전 인스턴스 재사용으로 인해 윈도우 최소화 상태(`WindowMinimized`)가 해제되지 않거나 화면 밖 좌표에 렌더링되어 창이 안 뜨는 것처럼 보이던 문제를 해결<br>• **최신 상태 인스턴스 재생성 & 윈도우 활성화 보장:** 버튼 클릭 시 항상 최신 업적/포춘/마음날씨 데이터로 다이얼로그를 신규 생성하고 `setWindowState`로 최소화를 강제 해제한 뒤 화면 정중앙(`primaryScreen.availableGeometry()`)에 100% 최상위로 팝업되도록 개선 |
 | **`v1.7.3`** | 2026-08-20 | • **새싹/줄기 화분 흙 공중 부양 현상 완전 해결 및 전 품종 흙 속 완전 밀착 (`Y=142`)**<br>• **원인 해결:** 1~2단계 새싹 및 일부 품종 줄기 그리기 좌표가 Y=110~130에 머물러 있어, Y=142에 위치한 화분 흙 사이에 빈 틈(Gap)이 생겨 풀때기가 공중에 붕 떠있는 것처럼 보이던 어색함을 원천 해결<br>• **전 품종 흙 속 완전 식재:** 6대 전 품종(다정한 화분, 해바라기, 선인장, 클로버, 벚꽃, 별빛장미)의 모든 성장 단계(1~6단계)의 줄기 및 밑동 시작 좌표를 화분 흙 중심인 `(100, 142)`로 깊숙이 연장하여 화분 흙 속에 안정감 있게 심어져 있는 완전한 그래픽으로 수정 완료 |
 | **`v1.7.2`** | 2026-08-20 | • **Windows 다크/야간 모드 및 고대비 테마 텍스트 흰색 묻힘 현상 완벽 해결**<br>• **원인 해결:** Windows 10/11에서 야간 모드, 다크 모드, 고대비 테마(검정 배경+흰색 폰트)를 사용하는 PC의 경우, OS 시스템 팔레트의 기본 폰트 색상이 흰색(`#FFFFFF`)으로 지정되어, 앱의 환경설정창/도감/환영창의 밝은 배경(`#FFFFFF`/`#F8FAFC`) 위에 흰색 글자가 렌더링되면서 글씨가 사라져 안 보이던 현상을 원천 해결<br>• **전 창 명시적 다크 슬레이트 폰트 컬러 고정:** 환경설정창(`SettingsDialog`), 대화창(`ChatDialog`), 화원 도감(`GardenDialog`), 입양 환영창(`WelcomeDialog`) 내 모든 라벨, 탭, 그룹박스, 콤보박스, 텍스트 입력 필드에 명시적으로 고선명 텍스트 컬러(`#1E293B`, `#334155`, `#0F766E`)를 잠금 처리하여 어떤 OS 테마에서도 선명하게 표시 |

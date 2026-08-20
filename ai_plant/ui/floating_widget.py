@@ -428,12 +428,22 @@ class FloatingPlantWindow(QWidget):
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
             self.bubble.hide_bubble()  # Close speech bubble when opening chat dialog
-            if not self.chat_dialog:
-                self.chat_dialog = ChatDialog(self.db, self.config, None)
-                self.chat_dialog.message_sent.connect(self.start_ai_chat)
-            
+            if self.chat_dialog is not None:
+                try:
+                    self.chat_dialog.close()
+                    self.chat_dialog.deleteLater()
+                except Exception:
+                    pass
+                self.chat_dialog = None
+
+            self.chat_dialog = ChatDialog(self.db, self.config, None)
+            self.chat_dialog.message_sent.connect(self.start_ai_chat)
             self.chat_dialog.refresh_header()
             self.chat_dialog.load_history()
+            
+            self.chat_dialog.setWindowState(
+                (self.chat_dialog.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+            )
             self.chat_dialog.show()
             self.chat_dialog.raise_()
             self.chat_dialog.activateWindow()
