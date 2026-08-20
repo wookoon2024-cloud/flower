@@ -119,18 +119,51 @@ def format_clean_user_name(user_name: str) -> str:
     return name
 
 def analyze_user_sentiment(user_text: str) -> Tuple[str, int]:
-    """Analyzes sentiment for mental wellness graph."""
+    """
+    Analyzes multi-faceted sentiment (Joy, Passion, Calm, Fatigue, Stress/Sadness)
+    from user conversations for the daily mental wellness graph.
+    """
     text = str(user_text).lower()
-    if any(k in text for k in ["화나", "짜증", "스트레스", "답답", "힘들", "우울", "망했", "괴로", "지친", "속상"]):
+
+    # 1. Stress, Sadness, Depression, Anger, Frustration (1점 / 힘듦·슬픔 🌧️)
+    stress_keywords = [
+        "슬프", "슬픔", "눈물", "흑흑", "ㅠㅠ", "ㅜㅜ", "우울", "울적", "속상", "비참",
+        "허탈", "좌절", "상처", "고통", "괴롭", "괴로", "외롭", "외로", "힘들", "힘드",
+        "화나", "화가", "짜증", "분노", "빡치", "스트레스", "답답", "망했", "억울", "최악",
+        "포기", "서럽", "막막", "한숨", "서러", "불안", "걱정", "울고", "죽겠"
+    ]
+    if any(k in text for k in stress_keywords):
         return ("stressed", 1)
-    elif any(k in text for k in ["피곤", "지쳐", "졸려", "야근", "녹초", "쉬고", "지침", "피로", "지치"]):
+
+    # 2. Fatigue, Tiredness, Burnout, Overworked (2점 / 피로·지침 😴)
+    tired_keywords = [
+        "피곤", "피로", "지쳐", "지침", "지치", "졸려", "졸리", "야근", "녹초", "쉬고",
+        "버겁", "멍하", "나른", "귀찮", "방전", "탈진", "뻐근", "눕고", "휴식", "자고",
+        "쉬어야", "눈이 뻑뻑", "잠와", "골치"
+    ]
+    if any(k in text for k in tired_keywords):
         return ("tired", 2)
-    elif any(k in text for k in ["화이팅", "파이팅", "열정", "도전", "성공", "집중", "해내", "열심히", "뿌듯"]):
-        return ("passionate", 4)
-    elif any(k in text for k in ["좋아", "행복", "신나", "기뻐", "감사", "최고", "사랑", "웃", "고마"]):
+
+    # 3. Joy, Happiness, Gratitude, Love, Delight (5점 / 기쁨·최고 😊)
+    happy_keywords = [
+        "좋아", "행복", "신나", "신남", "기뻐", "기쁨", "감사", "최고", "사랑", "웃",
+        "고마", "고맙", "즐거", "대박", "힐링", "축하", "완벽", "만족", "행운", "기분좋",
+        "뿌듯해", "재밌", "반가", "꿀잼", "설레", "신바람"
+    ]
+    if any(k in text for k in happy_keywords):
         return ("happy", 5)
-    else:
-        return ("calm", 3)
+
+    # 4. Passion, Motivation, Achievement, Cheer (4점 / 열정·의욕 🔥)
+    passionate_keywords = [
+        "화이팅", "파이팅", "열정", "도전", "성공", "집중", "해내", "열심히", "뿌듯",
+        "해보자", "가보자", "완료", "달성", "해결", "진척", "극복", "보람", "힘내", "힘내자",
+        "의욕", "자신감", "스타트"
+    ]
+    if any(k in text for k in passionate_keywords):
+        return ("passionate", 4)
+
+    # 5. Calm, Daily, Inquiries, Normal Routine (3점 / 평온·보통 🌿)
+    return ("calm", 3)
 
 def parse_action_tags(response_text: str) -> Tuple[str, List[str]]:
     """Extracts in-dialogue action tags [ACTION:WATER], [ACTION:SUN], [ACTION:PET]."""
