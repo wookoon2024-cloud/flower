@@ -182,6 +182,9 @@ class FloatingPlantWindow(QWidget):
 
         # Character Click: Petting + Show Menu for 6 seconds
         self.character.clicked.connect(self.on_character_clicked)
+        self.character.bug_cleared.connect(self.on_bug_cleared)
+        self.character.visitor_greeted.connect(self.on_visitor_greeted)
+        self.character.eco_visitor_arrived.connect(self.on_eco_visitor_arrived)
 
         # Control Bar Actions
         self.control_bar.water_clicked.connect(self.handle_water)
@@ -315,6 +318,18 @@ class FloatingPlantWindow(QWidget):
         try:
             self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.start(6000)
+
+            # Special Eco Interaction: If Bee is currently visiting, reward extra bonus!
+            if self.character.eco_visitor and self.character.eco_visitor.alive and self.character.eco_visitor.v_type == "bee":
+                self.character.eco_visitor.flee()
+                self.engine.give_water()
+                self.engine.on_eco_visitor_interacted("bee")
+                for _ in range(4):
+                    self.character.spawn_particle("drop")
+                self.character.spawn_particle("heart")
+                self.bubble.show_message("🐝 꿀벌이 시원한 물을 함께 마시고 꿀을 가득 선물하며 날아갔어요! 🍯✨ (+30 EXP)", 4)
+                return
+
             success, msg = self.engine.give_water()
             self.character.spawn_particle("drop")
             self.bubble.show_message(msg, 3)
@@ -330,6 +345,39 @@ class FloatingPlantWindow(QWidget):
             self.bubble.show_message(msg, 3)
         except Exception as e:
             print(f"[FloatingPlantWindow] handle_sunlight error: {e}")
+
+    def on_eco_visitor_arrived(self, v_type: str):
+        try:
+            if v_type == "bee":
+                self.bubble.show_message("🐝 윙윙~ 꿀벌 친구가 찾아왔어요! 꿀을 만드느라 목이 마르대요~ 💧", 5)
+            elif v_type == "bug":
+                self.bubble.show_message("🐛 앗! 나뭇잎에 벌레가 나타났어요! 클릭해서 쫓아내주세요! 💦", 5)
+            else:  # butterfly
+                self.bubble.show_message("🦋 예쁜 나비가 찾아와 살랑살랑 쉬어가고 있어요 ✨", 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_eco_visitor_arrived error: {e}")
+
+    def on_bug_cleared(self):
+        try:
+            self.last_user_interaction_time = datetime.datetime.now()
+            success, msg = self.engine.on_bug_cleared()
+            self.control_bar.update_status(self.engine.get_state())
+            for _ in range(4):
+                self.character.spawn_particle("drop")
+            self.bubble.show_message(msg, 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_bug_cleared error: {e}")
+
+    def on_visitor_greeted(self, v_type: str):
+        try:
+            self.last_user_interaction_time = datetime.datetime.now()
+            success, msg = self.engine.on_eco_visitor_interacted(v_type)
+            self.control_bar.update_status(self.engine.get_state())
+            for _ in range(4):
+                self.character.spawn_particle("heart")
+            self.bubble.show_message(msg, 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_visitor_greeted error: {e}")
 
     def on_engine_state_changed(self, state: dict):
         try:

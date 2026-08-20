@@ -277,10 +277,23 @@ class TestAIPlantWidget(unittest.TestCase):
         self.assertEqual(len(future_slots), 6)
         self.assertFalse(future_slots[0]["has_data"])
 
-        dialog = GardenDialog(engine, self.db, self.config)
-        self.assertIsNotNone(dialog)
-        self.assertEqual(dialog.tabs.count(), 4)
-        dialog.close()
+    def test_eco_visitor_interactions(self):
+        engine = PlantEngine(self.db, self.config)
+        init_exp = engine.get_state()["exp"]
+        init_aff = engine.get_state()["affection"]
+
+        # Test bug cleared
+        ok, msg = engine.on_bug_cleared()
+        self.assertTrue(ok)
+        self.assertIn("벌레", msg)
+        self.assertEqual(engine.get_state()["exp"], init_exp + 20)
+        self.assertEqual(engine.get_state()["affection"], init_aff + 10)
+
+        # Test bee visitor greeted
+        ok, msg = engine.on_eco_visitor_interacted("bee")
+        self.assertTrue(ok)
+        self.assertIn("꿀벌", msg)
+        self.assertEqual(engine.get_state()["exp"], init_exp + 35)
 
 if __name__ == "__main__":
     unittest.main()

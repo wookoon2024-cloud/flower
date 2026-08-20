@@ -238,6 +238,37 @@ class PlantEngine(QObject):
         self.save()
         self.state_changed.emit(self.state)
 
+    def on_bug_cleared(self) -> Tuple[bool, str]:
+        """User catches and shoos away an annoying caterpillar/bug from the plant."""
+        self.db.increment_stat("total_bugs_cleared")
+        self.state["affection"] = min(100, self.state["affection"] + 10)
+        self.state["exp"] += 20
+        self.state["total_interactions"] += 1
+        self.check_evolution()
+        self.check_achievements()
+        self.save()
+        self.state_changed.emit(self.state)
+        msg = "✨ 나이스! 개구쟁이 벌레를 성공적으로 쫓아냈어요! (+20 EXP, 애정도 +10) 🌿"
+        self.interaction_occurred.emit("bug_cleared", msg)
+        return True, msg
+
+    def on_eco_visitor_interacted(self, v_type: str) -> Tuple[bool, str]:
+        """User greets or interacts with a visiting bee or butterfly."""
+        self.db.increment_stat(f"total_{v_type}_visits")
+        self.state["affection"] = min(100, self.state["affection"] + 8)
+        self.state["exp"] += 15
+        self.state["total_interactions"] += 1
+        self.check_evolution()
+        self.check_achievements()
+        self.save()
+        self.state_changed.emit(self.state)
+        if v_type == "bee":
+            msg = "🐝 꿀벌 친구와 반갑게 인사했어요! (+15 EXP, 애정도 +8) 🍯✨"
+        else:
+            msg = "🦋 나비와 눈을 맞추며 힐링 타임을 가졌어요! (+15 EXP, 애정도 +8) 🌸"
+        self.interaction_occurred.emit(f"{v_type}_greeted", msg)
+        return True, msg
+
     def check_evolution(self):
         """Check if evolution conditions are met (up to stage 6)."""
         current_stage = self.state.get("stage", 1)

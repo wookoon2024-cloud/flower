@@ -31,8 +31,103 @@ class FloatingParticle:
         if self.alpha <= 0:
             self.alive = False
 
+
+class EcoVisitor:
+    """
+    Animated Environmental Creature (Bee 🐝, Bug 🐛, Butterfly 🦋)
+    Features rich procedural flight paths, landing/nibbling animations,
+    hovering wing-flapping, and mouse click hit-testing for interactive gameplay.
+    """
+    def __init__(self, v_type: str, canvas_w: int, canvas_h: int):
+        self.v_type = v_type  # "bee", "bug", "butterfly"
+        self.canvas_w = canvas_w
+        self.canvas_h = canvas_h
+        self.alive = True
+        self.frame = 0
+        self.total_frames = random.randint(200, 280)  # ~7~9 seconds
+        self.wing_phase = 0.0
+        self.state = "fly_in"  # "fly_in", "landed", "fly_out", "fleeing"
+        self.is_fleeing = False
+
+        # Random starting and landing positions based on creature type
+        if self.v_type == "bug":
+            self.side = random.choice([-1, 1])
+            self.start_x = float(canvas_w // 2 + self.side * 42)
+            self.start_y = float(canvas_h - 22)
+            self.target_x = float(canvas_w // 2 + self.side * 36)
+            self.target_y = float(canvas_h - 68)
+            self.x = self.start_x
+            self.y = self.start_y
+        elif self.v_type == "bee":
+            self.from_left = random.choice([True, False])
+            self.start_x = -20.0 if self.from_left else float(canvas_w + 20)
+            self.start_y = float(random.randint(8, 35))
+            self.target_x = float(canvas_w // 2 + random.randint(-22, 22))
+            self.target_y = float(canvas_h // 2 - random.randint(18, 38))
+            self.x = self.start_x
+            self.y = self.start_y
+        else:  # butterfly
+            self.from_left = random.choice([True, False])
+            self.start_x = -25.0 if self.from_left else float(canvas_w + 25)
+            self.start_y = float(random.randint(15, 45))
+            self.target_x = float(canvas_w // 2 + random.randint(-28, 28))
+            self.target_y = float(canvas_h // 2 - random.randint(8, 28))
+            self.x = self.start_x
+            self.y = self.start_y
+
+    def update(self):
+        self.frame += 1
+        self.wing_phase += 0.45
+
+        if self.is_fleeing:
+            self.y -= 4.5
+            self.x += (3.5 if self.x > self.canvas_w // 2 else -3.5)
+            if self.y < -35 or self.x < -45 or self.x > self.canvas_w + 45:
+                self.alive = False
+            return
+
+        in_frames = 50
+        out_start = self.total_frames - 50
+
+        if self.frame < in_frames:
+            self.state = "fly_in"
+            t = self.frame / float(in_frames)
+            t_ease = math.sin(t * math.pi / 2.0)
+            self.x = self.start_x + (self.target_x - self.start_x) * t_ease
+            sine_wave = math.sin(t * math.pi * 3) * (8.0 if self.v_type != "bug" else 2.0)
+            self.y = self.start_y + (self.target_y - self.start_y) * t_ease + sine_wave
+        elif self.frame < out_start:
+            self.state = "landed"
+            hover_amp = 1.5 if self.v_type != "bug" else 0.4
+            self.x = self.target_x + math.sin(self.wing_phase * 0.3) * hover_amp
+            self.y = self.target_y + math.cos(self.wing_phase * 0.4) * hover_amp
+        elif self.frame < self.total_frames:
+            self.state = "fly_out"
+            t = (self.frame - out_start) / 50.0
+            t_ease = t * t
+            dest_x = -35.0 if self.target_x < self.canvas_w // 2 else float(self.canvas_w + 35)
+            dest_y = -35.0
+            self.x = self.target_x + (dest_x - self.target_x) * t_ease
+            sine_wave = math.sin(t * math.pi * 3) * 6.0
+            self.y = self.target_y + (dest_y - self.target_y) * t_ease + sine_wave
+        else:
+            self.alive = False
+
+    def hit_test(self, pos) -> bool:
+        px = pos.x() if hasattr(pos, "x") else pos[0]
+        py = pos.y() if hasattr(pos, "y") else pos[1]
+        dist = math.hypot(px - self.x, py - self.y)
+        return dist <= 24.0
+
+    def flee(self):
+        self.is_fleeing = True
+
+
 class PlantCharacterWidget(QWidget):
     clicked = Signal()
+    bug_cleared = Signal()
+    visitor_greeted = Signal(str)      # "bee", "butterfly"
+    eco_visitor_arrived = Signal(str)  # "bee", "bug", "butterfly"
 
     def __init__(self, parent=None, scale_pct: int = 100):
         super().__init__(parent)
@@ -47,6 +142,14 @@ class PlantCharacterWidget(QWidget):
         self.pixmaps = {}
         self.particle_pixmaps = {}
         self.particles = []
+
+        # Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋)
+        self.eco_visitor: Optional[EcoVisitor] = None
+        self.eco_timer = QTimer(self)
+        self.eco_timer.timeout.connect(self._on_eco_tick)
+        self.eco_spawn_timer = QTimer(self)
+        self.eco_spawn_timer.setSingleShot(True)
+        self.eco_spawn_timer.timeout.connect(self._spawn_random_eco_visitor)
 
         # Interactive Particle animation timer
         self.anim_timer = QTimer(self)
@@ -65,6 +168,7 @@ class PlantCharacterWidget(QWidget):
 
         self.load_resources("classic")
         self._schedule_next_expression()
+        self._schedule_next_eco_visitor()
 
     def set_scale(self, scale_pct: int):
         """Dynamically adjust flowerpot scale."""
@@ -112,6 +216,30 @@ class PlantCharacterWidget(QWidget):
     def set_stage(self, stage: int):
         self.current_stage = max(1, min(6, stage))
         self.update()
+
+    # --- Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋) System ---
+    def _schedule_next_eco_visitor(self):
+        """Schedule next eco visitor event after 25 ~ 50 seconds."""
+        interval_ms = random.randint(25000, 50000)
+        self.eco_spawn_timer.start(interval_ms)
+
+    def _spawn_random_eco_visitor(self):
+        """Spawns an animated eco visitor around the flowerpot."""
+        types = ["bee", "bee", "bug", "bug", "butterfly"]
+        chosen_type = random.choice(types)
+        self.eco_visitor = EcoVisitor(chosen_type, self.width(), self.height())
+        self.eco_timer.start(33)  # ~30 fps
+        self.eco_visitor_arrived.emit(chosen_type)
+        self.update()
+
+    def _on_eco_tick(self):
+        if self.eco_visitor:
+            self.eco_visitor.update()
+            if not self.eco_visitor.alive:
+                self.eco_visitor = None
+                self.eco_timer.stop()
+                self._schedule_next_eco_visitor()
+            self.update()
 
     # --- Cute Facial Expression Idle Animation System ---
     def _schedule_next_expression(self):
@@ -178,6 +306,28 @@ class PlantCharacterWidget(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            # 1. Interactive Eco-Visitor Hit Test (Click on Bee, Bug, or Butterfly!)
+            if self.eco_visitor and self.eco_visitor.alive and self.eco_visitor.hit_test(event.pos()):
+                v_type = self.eco_visitor.v_type
+                self.eco_visitor.flee()
+                if v_type == "bug":
+                    self.bug_cleared.emit()
+                    self.spawn_particle("drop")
+                    self.expr_type = "happy"
+                    self.expr_frame = 0
+                    self.expr_total_frames = 30
+                    self.expr_timer.start(33)
+                else:
+                    self.visitor_greeted.emit(v_type)
+                    self.spawn_particle("heart")
+                    self.expr_type = "wink"
+                    self.expr_frame = 0
+                    self.expr_total_frames = 30
+                    self.expr_timer.start(33)
+                event.accept()
+                return
+
+            # 2. Regular Plant Pet / Touch
             self.clicked.emit()
             self.spawn_particle("heart")
             # Trigger happy expression on touch!
@@ -211,11 +361,123 @@ class PlantCharacterWidget(QWidget):
             painter.setFont(QFont("Malgun Gothic", 10, QFont.Weight.Bold))
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, f"🌱 {self.current_stage}단계")
 
-        # 3. Draw Active Floating Particles
+        # 3. Draw Active Animated Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋)
+        if self.eco_visitor and self.eco_visitor.alive:
+            self._draw_eco_visitor(painter, self.eco_visitor)
+
+        # 4. Draw Active Floating Particles
         for p in self.particles:
             painter.setOpacity(p.alpha / 255.0)
             painter.drawPixmap(int(p.x), int(p.y), p.pixmap)
             painter.setOpacity(1.0)
+
+    def _draw_eco_visitor(self, painter: QPainter, v: EcoVisitor):
+        """Renders animated vector graphic of the visiting creature."""
+        painter.save()
+        painter.translate(v.x, v.y)
+
+        if v.v_type == "bee":
+            # 🐝 Cute Honeybee
+            facing_left = (v.x < v.target_x) if v.state == "fly_in" else (v.x < v.canvas_w // 2)
+            if facing_left:
+                painter.scale(-1, 1)
+
+            # Translucent flutter wings
+            wing_angle = math.sin(v.wing_phase) * 35.0
+            painter.setBrush(QColor(224, 242, 254, 200))
+            painter.setPen(QPen(QColor(186, 230, 253), 1))
+            
+            painter.save()
+            painter.translate(-2, -6)
+            painter.rotate(-wing_angle)
+            painter.drawEllipse(QRectF(-6, -10, 12, 10))
+            painter.restore()
+
+            painter.save()
+            painter.translate(3, -6)
+            painter.rotate(wing_angle)
+            painter.drawEllipse(QRectF(-5, -9, 10, 9))
+            painter.restore()
+
+            # Bee body (Golden oval with dark stripes)
+            painter.setPen(QPen(QColor("#78350F"), 1.2))
+            painter.setBrush(QColor("#FBBF24"))
+            painter.drawEllipse(QRectF(-10, -6, 20, 13))
+
+            # Stripes
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor("#1F2937"))
+            painter.drawRoundedRect(QRectF(-4, -6, 3.5, 13), 1, 1)
+            painter.drawRoundedRect(QRectF(2, -5.5, 3.5, 12), 1, 1)
+
+            # Head & Cute Eye
+            painter.drawEllipse(QRectF(7, -4, 6, 8))
+            painter.setBrush(QColor("#FFFFFF"))
+            painter.drawEllipse(QRectF(9, -2, 2.5, 2.5))
+
+            # Golden Pollen Sparkles when landed
+            if v.state == "landed" and int(v.frame) % 12 < 6:
+                painter.setBrush(QColor(254, 240, 138, 220))
+                painter.drawEllipse(QPointF(0, 9), 2.5, 2.5)
+
+        elif v.v_type == "bug":
+            # 🐛 Cute Caterpillar / Bug
+            wiggle = math.sin(v.wing_phase * 0.7) * 2.2
+            colors = ["#84CC16", "#65A30D", "#4D7C0F", "#3F6212"]
+            
+            for idx in range(4):
+                seg_x = -idx * 5.2 + (wiggle if idx % 2 == 0 else -wiggle)
+                seg_y = math.sin(v.wing_phase + idx) * 1.5
+                painter.setPen(QPen(QColor("#365314"), 1))
+                painter.setBrush(QColor(colors[idx]))
+                painter.drawEllipse(QRectF(seg_x - 4, seg_y - 4, 8, 8))
+
+            # Head
+            painter.setPen(QPen(QColor("#365314"), 1.2))
+            painter.setBrush(QColor("#A3E635"))
+            painter.drawEllipse(QRectF(3, -5, 10, 10))
+            # Eye & Blush
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor("#1F2937"))
+            painter.drawEllipse(QRectF(8, -3, 2.5, 2.5))
+            painter.setBrush(QColor("#F472B6"))
+            painter.drawEllipse(QRectF(6, 1, 2.5, 2))
+
+            # Bite crumbs when nibbling
+            if v.state == "landed" and int(v.frame) % 16 < 8:
+                painter.setBrush(QColor("#65A30D"))
+                painter.drawEllipse(QPointF(14, 0), 2, 2)
+
+        else:  # butterfly
+            # 🦋 Delicate Fluttering Butterfly
+            wing_scale = abs(math.cos(v.wing_phase * 0.6))
+            
+            painter.save()
+            painter.scale(max(0.2, wing_scale), 1)
+            
+            # Wings (Gradient purple to pink)
+            grad_l = QLinearGradient(-15, -15, 0, 15)
+            grad_l.setColorAt(0.0, QColor("#A78BFA"))
+            grad_l.setColorAt(1.0, QColor("#F472B6"))
+
+            painter.setPen(QPen(QColor("#7C3AED"), 1))
+            painter.setBrush(QBrush(grad_l))
+
+            # Left wing
+            painter.drawEllipse(QRectF(-14, -12, 13, 15))
+            painter.drawEllipse(QRectF(-11, 1, 10, 11))
+            # Right wing
+            painter.drawEllipse(QRectF(1, -12, 13, 15))
+            painter.drawEllipse(QRectF(1, 1, 10, 11))
+            painter.restore()
+
+            # Butterfly Body & Antennae
+            painter.setPen(QPen(QColor("#1E1B4B"), 1.5))
+            painter.drawLine(0, -7, 0, 8)
+            painter.drawLine(0, -7, -3, -11)
+            painter.drawLine(0, -7, 3, -11)
+
+        painter.restore()
 
     def _draw_facial_expression(self, painter: QPainter, px: int, py: int, sprite_w: int):
         """Draws animated eyes/mouth overlay on the flowerpot face without moving the pot."""
