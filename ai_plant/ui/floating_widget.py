@@ -123,23 +123,23 @@ class FloatingPlantWindow(QWidget):
         """Dynamically resize window and scale components cleanly with perfect horizontal centering (100% baseline = 120px pot)."""
         scale_pct = self.config.get("plant_scale", 100)
         s = max(60, min(160, scale_pct)) / 100.0
-        w = max(220, int(220 * s))
-        h = int(245 * s)
+        w = max(240, int(240 * s))
+        h = int(260 * s)
 
         old_geo = self.geometry()
         old_bottom = old_geo.bottom() if old_geo.isValid() else -1
 
         self.setFixedSize(w, h)
 
-        # Center speech bubble horizontally with safe margins
-        w_b = min(w - 14, int(196 * s))
-        h_b = int(58 * s)
-        self.bubble.setGeometry((w - w_b) // 2, int(4 * s), w_b, h_b)
+        # Center speech bubble horizontally with generous width & height (zero clipping!)
+        w_b = min(w - 12, int(224 * s))
+        h_b = int(72 * s)
+        self.bubble.setGeometry((w - w_b) // 2, int(2 * s), w_b, h_b)
 
         # Center control bar horizontally (never clipped!)
         w_c = min(w - 12, int(184 * s))
         h_c = int(60 * s)
-        self.control_bar.setGeometry((w - w_c) // 2, int(60 * s), w_c, h_c)
+        self.control_bar.setGeometry((w - w_c) // 2, int(64 * s), w_c, h_c)
 
         # Center character horizontally at bottom
         char_sz = int(120 * s)
