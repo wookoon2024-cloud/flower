@@ -127,26 +127,38 @@ class FloatingPlantWindow(QWidget):
         scale_pct = self.config.get("plant_scale", 100)
         s = max(60, min(160, scale_pct)) / 100.0
         w = max(240, int(240 * s))
-        h = int(280 * s)
+        h = max(290, int(290 * s))
+
+        old_geo = self.geometry()
+        old_bottom = old_geo.bottom() if old_geo.isValid() else -1
+
         self.setFixedSize(w, h)
 
+        # 1. Bottom: Plant Character (sits at bottom of window)
         self.character.set_scale(scale_pct)
         char_sz = int(120 * s)
         char_x = (w - char_sz) // 2
         char_y = h - char_sz
-        self.character.move(char_x, char_y)
+        self.character.setGeometry(char_x, char_y, char_sz, char_sz)
 
-        # Reposition Speech Bubble
-        bubble_h = max(60, int(70 * s))
-        bubble_y = max(4, char_y - bubble_h - int(6 * s))
-        self.bubble.setGeometry(8, bubble_y, w - 16, bubble_h)
+        # 2. Middle: Speech Bubble (sits right above plant leaves)
+        bubble_w = min(w - 16, int(224 * s))
+        bubble_h = max(60, int(68 * s))
+        bubble_x = (w - bubble_w) // 2
+        bubble_y = char_y - bubble_h - int(4 * s)
+        self.bubble.setGeometry(bubble_x, bubble_y, bubble_w, bubble_h)
 
-        # Reposition Control Bar
-        bar_w = min(w - 12, max(180, int(200 * s)))
-        bar_h = max(34, int(38 * s))
+        # 3. Top: Control Bar (sits cleanly ABOVE the speech bubble)
+        bar_w = min(w - 12, max(184, int(204 * s)))
+        bar_h = max(52, int(58 * s))
         bar_x = (w - bar_w) // 2
-        bar_y = max(8, char_y - bar_h - 4)
+        bar_y = max(4, bubble_y - bar_h - int(4 * s))
         self.control_bar.setGeometry(bar_x, bar_y, bar_w, bar_h)
+
+        # Keep anchored to bottom screen edge during scaling
+        if old_bottom > 0:
+            self.move(self.x(), old_bottom - h + 1)
+        self.update()
 
     def set_user_scale(self, scale_pct: int):
         self.config.set("plant_scale", scale_pct)
