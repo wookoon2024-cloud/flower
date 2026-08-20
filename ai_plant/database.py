@@ -348,27 +348,55 @@ class DatabaseManager:
             conn.commit()
 
     # --- Garden & Graduation ---
-    def graduate_plant(self, name: str, species: str, total_interactions: int):
+    def graduate_plant(self, name: str, species: str, total_interactions: int = 0):
         """Register completed plant to Garden collection."""
+        self.save_graduated_plant(name, species, total_interactions)
+
+    def save_graduated_plant(self, name: str, species: str, total_interactions: int = 0):
+        """Save a plant to graduated_plants hall of fame."""
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO graduated_plants (name, species, graduated_at, total_interactions)
-                VALUES (?, ?, ?, ?)
-            """, (name, species, now_str, total_interactions))
-            conn.commit()
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS graduated_plants (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        species TEXT NOT NULL,
+                        graduated_at TIMESTAMP NOT NULL,
+                        total_interactions INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+                cursor.execute("""
+                    INSERT INTO graduated_plants (name, species, graduated_at, total_interactions)
+                    VALUES (?, ?, ?, ?)
+                """, (name, species, now_str, total_interactions))
+                conn.commit()
+        except Exception:
+            pass
 
     def get_graduated_plants(self) -> List[Dict[str, Any]]:
         """Fetch all graduated plants in the garden."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT id, name, species, graduated_at, total_interactions
-                FROM graduated_plants ORDER BY id DESC
-            """)
-            rows = cursor.fetchall()
-            return [dict(r) for r in rows]
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS graduated_plants (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        species TEXT NOT NULL,
+                        graduated_at TIMESTAMP NOT NULL,
+                        total_interactions INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+                cursor.execute("""
+                    SELECT id, name, species, graduated_at, total_interactions
+                    FROM graduated_plants ORDER BY id DESC
+                """)
+                rows = cursor.fetchall()
+                return [dict(r) for r in rows]
+        except Exception:
+            return []
 
     # --- Achievements ---
     def unlock_achievement(self, ach_id: str) -> bool:
