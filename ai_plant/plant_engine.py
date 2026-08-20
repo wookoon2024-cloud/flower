@@ -270,29 +270,68 @@ class PlantEngine(QObject):
         self.save()
         self.state_changed.emit(self.state)
 
-    def on_bug_cleared(self) -> Tuple[bool, str]:
-        """User catches and shoos away an annoying caterpillar/bug from the plant."""
+    def on_bug_cleared(self, pest_type: str = "bug") -> Tuple[bool, str]:
+        """User catches and shoos away an annoying pest (caterpillar, aphid, snail, locust)."""
         self.db.increment_stat("total_bugs_cleared")
+        self.db.increment_stat(f"total_{pest_type}_cleared")
         self.state["affection"] = min(100, self.state["affection"] + 10)
-        self.state["exp"] += 20
+        self.state["exp"] += 25
         self.state["total_interactions"] += 1
         self.check_evolution()
         self.check_achievements()
         self.save()
         self.state_changed.emit(self.state)
-        msg = "✨ 나이스! 개구쟁이 벌레를 성공적으로 쫓아냈어요! (+20 EXP, 애정도 +10) 🌿"
+
+        names = {
+            "bug": "꼬물 애벌레",
+            "aphid": "진딧물 무리",
+            "snail": "잎 갉아먹는 달팽이",
+            "locust": "풀밭 메뚜기"
+        }
+        p_name = names.get(pest_type, "해충")
+        msg = f"✨ 나이스! {p_name}을(를) 완벽히 퇴치했어요! (+25 EXP, 애정도 +10) 🌿🛡️"
         self.interaction_occurred.emit("bug_cleared", msg)
         return True, msg
 
+    def on_pest_escaped(self, pest_type: str) -> Tuple[bool, str]:
+        """Penalty applied when a harmful pest is ignored and escapes after damaging the plant."""
+        penalty_exp = 15
+        if pest_type == "aphid":
+            penalty_exp = 20
+        elif pest_type == "snail":
+            penalty_exp = 10
+        elif pest_type == "locust":
+            penalty_exp = 15
+
+        self.state["exp"] = max(0, self.state["exp"] - penalty_exp)
+        self.state["water"] = max(0, self.state["water"] - 4)
+        self.state["sunlight"] = max(0, self.state["sunlight"] - 4)
+        self.state["affection"] = max(0, self.state["affection"] - 5)
+        self.save()
+        self.state_changed.emit(self.state)
+
+        names = {
+            "bug": "꼬물 애벌레",
+            "aphid": "진딧물",
+            "snail": "달팽이",
+            "locust": "메뚜기"
+        }
+        p_name = names.get(pest_type, "해충")
+        msg = f"🍂 앗! {p_name}이(가) 잎사귀를 갉아먹고 도망쳤어요... (EXP -{penalty_exp}, 수분/햇빛 -4)"
+        self.interaction_occurred.emit("pest_escaped", msg)
+        return True, msg
+
     def on_eco_visitor_interacted(self, v_type: str) -> Tuple[bool, str]:
-        """User interacts with an eco visitor or environmental creature."""
+        """User interacts with an eco visitor or environmental creature (20 species)."""
         self.db.increment_stat(f"total_{v_type}_visits")
         self.state["affection"] = min(100, self.state["affection"] + 8)
         self.state["exp"] += 15
         self.state["total_interactions"] += 1
 
+        # Specialized rewards & messages for all 20 visitors
         if v_type == "bee":
-            msg = "🐝 꿀벌 친구와 반갑게 인사했어요! (+15 EXP, 애정도 +8) 🍯✨"
+            self.state["exp"] += 10
+            msg = "🐝 꿀벌 친구가 달콤한 꿀을 선물하고 날아갔어요! (+25 EXP, 애정도 +8) 🍯✨"
         elif v_type == "butterfly":
             msg = "🦋 나비와 눈을 맞추며 힐링 타임을 가졌어요! (+15 EXP, 애정도 +8) 🌸"
         elif v_type == "ladybug":
@@ -310,6 +349,33 @@ class PlantEngine(QObject):
             msg = "🌈 시원한 단비 구름이 지나가며 무지개가 떠올랐어요! (수분 +25, +20 EXP) 🌧️"
         elif v_type == "firefly":
             msg = "✨ 반짝이는 반딧불이 무리가 화분을 은은하게 밝혔어요! (+15 EXP, 애정도 +8) 🌌"
+        elif v_type == "ant":
+            self.state["exp"] += 5
+            msg = "🐜 부지런한 개미가 화분 흙에 비옥한 영양분을 전해줬어요! (+20 EXP) 🌾"
+        elif v_type == "frog":
+            self.state["water"] = min(100, self.state["water"] + 10)
+            msg = "🐸 개굴~ 귀여운 청개구리가 화분 옆에서 촉촉한 휴식을 선물했어요! (+15 EXP) 🌿"
+        elif v_type == "squirrel":
+            self.state["exp"] += 15
+            msg = "🐿️ 도토리 다람쥐가 화분 흙 속에 황금 도토리를 묻어두고 갔어요! (+30 EXP) 🌰"
+        elif v_type == "shooting_star":
+            self.state["exp"] += 20
+            self.state["affection"] = min(100, self.state["affection"] + 10)
+            msg = "🌠 영롱한 소원 별똥별을 만났어요! 공직자님의 모든 소원이 이루어집니다 ✨ (+35 EXP)"
+        elif v_type == "forest_fairy":
+            self.state["exp"] += 25
+            self.state["affection"] = min(100, self.state["affection"] + 10)
+            msg = "🧚 초록 숲의 요정이 반짝이는 축복 가루를 뿌려주었어요! (+40 EXP, 애정도 +10) 🌟"
+        elif v_type == "puppy_nose":
+            msg = "🐕 킁킁! 사랑스러운 댕댕이가 반갑게 콧등 인사를 건넸어요! (+15 EXP, 애정도 +10) 🐾"
+        elif v_type == "dandelion":
+            msg = "🌾 바람을 타고 날아온 민들레 홀씨가 포근한 희망을 전해줬어요! (+15 EXP) 🍃"
+        elif v_type == "coffee":
+            self.state["sunlight"] = min(100, self.state["sunlight"] + 15)
+            msg = "☕ 김이 모락모락 피어오르는 따뜻한 커피 한 잔의 여유! (햇빛 +15, +15 EXP) 🍵"
+        elif v_type == "heart_balloon":
+            self.state["affection"] = min(100, self.state["affection"] + 15)
+            msg = "🎈 퐁! 사랑의 하트 풍선이 터지며 행복이 가득 퍼졌어요! (애정도 +15, +15 EXP) 💖"
         else:
             msg = f"🌿 자연의 친구 {v_type}와 교감했어요! (+15 EXP) ✨"
 

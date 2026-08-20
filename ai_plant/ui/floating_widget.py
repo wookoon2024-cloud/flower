@@ -1,12 +1,9 @@
-"""
-Floating Plant Window (Main UI)
-Frameless, translucent, HWND_TOPMOST floating desktop widget.
-Supports dynamic size scaling (70% ~ 150%) via settings dialog, right-click menu, or Ctrl+MouseWheel zoom!
-Bottom-aligned flowerpot design for 0-gap pixel-perfect taskbar & dock contact.
-"""
+import sys
 import os
 import random
 import datetime
+import ctypes
+import ctypes.wintypes
 from typing import Dict, Any, Optional
 
 from PySide6.QtWidgets import (
@@ -23,6 +20,25 @@ from .garden_dialog import GardenDialog
 from .settings_dialog import SettingsDialog
 from ..ai_client import AIChatWorker, analyze_user_sentiment
 from ..config import set_autostart_registry
+
+class LASTINPUTINFO(ctypes.Structure):
+    _fields_ = [
+        ("cbSize", ctypes.wintypes.UINT),
+        ("dwTime", ctypes.wintypes.DWORD)
+    ]
+
+def get_idle_duration_sec() -> float:
+    try:
+        if sys.platform != "win32":
+            return 0.0
+        lii = LASTINPUTINFO()
+        lii.cbSize = ctypes.sizeof(LASTINPUTINFO)
+        if ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lii)):
+            millis = ctypes.windll.kernel32.GetTickCount() - lii.dwTime
+            return max(0.0, millis / 1000.0)
+    except Exception:
+        pass
+    return 0.0
 
 class FloatingPlantWindow(QWidget):
     def __init__(self, plant_engine, db_manager, config_manager):
@@ -41,6 +57,12 @@ class FloatingPlantWindow(QWidget):
         self.settings_dialog = None
         self.last_hourly_peek_hour = -1
         self.last_pet_bubble_time = None
+
+        # Workload & Activity Empathy Monitor State
+        self.active_work_seconds = 0
+        self.idle_duration_accumulated = 0.0
+        self.was_idle = False
+        self.last_workload_nudge_time = None
 
         self.init_window()
         self.init_ui()
@@ -88,61 +110,50 @@ class FloatingPlantWindow(QWidget):
             set_autostart_registry(True)
 
     def init_ui(self):
-        # 1. Top: Speech Bubble
+        # 1. Speech Bubble Widget
         self.bubble = SpeechBubbleWidget(self)
 
-        # 2. Middle: Control Bar (initially hidden, pops up above pot on click)
+        # 2. Control Bar Widget (Floating menu bar)
         self.control_bar = ControlBarWidget(self)
-        self.control_bar.update_status(self.engine.get_state())
         self.control_bar.hide()
 
-        # 3. Bottom: Plant Character (sits at absolute bottom)
-        self.character = PlantCharacterWidget(self, scale_pct=self.config.get("plant_scale", 100))
+        # 3. Plant Character Widget
+        scale_pct = self.config.get("plant_scale", 100)
+        self.character = PlantCharacterWidget(self, scale_pct=scale_pct)
         self.character.set_species(self.engine.get_species())
         self.character.set_stage(self.engine.get_state().get("stage", 1))
 
     def apply_scale(self):
-        """Dynamically resize window and scale components cleanly with perfect horizontal centering (100% baseline = 120px pot)."""
         scale_pct = self.config.get("plant_scale", 100)
         s = max(60, min(160, scale_pct)) / 100.0
         w = max(240, int(240 * s))
         h = int(280 * s)
-
-        old_geo = self.geometry()
-        old_bottom = old_geo.bottom() if old_geo.isValid() else -1
-
         self.setFixedSize(w, h)
 
-        # Center speech bubble horizontally with top margin (Y=6s..78s)
-        w_b = min(w - 12, int(224 * s))
-        h_b = int(72 * s)
-        self.bubble.setGeometry((w - w_b) // 2, int(6 * s), w_b, h_b)
-
-        # Center control bar horizontally with clean separation below bubble (Y=82s..140s)
-        w_c = min(w - 12, int(184 * s))
-        h_c = int(58 * s)
-        self.control_bar.setGeometry((w - w_c) // 2, int(82 * s), w_c, h_c)
-
-        # Center character horizontally at bottom (Y=160s..280s)
+        self.character.set_scale(scale_pct)
         char_sz = int(120 * s)
         char_x = (w - char_sz) // 2
         char_y = h - char_sz
-        self.character.setGeometry(char_x, char_y, char_sz, char_sz)
-        self.character.set_scale(scale_pct)
+        self.character.move(char_x, char_y)
 
-        # Keep anchored to bottom surface
-        if old_bottom > 0:
-            self.move(self.x(), old_bottom - h + 1)
-        self.update()
+        # Reposition Speech Bubble
+        bubble_h = max(60, int(70 * s))
+        bubble_y = max(4, char_y - bubble_h - int(6 * s))
+        self.bubble.setGeometry(8, bubble_y, w - 16, bubble_h)
+
+        # Reposition Control Bar
+        bar_w = min(w - 12, max(180, int(200 * s)))
+        bar_h = max(34, int(38 * s))
+        bar_x = (w - bar_w) // 2
+        bar_y = max(8, char_y - bar_h - 4)
+        self.control_bar.setGeometry(bar_x, bar_y, bar_w, bar_h)
 
     def set_user_scale(self, scale_pct: int):
-        """Set scale and save to config."""
         self.config.set("plant_scale", scale_pct)
         self.apply_scale()
-        self.bubble.show_message(f"화분 크기가 {scale_pct}%로 조절되었어요! 🌱", 3)
+        self.update()
 
     def wheelEvent(self, event):
-        """Ctrl + Mouse Wheel to zoom/scale plant size seamlessly."""
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             delta = event.angleDelta().y()
             curr_s = self.config.get("plant_scale", 100)
@@ -164,9 +175,10 @@ class FloatingPlantWindow(QWidget):
         self.engine.interaction_occurred.connect(self.on_plant_interaction)
         self.engine.achievement_unlocked.connect(self.on_achievement_unlocked)
 
-        # Character Click: Petting + Show Menu for 6 seconds
+        # Character Click & Eco Events
         self.character.clicked.connect(self.on_character_clicked)
         self.character.bug_cleared.connect(self.on_bug_cleared)
+        self.character.pest_escaped.connect(self.on_pest_escaped)
         self.character.visitor_greeted.connect(self.on_visitor_greeted)
         self.character.eco_visitor_arrived.connect(self.on_eco_visitor_arrived)
 
@@ -208,6 +220,11 @@ class FloatingPlantWindow(QWidget):
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self.on_idle_timer_tick)
         self.idle_timer.start(30 * 1000)
+
+        # Workload & Activity Empathy Monitor Timer (every 15 seconds)
+        self.workload_timer = QTimer(self)
+        self.workload_timer.timeout.connect(self.on_workload_monitor_tick)
+        self.workload_timer.start(15 * 1000)
 
         self.last_user_interaction_time = datetime.datetime.now()
         self.notified_proactive_events = set()
@@ -329,40 +346,104 @@ class FloatingPlantWindow(QWidget):
         except Exception as e:
             print(f"[FloatingPlantWindow] handle_sunlight error: {e}")
 
+    def on_workload_monitor_tick(self):
+        """Monitors user continuous keyboard/mouse workload intensity using Win32 API and provides caring empathy nudges."""
+        try:
+            idle_sec = get_idle_duration_sec()
+            user_name = self.config.get("user_nickname", "공직자님")
+            now = datetime.datetime.now()
+
+            # Active work (< 45 sec since last keystroke/mouse action)
+            if idle_sec < 45.0:
+                if self.was_idle:
+                    self.was_idle = False
+                    # Return from idle greeting if idle was >= 5 minutes (300s)
+                    if self.idle_duration_accumulated >= 300.0:
+                        self.idle_duration_accumulated = 0.0
+                        return_greetings = [
+                            f"{user_name}, 자리 비우셨다가 돌아오셨군요! 기다리고 있었어요 🌱 오늘도 화이팅!",
+                            f"어서오세요, {user_name}! 따뜻한 물 한잔 챙겨오셨나요? ☕",
+                            f"{user_name}, 반가워요! 다시 함께 열일 모드로 힘내봐요 ✨"
+                        ]
+                        self.character.spawn_particle("heart")
+                        self.bubble.show_message(random.choice(return_greetings), 4)
+
+                self.active_work_seconds += 15
+                self.idle_duration_accumulated = 0.0
+
+                # Continuous intensive work for 30 minutes (1800s) without resting
+                if self.active_work_seconds >= 1800:
+                    if not self.last_workload_nudge_time or (now - self.last_workload_nudge_time).total_seconds() > 2100: # 35 min cooldown
+                        self.last_workload_nudge_time = now
+                        self.active_work_seconds = 0
+                        nudge_messages = [
+                            f"{user_name}, 타자 치시는 손길이 정말 분주하시네요! 오늘 업무가 많이 몰리셨나요? 잠시 1분만 기지개 켜고 손목을 가볍게 털어주세요 🍵✨",
+                            f"열심히 몰입하시는 모습이 정말 멋져요, {user_name}! 그래도 눈 건강을 위해 10초간 먼 곳을 바라보고 시원한 물 한 모금 드세요 🌸",
+                            f"30분 넘게 쉼 없이 달리고 계시네요! {user_name}, 어깨 한번 으쓱~ 펴시고 심호흡 한번 하실까요? 🍃💖",
+                            f"{user_name}의 노고를 제가 늘 곁에서 지켜보며 응원하고 있어요! 무리하지 마시고 잠시 30초만 눈을 감고 쉬어가요 ☕"
+                        ]
+                        self.character.spawn_particle("sweat")
+                        self.bubble.show_message(random.choice(nudge_messages), 6)
+            else:
+                # User is away / idle
+                self.was_idle = True
+                self.idle_duration_accumulated += 15.0
+                self.active_work_seconds = 0
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_workload_monitor_tick error: {e}")
+
     def on_eco_visitor_arrived(self, v_type: str):
         try:
-            if v_type == "bee":
-                self.bubble.show_message("🐝 윙윙~ 꿀벌 친구가 찾아왔어요! 꿀을 만드느라 목이 마르대요~ 💧", 5)
-            elif v_type == "bug":
-                self.bubble.show_message("🐛 앗! 나뭇잎에 벌레가 나타났어요! 클릭해서 쫓아내주세요! 💦", 5)
-            elif v_type == "ladybug":
-                self.bubble.show_message("🐞 행운을 부르는 칠성무당벌레가 화분을 찾아왔어요! 🍀", 5)
-            elif v_type == "bird":
-                self.bubble.show_message("🐦 짹짹~ 귀여운 아기 파랑새가 가지에 살포시 앉았어요 ✨", 5)
-            elif v_type == "cat_paw":
-                self.bubble.show_message("🐾 앗! 장난꾸러기 고양이 발이 빼꼼 나타났어요! 냥~ 🐱", 5)
-            elif v_type == "rain_cloud":
-                self.bubble.show_message("🌧️ 촉촉한 단비 구름이 지나가며 잎사귀를 적셔주고 있어요 🌈", 5)
-                # Auto apply rain hydration bonus
+            visitor_lines = {
+                "bee": "🐝 윙윙~ 꿀벌 친구가 찾아왔어요! 꿀을 만드느라 목이 마르대요~ 💧",
+                "bug": "🐛 앗! 나뭇잎에 애벌레가 나타났어요! 방치하면 잎을 갉아먹으니 얼른 클릭해서 쫓아내주세요! 🚨",
+                "aphid": "🌱 앗! 진딧물 무리가 잎에 달라붙었어요! 방치하면 경험치가 깎이니 어서 클릭하세요! 🚨",
+                "snail": "🐌 앗! 잎을 갉아먹는 달팽이가 올라오고 있어요! 얼른 클릭해서 쫓아내주세요! 🚨",
+                "locust": "🦗 앗! 풀밭 메뚜기가 잎을 노리고 있어요! 도망가기 전에 클릭하세요! 🚨",
+                "butterfly": "🦋 예쁜 나비가 찾아와 살랑살랑 쉬어가고 있어요 🌸",
+                "ladybug": "🐞 행운을 부르는 칠성무당벌레가 화분을 찾아왔어요! 🍀",
+                "bird": "🐦 짹짹~ 귀여운 아기 파랑새가 가지에 살포시 앉았어요 ✨",
+                "cat_paw": "🐾 앗! 장난꾸러기 고양이 발이 빼꼼 나타났어요! 냥~ 🐱",
+                "rain_cloud": "🌧️ 촉촉한 단비 구름이 지나가며 잎사귀를 적셔주고 있어요 🌈",
+                "firefly": "✨ 반짝반짝 반딧불이들이 춤추며 화분을 밝혀주고 있어요 🌌",
+                "ant": "🐜 영양분을 물고 온 부지런한 개미 친구를 만났어요! 🌾",
+                "frog": "🐸 개굴개굴~ 귀여운 초록 청개구리가 놀러왔어요! 🌿",
+                "squirrel": "🐿️ 볼이 빵빵한 도토리 다람쥐가 화분 옆에 멈춰 섰어요! 🌰",
+                "shooting_star": "🌠 밤하늘의 소원 별똥별이 떨어졌어요! 오늘 하루도 소원성취 ✨",
+                "forest_fairy": "🧚 숲의 요정이 찾아와 반짝이는 축복 가루를 뿌려주고 있어요 🌟",
+                "puppy_nose": "🐕 킁킁! 사랑스러운 댕댕이가 반갑게 인사를 건네요 🐾",
+                "dandelion": "🌾 바람을 타고 포근한 민들레 홀씨가 둥실 날아왔어요 🍃",
+                "coffee": "☕ 향긋한 커피 한 잔의 여유! 잠시 피로를 녹여보세요 🍵",
+                "heart_balloon": "🎈 둥실둥실 사랑의 하트 풍선이 화분 위로 떠올랐어요 💖"
+            }
+            line = visitor_lines.get(v_type, f"🌿 자연의 친구 {v_type}가 찾아왔어요! ✨")
+            self.bubble.show_message(line, 5)
+
+            if v_type == "rain_cloud":
                 self.engine.on_eco_visitor_interacted("rain_cloud")
                 self.character.spawn_particle("drop")
-            elif v_type == "firefly":
-                self.bubble.show_message("✨ 반짝반짝 반딧불이들이 춤추며 화분을 밝혀주고 있어요 🌌", 5)
-            else:  # butterfly
-                self.bubble.show_message("🦋 예쁜 나비가 찾아와 살랑살랑 쉬어가고 있어요 🌸", 5)
         except Exception as e:
             print(f"[FloatingPlantWindow] on_eco_visitor_arrived error: {e}")
 
-    def on_bug_cleared(self):
+    def on_bug_cleared(self, pest_type: str = "bug"):
         try:
             self.last_user_interaction_time = datetime.datetime.now()
-            success, msg = self.engine.on_bug_cleared()
+            success, msg = self.engine.on_bug_cleared(pest_type)
             self.control_bar.update_status(self.engine.get_state())
             for _ in range(4):
-                self.character.spawn_particle("drop")
+                self.character.spawn_particle("sparkle")
             self.bubble.show_message(msg, 4)
         except Exception as e:
             print(f"[FloatingPlantWindow] on_bug_cleared error: {e}")
+
+    def on_pest_escaped(self, pest_type: str):
+        try:
+            success, msg = self.engine.on_pest_escaped(pest_type)
+            self.control_bar.update_status(self.engine.get_state())
+            self.character.spawn_particle("sweat")
+            self.bubble.show_message(msg, 5)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_pest_escaped error: {e}")
 
     def on_visitor_greeted(self, v_type: str):
         try:

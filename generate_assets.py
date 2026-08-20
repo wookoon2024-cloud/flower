@@ -403,7 +403,8 @@ def create_assets(output_dir="assets"):
 
         img.save(os.path.join(output_dir, f"stage_starlight_rose_{stg}.png"))
 
-    # Reaction particle icons
+    # Reaction particle icons (10종 감정 파티클 에셋)
+    # 1. 💖 Heart
     img_heart = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     dh = ImageDraw.Draw(img_heart)
     dh.ellipse([(8, 10), (34, 36)], fill="#FF4081")
@@ -411,12 +412,14 @@ def create_assets(output_dir="assets"):
     dh.polygon([(9, 24), (55, 24), (32, 54)], fill="#FF4081")
     img_heart.save(os.path.join(output_dir, "heart.png"))
 
+    # 2. 💧 Water Drop
     img_water = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     dw = ImageDraw.Draw(img_water)
     dw.ellipse([(14, 22), (50, 58)], fill="#42A5F5", outline="#1E88E5", width=2)
     dw.polygon([(17, 32), (47, 32), (32, 6)], fill="#42A5F5")
     img_water.save(os.path.join(output_dir, "drop.png"))
 
+    # 3. ☀️ Sun
     img_sun = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     ds = ImageDraw.Draw(img_sun)
     ds.ellipse([(16, 16), (48, 48)], fill="#FFCA28", outline="#FFA000", width=2)
@@ -428,6 +431,66 @@ def create_assets(output_dir="assets"):
         y2 = 32 + int(28 * math.sin(rad))
         ds.line([(x1, y1), (x2, y2)], fill="#FFA000", width=3)
     img_sun.save(os.path.join(output_dir, "sun.png"))
+
+    # 4. 🌟 Golden Star
+    img_star = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dstar = ImageDraw.Draw(img_star)
+    star_pts = []
+    for i in range(10):
+        r = 26 if i % 2 == 0 else 11
+        angle = i * math.pi / 5.0 - math.pi / 2.0
+        star_pts.append((32 + int(r * math.cos(angle)), 32 + int(r * math.sin(angle))))
+    dstar.polygon(star_pts, fill="#FFD700", outline="#F59E0B")
+    img_star.save(os.path.join(output_dir, "star.png"))
+
+    # 5. 🎵 Music Note
+    img_note = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dn = ImageDraw.Draw(img_note)
+    dn.ellipse([(12, 36), (28, 52)], fill="#8B5CF6")
+    dn.ellipse([(34, 30), (50, 46)], fill="#8B5CF6")
+    dn.rectangle([(24, 14), (28, 44)], fill="#8B5CF6")
+    dn.rectangle([(46, 8), (50, 38)], fill="#8B5CF6")
+    dn.polygon([(24, 14), (50, 8), (50, 16), (24, 22)], fill="#8B5CF6")
+    img_note.save(os.path.join(output_dir, "note.png"))
+
+    # 6. 🍀 Four-leaf Clover
+    img_clover = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dclv = ImageDraw.Draw(img_clover)
+    for cx, cy in [(24, 24), (40, 24), (24, 40), (40, 40)]:
+        dclv.ellipse([(cx-9, cy-9), (cx+9, cy+9)], fill="#10B981", outline="#047857", width=1)
+    dclv.line([(32, 34), (32, 54)], fill="#047857", width=3)
+    img_clover.save(os.path.join(output_dir, "clover.png"))
+
+    # 7. 🌸 Cherry Petal
+    img_petal = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dpet = ImageDraw.Draw(img_petal)
+    dpet.pieslice([(12, 10), (52, 54)], start=135, end=315, fill="#F472B6", outline="#DB2777", width=2)
+    dpet.ellipse([(22, 14), (42, 34)], fill="#FBCFE8")
+    img_petal.save(os.path.join(output_dir, "petal.png"))
+
+    # 8. 💦 Sweat drop (Phew / Comfort)
+    img_sweat = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dsw = ImageDraw.Draw(img_sweat)
+    dsw.ellipse([(18, 22), (46, 52)], fill="#38BDF8", outline="#0284C7", width=2)
+    dsw.polygon([(20, 30), (44, 30), (32, 10)], fill="#38BDF8")
+    img_sweat.save(os.path.join(output_dir, "sweat.png"))
+
+    # 9. ✨ Sparkle / Glitter
+    img_sparkle = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dspk = ImageDraw.Draw(img_sparkle)
+    dspk.polygon([(32, 6), (36, 26), (56, 32), (36, 38), (32, 58), (28, 38), (8, 32), (28, 26)], fill="#38BDF8", outline="#818CF8")
+    dspk.ellipse([(27, 27), (37, 37)], fill="#FFFFFF")
+    img_sparkle.save(os.path.join(output_dir, "sparkle.png"))
+
+    # 10. ☕ Coffee Bean / Mug
+    img_coffee = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    dc = ImageDraw.Draw(img_coffee)
+    dc.rounded_rectangle([(14, 20), (46, 52)], radius=6, fill="#78350F", outline="#451A03", width=2)
+    dc.arc([(40, 26), (54, 46)], start=270, end=90, fill="#78350F", width=3)
+    # Steam waves
+    dc.arc([(20, 6), (28, 18)], start=0, end=180, fill="#D97706", width=2)
+    dc.arc([(32, 6), (40, 18)], start=0, end=180, fill="#D97706", width=2)
+    img_coffee.save(os.path.join(output_dir, "coffee.png"))
 
     # App icon
     app_icon = Image.open(os.path.join(output_dir, "stage_cherry_6.png"))
