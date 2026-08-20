@@ -39,29 +39,29 @@ def create_assets(output_dir="assets"):
         
         if stg == 1:
             # Seedling sprout
-            d.arc([(92, 90), (115, 135)], start=180, end=300, fill="#4CAF50", width=4)
-            d.ellipse([(80, 85), (102, 105)], fill="#81C784", outline="#2E7D32", width=2)
+            d.line([(100, 142), (100, 100)], fill="#4CAF50", width=4)
+            d.ellipse([(80, 85), (104, 105)], fill="#81C784", outline="#2E7D32", width=2)
         elif stg == 2:
             # Two healthy sprout leaves
-            d.arc([(90, 80), (120, 135)], start=180, end=300, fill="#4CAF50", width=5)
-            d.pieslice([(75, 75), (105, 105)], start=180, end=300, fill="#81C784", outline="#2E7D32", width=2)
-            d.pieslice([(95, 70), (125, 100)], start=240, end=360, fill="#A5D6A7", outline="#2E7D32", width=2)
+            d.line([(100, 142), (100, 92)], fill="#4CAF50", width=5)
+            d.pieslice([(72, 75), (102, 105)], start=180, end=300, fill="#81C784", outline="#2E7D32", width=2)
+            d.pieslice([(98, 70), (128, 100)], start=240, end=360, fill="#A5D6A7", outline="#2E7D32", width=2)
         elif stg == 3:
             # Multi-leaf growing shoot
-            d.line([(100, 130), (100, 70)], fill="#388E3C", width=6)
+            d.line([(100, 142), (100, 70)], fill="#388E3C", width=6)
             d.pieslice([(55, 80), (100, 115)], start=160, end=320, fill="#66BB6A", outline="#2E7D32", width=2)
             d.pieslice([(100, 65), (145, 100)], start=220, end=380, fill="#81C784", outline="#2E7D32", width=2)
             d.pieslice([(65, 55), (100, 85)], start=140, end=290, fill="#A5D6A7", outline="#2E7D32", width=2)
         elif stg == 4:
             # First delicate flower bud
-            d.line([(100, 130), (100, 60)], fill="#2E7D32", width=6)
+            d.line([(100, 142), (100, 60)], fill="#2E7D32", width=6)
             d.pieslice([(50, 70), (100, 110)], start=160, end=320, fill="#4CAF50", outline="#1B5E20", width=2)
             d.pieslice([(100, 70), (150, 110)], start=220, end=380, fill="#66BB6A", outline="#1B5E20", width=2)
             d.ellipse([(86, 36), (114, 64)], fill="#F48FB1", outline="#C2185B", width=2)
             d.ellipse([(92, 42), (108, 58)], fill="#F06292")
         elif stg == 5:
             # Blooming flower
-            d.line([(100, 130), (100, 55)], fill="#2E7D32", width=7)
+            d.line([(100, 142), (100, 55)], fill="#2E7D32", width=7)
             d.pieslice([(50, 75), (98, 115)], start=160, end=320, fill="#4CAF50", outline="#1B5E20", width=2)
             d.pieslice([(102, 75), (150, 115)], start=220, end=380, fill="#66BB6A", outline="#1B5E20", width=2)
             for p in [(75, 20, 105, 50), (95, 20, 125, 50), (65, 40, 95, 70), (105, 40, 135, 70), (75, 55, 105, 85), (95, 55, 125, 85)]:
@@ -69,7 +69,7 @@ def create_assets(output_dir="assets"):
             d.ellipse([(85, 38), (115, 68)], fill="#FFEE58", outline="#F57F17", width=2)
         elif stg == 6:
             # Legendary Full Bloom with sparkling aura & golden crown flower
-            d.line([(100, 130), (100, 50)], fill="#1B5E20", width=8)
+            d.line([(100, 142), (100, 50)], fill="#1B5E20", width=8)
             d.pieslice([(40, 70), (98, 115)], start=160, end=320, fill="#388E3C", outline="#1B5E20", width=2)
             d.pieslice([(102, 70), (160, 115)], start=220, end=380, fill="#4CAF50", outline="#1B5E20", width=2)
             for ang in range(0, 360, 40):
@@ -91,18 +91,18 @@ def create_assets(output_dir="assets"):
         d = ImageDraw.Draw(img)
         draw_pot(d, 3 if stg >= 5 else (2 if stg >= 3 else 1))
         if stg == 1:
-            d.arc([(90, 90), (110, 135)], start=180, end=320, fill="#4CAF50", width=4)
-            d.ellipse([(75, 82), (95, 102)], fill="#FFD54F", outline="#F57F17", width=2)
+            d.line([(100, 142), (100, 98)], fill="#4CAF50", width=4)
+            d.ellipse([(85, 82), (115, 102)], fill="#FFD54F", outline="#F57F17", width=2)
         elif stg == 2:
-            d.arc([(90, 85), (110, 135)], start=180, end=320, fill="#4CAF50", width=5)
-            d.ellipse([(70, 75), (95, 95)], fill="#FFD54F", outline="#F57F17", width=2)
-            d.ellipse([(105, 75), (130, 95)], fill="#FFD54F", outline="#F57F17", width=2)
+            d.line([(100, 142), (100, 90)], fill="#4CAF50", width=5)
+            d.ellipse([(70, 75), (96, 95)], fill="#FFD54F", outline="#F57F17", width=2)
+            d.ellipse([(104, 75), (130, 95)], fill="#FFD54F", outline="#F57F17", width=2)
         elif stg == 3:
-            d.line([(100, 130), (100, 65)], fill="#2E7D32", width=7)
+            d.line([(100, 142), (100, 65)], fill="#2E7D32", width=7)
             d.pieslice([(50, 75), (98, 115)], start=160, end=320, fill="#4CAF50", outline="#1B5E20", width=2)
             d.pieslice([(102, 75), (150, 115)], start=220, end=380, fill="#66BB6A", outline="#1B5E20", width=2)
         elif stg == 4:
-            d.line([(100, 130), (100, 55)], fill="#2E7D32", width=7)
+            d.line([(100, 142), (100, 55)], fill="#2E7D32", width=7)
             d.pieslice([(45, 70), (98, 115)], start=160, end=320, fill="#4CAF50", outline="#1B5E20", width=2)
             d.pieslice([(102, 70), (155, 115)], start=220, end=380, fill="#66BB6A", outline="#1B5E20", width=2)
             d.ellipse([(82, 28), (118, 64)], fill="#8D6E63", outline="#5D4037", width=2)
@@ -112,7 +112,7 @@ def create_assets(output_dir="assets"):
                 py = 46 + int(20 * math.sin(rad))
                 d.ellipse([(px-6, py-6), (px+6, py+6)], fill="#FFCA28", outline="#FFA000")
         elif stg == 5:
-            d.line([(100, 130), (100, 55)], fill="#2E7D32", width=8)
+            d.line([(100, 142), (100, 55)], fill="#2E7D32", width=8)
             d.pieslice([(40, 75), (98, 120)], start=160, end=320, fill="#388E3C", outline="#1B5E20", width=2)
             d.pieslice([(102, 75), (160, 120)], start=220, end=380, fill="#4CAF50", outline="#1B5E20", width=2)
             for ang in range(0, 360, 30):
@@ -123,7 +123,7 @@ def create_assets(output_dir="assets"):
             d.ellipse([(76, 21), (124, 69)], fill="#5D4037", outline="#3E2723", width=2)
         elif stg == 6:
             # Huge smiling golden sunflower with sparkling crown
-            d.line([(100, 130), (100, 48)], fill="#1B5E20", width=9)
+            d.line([(100, 142), (100, 48)], fill="#1B5E20", width=9)
             d.pieslice([(35, 70), (98, 120)], start=160, end=320, fill="#2E7D32", outline="#1B5E20", width=2)
             d.pieslice([(102, 70), (165, 120)], start=220, end=380, fill="#388E3C", outline="#1B5E20", width=2)
             for ang in range(0, 360, 24):
@@ -147,20 +147,20 @@ def create_assets(output_dir="assets"):
         d = ImageDraw.Draw(img)
         draw_pot(d, 3 if stg >= 5 else (2 if stg >= 3 else 1))
         if stg == 1:
-            d.rounded_rectangle([(90, 105), (110, 130)], radius=8, fill="#66BB6A", outline="#2E7D32", width=2)
+            d.rounded_rectangle([(90, 105), (110, 142)], radius=8, fill="#66BB6A", outline="#2E7D32", width=2)
         elif stg == 2:
-            d.rounded_rectangle([(85, 95), (115, 130)], radius=12, fill="#4CAF50", outline="#2E7D32", width=2)
+            d.rounded_rectangle([(85, 95), (115, 142)], radius=12, fill="#4CAF50", outline="#2E7D32", width=2)
         elif stg == 3:
-            d.rounded_rectangle([(80, 70), (120, 130)], radius=16, fill="#4CAF50", outline="#2E7D32", width=2)
+            d.rounded_rectangle([(80, 70), (120, 142)], radius=16, fill="#4CAF50", outline="#2E7D32", width=2)
             d.line([(88, 80), (88, 120)], fill="#81C784", width=2)
             d.line([(112, 80), (112, 120)], fill="#81C784", width=2)
         elif stg == 4:
-            d.rounded_rectangle([(75, 55), (125, 130)], radius=18, fill="#43A047", outline="#1B5E20", width=2)
+            d.rounded_rectangle([(75, 55), (125, 142)], radius=18, fill="#43A047", outline="#1B5E20", width=2)
             d.rounded_rectangle([(55, 75), (80, 100)], radius=10, fill="#43A047", outline="#1B5E20", width=2)
             d.rounded_rectangle([(120, 68), (145, 93)], radius=10, fill="#43A047", outline="#1B5E20", width=2)
             d.ellipse([(92, 44), (108, 58)], fill="#F44336", outline="#B71C1C", width=2)
         elif stg == 5:
-            d.rounded_rectangle([(72, 45), (128, 130)], radius=20, fill="#388E3C", outline="#1B5E20", width=3)
+            d.rounded_rectangle([(72, 45), (128, 142)], radius=20, fill="#388E3C", outline="#1B5E20", width=3)
             d.rounded_rectangle([(45, 65), (76, 95)], radius=12, fill="#388E3C", outline="#1B5E20", width=2)
             d.rounded_rectangle([(124, 58), (155, 88)], radius=12, fill="#388E3C", outline="#1B5E20", width=2)
             for fx, fy in [(100, 35), (55, 55), (145, 50)]:
@@ -168,7 +168,7 @@ def create_assets(output_dir="assets"):
                 d.ellipse([(fx-5, fy-5), (fx+5, fy+5)], fill="#FF5722")
         elif stg == 6:
             # Giant cactus with multiple flowering branches and majestic crown
-            d.rounded_rectangle([(70, 38), (130, 130)], radius=22, fill="#2E7D32", outline="#1B5E20", width=3)
+            d.rounded_rectangle([(70, 38), (130, 142)], radius=22, fill="#2E7D32", outline="#1B5E20", width=3)
             d.rounded_rectangle([(40, 55), (75, 90)], radius=14, fill="#2E7D32", outline="#1B5E20", width=2)
             d.rounded_rectangle([(125, 48), (160, 83)], radius=14, fill="#2E7D32", outline="#1B5E20", width=2)
             d.rounded_rectangle([(45, 90), (70, 115)], radius=10, fill="#2E7D32", outline="#1B5E20", width=2)
@@ -186,33 +186,33 @@ def create_assets(output_dir="assets"):
         d = ImageDraw.Draw(img)
         draw_pot(d, 3 if stg >= 5 else (2 if stg >= 3 else 1))
         if stg == 1:
-            d.line([(100, 130), (100, 105)], fill="#4CAF50", width=3)
+            d.line([(100, 142), (100, 105)], fill="#4CAF50", width=3)
             d.ellipse([(92, 95), (108, 108)], fill="#81C784", outline="#2E7D32", width=2)
         elif stg == 2:
-            d.line([(100, 130), (100, 95)], fill="#4CAF50", width=4)
+            d.line([(100, 142), (100, 95)], fill="#4CAF50", width=4)
             d.ellipse([(85, 80), (102, 98)], fill="#66BB6A", outline="#2E7D32", width=2)
             d.ellipse([(98, 80), (115, 98)], fill="#66BB6A", outline="#2E7D32", width=2)
         elif stg == 3:
-            d.line([(100, 130), (100, 75)], fill="#388E3C", width=5)
+            d.line([(100, 142), (100, 75)], fill="#388E3C", width=5)
             d.ellipse([(80, 60), (100, 80)], fill="#4CAF50", outline="#1B5E20", width=2)
             d.ellipse([(100, 60), (120, 80)], fill="#4CAF50", outline="#1B5E20", width=2)
             d.ellipse([(90, 45), (110, 65)], fill="#66BB6A", outline="#1B5E20", width=2)
         elif stg == 4:
-            d.line([(100, 130), (100, 65)], fill="#2E7D32", width=6)
+            d.line([(100, 142), (100, 65)], fill="#2E7D32", width=6)
             d.line([(100, 110), (75, 80)], fill="#2E7D32", width=4)
             d.line([(100, 105), (125, 78)], fill="#2E7D32", width=4)
             for cx, cy in [(100, 50), (70, 75), (130, 72)]:
                 for ox, oy in [(-8, 0), (8, 0), (0, -8)]:
                     d.ellipse([(cx+ox-9, cy+oy-9), (cx+ox+9, cy+oy+9)], fill="#43A047", outline="#1B5E20", width=2)
         elif stg == 5:
-            d.line([(100, 130), (100, 60)], fill="#1B5E20", width=6)
+            d.line([(100, 142), (100, 60)], fill="#1B5E20", width=6)
             cx, cy = 100, 48
             for ox, oy in [(-16, 0), (16, 0), (0, -16), (0, 16)]:
                 d.ellipse([(cx+ox-14, cy+oy-14), (cx+ox+14, cy+oy+14)], fill="#00E676", outline="#007E33", width=2)
             d.ellipse([(cx-8, cy-8), (cx+8, cy+8)], fill="#FFD700")
         elif stg == 6:
             # Brilliant Golden-Blessed 4-Leaf Mega Clover with radiant aura
-            d.line([(100, 130), (100, 52)], fill="#004D40", width=7)
+            d.line([(100, 142), (100, 52)], fill="#004D40", width=7)
             d.line([(100, 100), (60, 68)], fill="#004D40", width=5)
             d.line([(100, 95), (140, 65)], fill="#004D40", width=5)
             # Main clover
@@ -231,25 +231,25 @@ def create_assets(output_dir="assets"):
         d = ImageDraw.Draw(img)
         draw_pot(d, 3 if stg >= 5 else (2 if stg >= 3 else 1))
         if stg == 1:
-            d.line([(100, 130), (100, 105)], fill="#795548", width=4)
+            d.line([(100, 142), (100, 105)], fill="#795548", width=4)
             d.ellipse([(94, 95), (106, 107)], fill="#F8BBD0", outline="#C2185B", width=2)
         elif stg == 2:
-            d.line([(100, 130), (100, 90)], fill="#795548", width=5)
+            d.line([(100, 142), (100, 90)], fill="#795548", width=5)
             d.ellipse([(90, 75), (110, 95)], fill="#F8BBD0", outline="#C2185B", width=2)
         elif stg == 3:
-            d.line([(100, 130), (100, 70)], fill="#5D4037", width=7)
+            d.line([(100, 142), (100, 70)], fill="#5D4037", width=7)
             d.line([(100, 95), (75, 75)], fill="#5D4037", width=4)
             d.line([(100, 90), (125, 70)], fill="#5D4037", width=4)
             for bx, by in [(75, 70), (125, 65), (100, 60)]:
                 d.ellipse([(bx-8, by-8), (bx+8, by+8)], fill="#F48FB1", outline="#AD1457", width=2)
         elif stg == 4:
-            d.line([(100, 130), (100, 60)], fill="#4E342E", width=8)
+            d.line([(100, 142), (100, 60)], fill="#4E342E", width=8)
             d.line([(100, 90), (65, 65)], fill="#4E342E", width=5)
             d.line([(100, 85), (135, 60)], fill="#4E342E", width=5)
             for bx, by in [(65, 60), (135, 55), (100, 45), (80, 40), (120, 35)]:
                 d.ellipse([(bx-10, by-10), (bx+10, by+10)], fill="#F06292", outline="#880E4F", width=2)
         elif stg == 5:
-            d.line([(100, 130), (100, 60)], fill="#3E2723", width=9)
+            d.line([(100, 142), (100, 60)], fill="#3E2723", width=9)
             d.line([(100, 95), (60, 65)], fill="#3E2723", width=6)
             d.line([(100, 90), (140, 60)], fill="#3E2723", width=6)
             clusters = [(100, 35), (70, 50), (130, 45), (85, 25), (115, 22), (55, 65), (145, 60)]
@@ -260,7 +260,7 @@ def create_assets(output_dir="assets"):
             d.ellipse([(145, 95), (153, 103)], fill="#FF80AB")
         elif stg == 6:
             # Grand Cherry Blossom tree with falling petals and golden twilight glow
-            d.line([(100, 130), (100, 55)], fill="#2E1C14", width=10)
+            d.line([(100, 142), (100, 55)], fill="#2E1C14", width=10)
             d.line([(100, 95), (55, 60)], fill="#2E1C14", width=7)
             d.line([(100, 90), (145, 55)], fill="#2E1C14", width=7)
             d.line([(100, 75), (80, 35)], fill="#2E1C14", width=5)
@@ -304,12 +304,12 @@ def create_assets(output_dir="assets"):
 
         if stg == 1:
             # 1. Luminous celestial sprout
-            d.arc([(90, 88), (115, 135)], start=180, end=300, fill="#10B981", width=5)
+            d.line([(100, 142), (100, 90)], fill="#10B981", width=5)
             d.ellipse([(78, 80), (102, 102)], fill="#38BDF8", outline="#818CF8", width=2)
             d.polygon([(90, 75), (93, 81), (99, 82), (95, 86), (96, 92), (90, 88), (84, 92), (85, 86), (81, 82), (87, 81)], fill="#FDE047")
         elif stg == 2:
             # 2. Dual crystalline aurora leaves
-            d.arc([(88, 80), (122, 135)], start=180, end=300, fill="#10B981", width=6)
+            d.line([(100, 142), (100, 85)], fill="#10B981", width=6)
             d.pieslice([(70, 70), (105, 105)], start=170, end=310, fill="#38BDF8", outline="#6366F1", width=2)
             d.pieslice([(95, 65), (130, 100)], start=230, end=370, fill="#A78BFA", outline="#6366F1", width=2)
             # Floating stars
@@ -317,7 +317,7 @@ def create_assets(output_dir="assets"):
                 d.polygon([(sx, sy-4), (sx+2, sy), (sx+6, sy+1), (sx+3, sy+3), (sx+4, sy+7), (sx, sy+4), (sx-4, sy+7), (sx-3, sy+3), (sx-6, sy+1), (sx-2, sy)], fill="#FDE047")
         elif stg == 3:
             # 3. Celestial triple-stem & shimmering foliage
-            d.line([(100, 130), (100, 65)], fill="#059669", width=7)
+            d.line([(100, 142), (100, 65)], fill="#059669", width=7)
             d.pieslice([(50, 75), (98, 115)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
             d.pieslice([(102, 70), (150, 110)], start=230, end=390, fill="#C084FC", outline="#4338CA", width=2)
             d.pieslice([(65, 50), (105, 85)], start=130, end=290, fill="#E879F9", outline="#4338CA", width=2)
@@ -326,7 +326,7 @@ def create_assets(output_dir="assets"):
                 d.polygon([(sx, sy-5), (sx+3, sy), (sx+8, sy+1), (sx+4, sy+4), (sx+5, sy+9), (sx, sy+5), (sx-5, sy+9), (sx-4, sy+4), (sx-8, sy+1), (sx-3, sy)], fill="#FDE047")
         elif stg == 4:
             # 4. Delicate glowing galaxy rose bud
-            d.line([(100, 130), (100, 55)], fill="#047857", width=8)
+            d.line([(100, 142), (100, 55)], fill="#047857", width=8)
             d.pieslice([(45, 65), (98, 108)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
             d.pieslice([(102, 65), (155, 108)], start=230, end=390, fill="#818CF8", outline="#4338CA", width=2)
             # Rose bud layers
@@ -339,7 +339,7 @@ def create_assets(output_dir="assets"):
                 d.polygon([(sx, sy-6), (sx+4, sy), (sx+9, sy+1), (sx+5, sy+5), (sx+6, sy+10), (sx, sy+6), (sx-6, sy+10), (sx-5, sy+5), (sx-9, sy+1), (sx-4, sy)], fill="#FDE047")
         elif stg == 5:
             # 5. Blooming Galaxy Rose
-            d.line([(100, 130), (100, 52)], fill="#047857", width=8)
+            d.line([(100, 142), (100, 52)], fill="#047857", width=8)
             d.pieslice([(42, 70), (96, 112)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
             d.pieslice([(104, 70), (158, 112)], start=230, end=390, fill="#818CF8", outline="#4338CA", width=2)
             # Outer rose petals (6 directions)
@@ -362,7 +362,7 @@ def create_assets(output_dir="assets"):
                 d.polygon([(sx, sy-6), (sx+4, sy), (sx+9, sy+1), (sx+5, sy+5), (sx+6, sy+10), (sx, sy+6), (sx-6, sy+10), (sx-5, sy+5), (sx-9, sy+1), (sx-4, sy)], fill="#FDE047")
         elif stg == 6:
             # 6. 🌟 Legendary Starlight Galaxy Rose Master Bloom with Constellation Halo
-            d.line([(100, 130), (100, 48)], fill="#064E3B", width=9)
+            d.line([(100, 142), (100, 48)], fill="#064E3B", width=9)
             d.pieslice([(38, 68), (96, 115)], start=150, end=310, fill="#06B6D4", outline="#1E1B4B", width=2)
             d.pieslice([(104, 68), (162, 115)], start=230, end=390, fill="#8B5CF6", outline="#1E1B4B", width=2)
             d.pieslice([(60, 45), (105, 80)], start=130, end=290, fill="#EC4899", outline="#1E1B4B", width=2)

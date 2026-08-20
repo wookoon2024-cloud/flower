@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.7.2-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.7.3-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,11 +22,11 @@
 
 | 구분 | 버전 | 업데이트 | 배포 파일명 | 원클릭 다운로드 |
 | :---: | :---: | :---: | :---: | :---: |
-| 🚀 **단독 실행파일 (.exe)** | **`v1.7.2`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.2.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.2.zip) |
-| 💻 **순수 소스코드 (.py)** | **`v1.7.2`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.2.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.2.zip) |
+| 🚀 **단독 실행파일 (.exe)** | **`v1.7.3`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.3.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.3.zip) |
+| 💻 **순수 소스코드 (.py)** | **`v1.7.3`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.3.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.3.zip) |
 
-> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.2.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
-> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.2.zip` 압축 해제 후 `python main.py`를 실행하세요.
+> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.3.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
+> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.3.zip` 압축 해제 후 `python main.py`를 실행하세요.
 
 ---
 
@@ -175,6 +175,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.7.3`** | 2026-08-20 | • **새싹/줄기 화분 흙 공중 부양 현상 완전 해결 및 전 품종 흙 속 완전 밀착 (`Y=142`)**<br>• **원인 해결:** 1~2단계 새싹 및 일부 품종 줄기 그리기 좌표가 Y=110~130에 머물러 있어, Y=142에 위치한 화분 흙 사이에 빈 틈(Gap)이 생겨 풀때기가 공중에 붕 떠있는 것처럼 보이던 어색함을 원천 해결<br>• **전 품종 흙 속 완전 식재:** 6대 전 품종(다정한 화분, 해바라기, 선인장, 클로버, 벚꽃, 별빛장미)의 모든 성장 단계(1~6단계)의 줄기 및 밑동 시작 좌표를 화분 흙 중심인 `(100, 142)`로 깊숙이 연장하여 화분 흙 속에 안정감 있게 심어져 있는 완전한 그래픽으로 수정 완료 |
 | **`v1.7.2`** | 2026-08-20 | • **Windows 다크/야간 모드 및 고대비 테마 텍스트 흰색 묻힘 현상 완벽 해결**<br>• **원인 해결:** Windows 10/11에서 야간 모드, 다크 모드, 고대비 테마(검정 배경+흰색 폰트)를 사용하는 PC의 경우, OS 시스템 팔레트의 기본 폰트 색상이 흰색(`#FFFFFF`)으로 지정되어, 앱의 환경설정창/도감/환영창의 밝은 배경(`#FFFFFF`/`#F8FAFC`) 위에 흰색 글자가 렌더링되면서 글씨가 사라져 안 보이던 현상을 원천 해결<br>• **전 창 명시적 다크 슬레이트 폰트 컬러 고정:** 환경설정창(`SettingsDialog`), 대화창(`ChatDialog`), 화원 도감(`GardenDialog`), 입양 환영창(`WelcomeDialog`) 내 모든 라벨, 탭, 그룹박스, 콤보박스, 텍스트 입력 필드에 명시적으로 고선명 텍스트 컬러(`#1E293B`, `#334155`, `#0F766E`)를 잠금 처리하여 어떤 OS 테마에서도 선명하게 표시 |
 | **`v1.7.1`** | 2026-08-20 | • **마우스 진입/이동 시 Win32 Z-Order API 호출 잔재 전면 제거로 마우스 로딩 회전(Busy Spinner) 100% 원천 박멸**<br>• **원인 해결:** 마우스가 화분 및 투명 위젯 영역에 진입(`enterEvent`)할 때마다 호출되던 Win32 `SetWindowPos` C API가 Windows DWM/셸에 윈도우 순위 재배치를 통보하여, Windows OS가 백그라운드 작업(AppStarting)으로 인식하고 마우스 커서를 로딩 스피너(빙글빙글 파란 원)로 깜빡이게 하던 잔재를 100% 원천 제거<br>• **100% 네이티브 Qt 최상위 전환:** `ctypes` 및 Win32 C API 의존성을 완전히 삭제하고 PySide6 `WindowStaysOnTopHint` 플래그로만 깔끔하게 동작하도록 정리<br>• **유휴 표정 주기 최적화 (3.5초 ➡️ 15~25초):** 화분이 가만히 있을 때 3초마다 표정 루프를 돌던 빈도를 15~25초로 자연스럽게 늘려 평소 CPU 사용률을 0%에 수렴하도록 최적화 |
 | **`v1.7.0`** | 2026-08-20 | • **히든 전설 마스터 품종 '🌟 은하수 별빛 장미(Starlight Galaxy Rose)' 및 5종 선행 졸업 해금 시스템 탑재**<br>• **5대 기본 품종 완주 선행 해금 시스템:** 기존 5종(다정한 화분, 햇살 해바라기, 동글 선인장, 행운의 클로버, 봄날 벚꽃나무)을 **모두 6단계 만개까지 화원에 졸업 등록**해야만 봉인이 해제되는 최고 등급의 히든 전설 품종 탑재<br>• **초고화질 전설 전용 그래픽(1~6단계):** 신비로운 로열 자수정 골드 팟, 오로라빛 크리스탈 줄기, 은하수 꽃잎, 6단계 만개 시 8개 황금 별자리 오로라 후광 및 흩날리는 별가루 이펙트 적용<br>• **신규 고유 AI 페르소나:** 5대 품종을 완주한 공직자님을 향한 깊은 존경과 우주처럼 깊고 영롱한 별빛 치유를 전하는 천상 마스터 멘토 대사 탑재<br>• **신규 업적 2종 추가 (총 112종):** `spec_starlight_rose` (별빛 장미의 탄생), `master_botanist` (전설의 올마스터 가드너 👑) |
