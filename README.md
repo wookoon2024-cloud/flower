@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.1.3-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.1.4-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.1.4`** | 2026-08-20 | • **사용자 메시지 우측 말풍선 텍스트 잘림 현상 완벽 개선**<br>• `UserMessageBubble` 우측 마진(`10px`) 및 말풍선 내부 패딩(`padding: 9px 15px`, `line-height: 1.4`) 최적화로 스크롤바나 창 테두리에 텍스트가 가려지는 현상 완전 해결<br>• `ChatDialog` 기본 폭을 `460px`로 확장하여 장문 메시지도 편안하게 가독성 확보 |
 | **`v1.1.3`** | 2026-08-20 | • **마음업적창/다이얼로그 닫기 시 프로그램 종료 방지 및 마음 날씨 X축 시간 스마트 라벨링**<br>• `QApplication.setQuitOnLastWindowClosed(False)` 설정으로 마음업적(나의 화원)창, 설정창, 대화창을 닫아도 바탕화면 반려화분이 계속 유지되도록 데스크톱 위젯 수명주기 보장<br>• 마음 날씨 그래프(MoodChartWidget) X축에 동일 날짜 대화 시 시간(`10:30`, `10:41` 등)을 스마트하게 표시하여 `08/20` 중복 표기 문제 완전 개선 |
 | **`v1.1.2`** | 2026-08-20 | • **QThread 비동기 작업 스레드 수명 주기(Lifecycle) 및 종료 안전성 완벽 패치**<br>• 비동기 워커(`AIChatWorker`)에 `stop()` 제어 플래그 및 부모 위젯 계층(`parent=self`) 바인딩 적용<br>• 이전 작업 스레드 안전 대기(`_stop_existing_workers`) 및 앱 종료(`aboutToQuit`) 시 스레드 리소스 정상 회수(Graceful Join) 보장으로 `QThread: Destroyed while thread is still running` 예외 원천 해결 |
 | **`v1.1.1`** | 2026-08-20 | • **대화창 자동 스크롤 하단 추적(Auto-Scroll Range Tracking) 완벽 적용**<br>• 메시지 전송 및 답변 수신 시 캔버스 높이 변화(`rangeChanged`)를 즉각 감지하여 항상 최신 말풍선이 위치한 맨 아래로 스크롤 이동 보장<br>• **이중 AI 엔진 (Dual Engine) 안내**: API Key 미입력 시 내장 대사 풀로 100% 자동 응답, API Key/엔드포인트 입력 시 실제 CLOVA Studio GOV / OpenAI LLM 스트리밍 대화 완벽 동작 |

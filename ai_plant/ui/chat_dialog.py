@@ -1,13 +1,13 @@
 """
 Chat Dialog Widget
 A friendly, modern chat window with 100% native PySide6 KakaoTalk-style message bubbles,
-guaranteed right-aligned user messages, custom plant-inspired emerald/white theme,
-micro-assistant chips, and rock-solid thread/event safety.
+guaranteed right-aligned user messages with comfortable margin protection (no text clipping),
+custom plant-inspired emerald/white theme, micro-assistant chips, and rock-solid thread safety.
 """
 import datetime
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton,
-    QLabel, QWidget, QScrollArea, QFrame, QSizePolicy
+    QLabel, QWidget, QScrollArea, QFrame, QSizePolicy, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
@@ -30,13 +30,14 @@ def format_chat_time(timestamp_str: str) -> str:
 
 
 class UserMessageBubble(QWidget):
-    """Native right-aligned user speech bubble with timestamp."""
+    """Native right-aligned user speech bubble with timestamp and generous padding."""
     def __init__(self, content: str, time_str: str, parent=None):
         super().__init__(parent)
         self.setStyleSheet("background: transparent; border: none;")
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 2, 4, 2)
+        # 10px right margin so vertical scrollbar never clips the bubble
+        layout.setContentsMargins(0, 2, 10, 2)
         layout.setSpacing(6)
 
         # Push completely to the right edge
@@ -52,7 +53,8 @@ class UserMessageBubble(QWidget):
         # Bubble content
         bubble = QLabel(content, self)
         bubble.setWordWrap(True)
-        bubble.setMaximumWidth(265)
+        bubble.setMaximumWidth(280)
+        bubble.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         bubble.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         bubble.setStyleSheet("""
             QLabel {
@@ -60,8 +62,9 @@ class UserMessageBubble(QWidget):
                 color: #FFFFFF;
                 border-radius: 14px;
                 border-top-right-radius: 2px;
-                padding: 9px 13px;
+                padding: 9px 15px 9px 15px;
                 font-size: 12px;
+                line-height: 1.4;
                 font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
             }
         """)
@@ -75,7 +78,7 @@ class BotMessageBubble(QWidget):
         self.setStyleSheet("background: transparent; border: none;")
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 2, 0, 2)
+        layout.setContentsMargins(6, 2, 0, 2)
         layout.setSpacing(8)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
@@ -108,7 +111,8 @@ class BotMessageBubble(QWidget):
 
         bubble = QLabel(content, self)
         bubble.setWordWrap(True)
-        bubble.setMaximumWidth(265)
+        bubble.setMaximumWidth(280)
+        bubble.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         bubble.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         bubble.setStyleSheet("""
             QLabel {
@@ -117,8 +121,9 @@ class BotMessageBubble(QWidget):
                 border: 1px solid #CBD5E1;
                 border-radius: 14px;
                 border-top-left-radius: 2px;
-                padding: 9px 13px;
+                padding: 9px 15px 9px 15px;
                 font-size: 12px;
+                line-height: 1.4;
                 font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
             }
         """)
@@ -144,7 +149,7 @@ class TypingIndicatorBubble(QWidget):
         self.setStyleSheet("background: transparent; border: none;")
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 2, 0, 2)
+        layout.setContentsMargins(6, 2, 0, 2)
         layout.setSpacing(8)
 
         avatar = QLabel("🌱", self)
@@ -176,7 +181,7 @@ class TypingIndicatorBubble(QWidget):
                 border: 1px solid #A7F3D0;
                 border-radius: 14px;
                 border-top-left-radius: 2px;
-                padding: 8px 12px;
+                padding: 8px 14px;
                 font-size: 11.5px;
                 font-style: italic;
                 font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
@@ -200,7 +205,7 @@ class ChatDialog(QDialog):
     def init_ui(self):
         plant_name = self.config.get("plant_name", "초록이")
         self.setWindowTitle(f"🌱 {plant_name}와(과) 대화하기")
-        self.resize(440, 580)
+        self.resize(460, 600)
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowCloseButtonHint |
@@ -488,3 +493,13 @@ class ChatDialog(QDialog):
         self.load_history()
         if not is_loading:
             self.input_edit.setFocus()
+
+    def closeEvent(self, event):
+        self.hide()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.close()
+        else:
+            super().keyPressEvent(event)
