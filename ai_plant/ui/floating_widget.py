@@ -460,6 +460,7 @@ class FloatingPlantWindow(QWidget):
             self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
+            self.bubble.hide_bubble()  # Close speech bubble when opening chat dialog
             if not self.chat_dialog:
                 self.chat_dialog = ChatDialog(self.db, self.config, None)
                 self.chat_dialog.message_sent.connect(self.start_ai_chat)
@@ -535,11 +536,13 @@ class FloatingPlantWindow(QWidget):
             self.db.add_chat_message("user", user_text)
 
             # 3. Refresh chat dialog immediately so user message appears on the right
+            is_chat_open = bool(self.chat_dialog and self.chat_dialog.isVisible())
             if self.chat_dialog:
                 self.chat_dialog.load_history()
 
-            # 4. Start real-time streaming on speech bubble
-            self.bubble.start_streaming()
+            # 4. Only stream to widget speech bubble if chat dialog is NOT open
+            if not is_chat_open:
+                self.bubble.start_streaming()
 
             # 5. Start async AI worker thread safely with parent=self
             worker = AIChatWorker(
@@ -550,7 +553,8 @@ class FloatingPlantWindow(QWidget):
                 parent=self
             )
             self._active_workers.append(worker)
-            worker.chunk_received.connect(self.bubble.append_chunk)
+            if not is_chat_open:
+                worker.chunk_received.connect(self.bubble.append_chunk)
             worker.response_received.connect(self.on_ai_response_received)
             worker.finished.connect(lambda w=worker: self._on_worker_finished(w))
             worker.start()
