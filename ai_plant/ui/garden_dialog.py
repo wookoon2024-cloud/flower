@@ -6,7 +6,7 @@ and visual image card selector for planting new seeds on graduation.
 import os
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, QWidget, QLabel,
-    QPushButton, QScrollArea, QFrame, QLineEdit, QComboBox, QProgressBar
+    QPushButton, QScrollArea, QFrame, QLineEdit, QComboBox, QProgressBar, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QPointF, QRectF
 from PySide6.QtGui import QFont, QColor, QPainter, QPainterPath, QPen, QBrush, QLinearGradient, QPixmap
