@@ -283,28 +283,46 @@ class GardenDialog(QDialog):
         self.tabs = QTabWidget(self)
         
         # 1. Garden
-        self.tab_garden = self.create_garden_tab()
-        self.tabs.addTab(self.tab_garden, "🪴 화원")
+        try:
+            self.tab_garden = self.create_garden_tab()
+            self.tabs.addTab(self.tab_garden, "🪴 화원")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating garden tab: {e}")
 
         # 2. Species Showcase
-        self.tab_species = self.create_species_tab()
-        self.tabs.addTab(self.tab_species, "🌸 품종")
+        try:
+            self.tab_species = self.create_species_tab()
+            self.tabs.addTab(self.tab_species, "🌸 품종")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating species tab: {e}")
 
         # 3. Shop (Saucers & Pet Companions)
-        self.tab_shop = self.create_shop_tab()
-        self.tabs.addTab(self.tab_shop, "🏪 상점")
+        try:
+            self.tab_shop = self.create_shop_tab()
+            self.tabs.addTab(self.tab_shop, "🏪 상점")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating shop tab: {e}")
 
         # 4. Achievements (112 Achievements + Coins)
-        self.tab_achievements = self.create_achievements_tab()
-        self.tabs.addTab(self.tab_achievements, "🏆 업적")
+        try:
+            self.tab_achievements = self.create_achievements_tab()
+            self.tabs.addTab(self.tab_achievements, "🏆 업적")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating achievements tab: {e}")
 
         # 5. Sentiment Mood Chart
-        self.tab_mood = self.create_mood_tab()
-        self.tabs.addTab(self.tab_mood, "📊 마음날씨")
+        try:
+            self.tab_mood = self.create_mood_tab()
+            self.tabs.addTab(self.tab_mood, "📊 마음날씨")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating mood tab: {e}")
 
         # 6. Daily Fortune
-        self.tab_fortune = self.create_fortune_tab()
-        self.tabs.addTab(self.tab_fortune, "🥠 포춘")
+        try:
+            self.tab_fortune = self.create_fortune_tab()
+            self.tabs.addTab(self.tab_fortune, "🥠 포춘")
+        except Exception as e:
+            print(f"[GardenDialog] Error creating fortune tab: {e}")
 
         layout.addWidget(self.tabs, 1)
 
