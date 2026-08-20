@@ -11,6 +11,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 
+from ai_plant import __version__
 from ai_plant.config import ConfigManager, get_resource_path, get_base_dir
 from ai_plant.database import DatabaseManager
 from ai_plant.plant_engine import PlantEngine
@@ -63,7 +64,7 @@ def setup_global_logging():
             pass
 
     sys.excepthook = handle_exception
-    print(f"\n=== 마음지킴이 로그 세션 시작: {datetime.datetime.now()} (v1.8.1) ===")
+    print(f"\n=== 마음지킴이 로그 세션 시작: {datetime.datetime.now()} (v{__version__}) ===")
     print(f"Base Directory: {base_dir}")
     print(f"Log File: {log_path}")
 

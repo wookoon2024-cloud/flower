@@ -548,51 +548,38 @@ class GardenDialog(QDialog):
                 """)
 
             c_layout = QHBoxLayout(card)
-            c_layout.setContentsMargins(10, 8, 10, 8)
-            c_layout.setSpacing(8)
+            c_layout.setContentsMargins(8, 6, 8, 6)
+            c_layout.setSpacing(6)
 
             # Left: Stage 6 Full-Bloom Thumbnail
             img_lbl = QLabel()
-            img_lbl.setFixedSize(48, 48)
+            img_lbl.setFixedSize(42, 42)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             img_path = get_resource_path(os.path.join("assets", f"stage_{sp_id}_6.png"))
             if os.path.exists(img_path):
-                pm = QPixmap(img_path).scaled(46, 46, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                pm = QPixmap(img_path).scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 img_lbl.setPixmap(pm)
             else:
                 img_lbl.setText(info["emoji"])
-                img_lbl.setStyleSheet("font-size: 26px;")
+                img_lbl.setStyleSheet("font-size: 24px;")
 
-            # Center: Info & Title
+            # Center: Info & Title (Single auto-wrapping label for title + badge)
             info_layout = QVBoxLayout()
             info_layout.setSpacing(2)
 
-            title_row = QHBoxLayout()
-            title_row.setSpacing(6)
-            title_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
-            title_lbl.setStyleSheet("font-size: 12px; color: #1E293B;" if not is_secret else "font-size: 12px; color: #6B21A8;")
-            title_row.addWidget(title_lbl)
-
             if is_current:
-                stg_name = STAGE_NAMES.get(curr_stage, f"{curr_stage}단계")
-                status_lbl = QLabel(f"🌱 육성 중 ({stg_name})")
-                status_lbl.setStyleSheet("color: #065F46; font-size: 9.5px; font-weight: bold; background-color: #D1FAE5; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(status_lbl)
+                badge_html = f"<span style='color: #065F46; font-size: 9.5px; font-weight: bold; background-color: #D1FAE5; border-radius: 3px; padding: 1px 4px;'>🌱 육성 중 ({curr_stage}단계)</span>"
             elif is_grad:
-                grad_lbl = QLabel("🎓 졸업 완료")
-                grad_lbl.setStyleSheet("color: #1E40AF; font-size: 9.5px; font-weight: bold; background-color: #DBEAFE; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(grad_lbl)
+                badge_html = "<span style='color: #1E40AF; font-size: 9.5px; font-weight: bold; background-color: #DBEAFE; border-radius: 3px; padding: 1px 4px;'>🎓 졸업 완료</span>"
             elif is_secret and not is_unlocked:
-                lock_lbl = QLabel(f"🔒 잠김 ({completed_cnt}/{total_req})")
-                lock_lbl.setStyleSheet("color: #991B1B; font-size: 9.5px; font-weight: bold; background-color: #FEE2E2; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(lock_lbl)
+                badge_html = f"<span style='color: #991B1B; font-size: 9.5px; font-weight: bold; background-color: #FEE2E2; border-radius: 3px; padding: 1px 4px;'>🔒 잠김 ({completed_cnt}/{total_req})</span>"
             else:
-                avail_lbl = QLabel("🔓 입양 가능")
-                avail_lbl.setStyleSheet("color: #475569; font-size: 9.5px; font-weight: bold; background-color: #F1F5F9; border-radius: 3px; padding: 1px 5px;")
-                title_row.addWidget(avail_lbl)
+                badge_html = "<span style='color: #475569; font-size: 9.5px; font-weight: bold; background-color: #F1F5F9; border-radius: 3px; padding: 1px 4px;'>🔓 입양 가능</span>"
 
-            title_row.addStretch()
-            info_layout.addLayout(title_row)
+            title_lbl = QLabel(f"<b>{info['name']}</b> &nbsp;{badge_html}")
+            title_lbl.setStyleSheet("font-size: 11.5px; color: #1E293B;" if not is_secret else "font-size: 11.5px; color: #6B21A8;")
+            title_lbl.setWordWrap(True)
+            info_layout.addWidget(title_lbl)
 
             # Short Clean Description
             desc_lbl = QLabel(info.get("desc", ""))
@@ -603,13 +590,13 @@ class GardenDialog(QDialog):
             # Right: Detail Preview Button
             btn_preview = QPushButton("만개 보기")
             btn_preview.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn_preview.setFixedWidth(68)
+            btn_preview.setFixedWidth(64)
             btn_preview.setStyleSheet("""
                 QPushButton {
                     background-color: #F8FAFC;
                     border: 1px solid #CBD5E1;
                     border-radius: 5px;
-                    padding: 5px 4px;
+                    padding: 5px 3px;
                     font-size: 10.5px;
                     color: #334155;
                     font-weight: bold;
@@ -630,8 +617,6 @@ class GardenDialog(QDialog):
             grid.addWidget(card, row, col)
 
         scroll.setWidget(scroll_content)
-        layout.addWidget(scroll, 1)
-        return widget
         layout.addWidget(scroll, 1)
         return widget
 

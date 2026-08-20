@@ -583,7 +583,8 @@ class PlantCharacterWidget(QWidget):
         pix = self.pixmaps.get(self.current_stage)
         if pix and not pix.isNull():
             px = (self.width() - pix.width()) // 2
-            py = self.height() - pix.height()
+            # Leave 6px margin at bottom so saucer tray sits cleanly underneath the pot
+            py = self.height() - pix.height() - 6
 
             # Underneath: Draw Saucer
             self._draw_saucer(painter, px, py, pix.width(), pix.height())
@@ -1037,20 +1038,20 @@ class PlantCharacterWidget(QWidget):
             pass
 
     def _draw_saucer(self, painter: QPainter, px: int, py: int, pw: int, ph: int):
-        """Draw equipped pot saucer (화분 받침대) prominently underneath the pot base."""
+        """Draw equipped pot saucer (화분 받침대) directly underneath the pot base."""
         if self.equipped_saucer == "none":
             return
 
         painter.save()
         base_cx = px + pw * 0.5
-        base_y = py + ph * 0.88
+        pot_bottom_y = py + ph - 2.0
         s_id = self.equipped_saucer
 
-        # Wide, substantial saucer plate (clearly extends beyond pot base)
-        tray_w = max(78.0, pw * 0.78)
-        tray_h = max(13.0, ph * 0.12)
-        tray_rect = QRectF(base_cx - tray_w / 2, base_y, tray_w, tray_h)
-        lip_rect = QRectF(base_cx - (tray_w + 6) / 2, base_y, tray_w + 6, 4.5)
+        # Wide saucer plate supporting the pot base cleanly
+        tray_w = max(72.0, pw * 0.72)
+        tray_h = 7.5
+        tray_rect = QRectF(base_cx - tray_w / 2, pot_bottom_y - 1.0, tray_w, tray_h)
+        lip_rect = QRectF(base_cx - (tray_w + 6) / 2, pot_bottom_y - 2.2, tray_w + 6, 3.2)
 
         if s_id == "wood":
             # Warm Natural Wood Tray
