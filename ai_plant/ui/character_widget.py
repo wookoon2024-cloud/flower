@@ -426,102 +426,105 @@ class PlantCharacterWidget(QWidget):
             self.anim_timer.start(33)
 
     def _on_master_anim_tick(self):
-        has_active_anim = False
+        try:
+            has_active_anim = False
 
-        # 1. Particles
-        if self.particles:
-            alive_particles = []
-            for p in self.particles:
-                p.update()
-                if p.alive:
-                    alive_particles.append(p)
-            self.particles = alive_particles
+            # 1. Particles
             if self.particles:
-                has_active_anim = True
+                alive_particles = []
+                for p in self.particles:
+                    p.update()
+                    if p.alive:
+                        alive_particles.append(p)
+                self.particles = alive_particles
+                if self.particles:
+                    has_active_anim = True
 
-        # 2. Facial Expression
-        if self.expr_type != "none":
-            self.expr_frame += 1
-            if self.expr_frame >= self.expr_total_frames:
-                self.expr_type = "none"
-                self.expr_frame = 0
-                self._schedule_next_expression()
-            else:
-                has_active_anim = True
-
-        # 3. Eco-Visitor & Pest Escaped Penalty Trigger
-        if self.eco_visitor:
-            self.eco_visitor.update()
-            if self.eco_visitor.is_pest and not self.eco_visitor.is_fleeing and self.eco_visitor.frame >= self.eco_visitor.total_frames and not self.eco_visitor.has_escaped_reported:
-                self.eco_visitor.has_escaped_reported = True
-                self.pest_escaped.emit(self.eco_visitor.v_type)
-
-            if not self.eco_visitor.alive:
-                self.eco_visitor = None
-                self._schedule_next_eco_visitor()
-            else:
-                has_active_anim = True
-
-        # 4. Pet Companion Behavior State Machine
-        if self.equipped_pet != "none":
-            has_active_anim = True
-            self.pet_frame += 1
-            self.pet_state_timer += 1
-
-            if self.pet_state == "sitting":
-                if self.pet_state_timer > random.randint(140, 240):
-                    r = random.random()
-                    if r < 0.55:
-                        self.pet_state = "walking"
-                        target_left = random.randint(20, 52)
-                        target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
-                        self.pet_target_x = float(random.choice([target_left, target_right]))
-                        self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
-                    elif r < 0.85:
-                        self.pet_state = "sleeping"
-                    else:
-                        self.pet_state = "wandering"
-                        self.pet_target_x = float(-25 if random.random() < 0.5 else self.width() + 25)
-                        self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
-                    self.pet_state_timer = 0
-
-            elif self.pet_state == "walking":
-                dx = self.pet_target_x - self.pet_x
-                if abs(dx) < 1.0:
-                    self.pet_state = "sitting"
-                    self.pet_state_timer = 0
+            # 2. Facial Expression
+            if self.expr_type != "none":
+                self.expr_frame += 1
+                if self.expr_frame >= self.expr_total_frames:
+                    self.expr_type = "none"
+                    self.expr_frame = 0
+                    self._schedule_next_expression()
                 else:
-                    self.pet_x += 0.7 * (1 if dx > 0 else -1)
+                    has_active_anim = True
 
-            elif self.pet_state == "sleeping":
-                if self.pet_state_timer > random.randint(200, 360):
-                    self.pet_state = "sitting"
-                    self.pet_state_timer = 0
+            # 3. Eco-Visitor & Pest Escaped Penalty Trigger
+            if self.eco_visitor:
+                self.eco_visitor.update()
+                if self.eco_visitor.is_pest and not self.eco_visitor.is_fleeing and self.eco_visitor.frame >= self.eco_visitor.total_frames and not self.eco_visitor.has_escaped_reported:
+                    self.eco_visitor.has_escaped_reported = True
+                    self.pest_escaped.emit(self.eco_visitor.v_type)
 
-            elif self.pet_state == "wandering":
-                dx = self.pet_target_x - self.pet_x
-                if abs(dx) < 1.0:
-                    if self.pet_state_timer > 90:
-                        self.pet_state = "walking"
-                        target_left = random.randint(20, 52)
-                        target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
-                        self.pet_target_x = float(random.choice([target_left, target_right]))
-                        self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
+                if not self.eco_visitor.alive:
+                    self.eco_visitor = None
+                    self._schedule_next_eco_visitor()
+                else:
+                    has_active_anim = True
+
+            # 4. Pet Companion Behavior State Machine
+            if self.equipped_pet != "none":
+                has_active_anim = True
+                self.pet_frame += 1
+                self.pet_state_timer += 1
+
+                if self.pet_state == "sitting":
+                    if self.pet_state_timer > random.randint(140, 240):
+                        r = random.random()
+                        if r < 0.55:
+                            self.pet_state = "walking"
+                            target_left = random.randint(20, 52)
+                            target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
+                            self.pet_target_x = float(random.choice([target_left, target_right]))
+                            self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
+                        elif r < 0.85:
+                            self.pet_state = "sleeping"
+                        else:
+                            self.pet_state = "wandering"
+                            self.pet_target_x = float(-25 if random.random() < 0.5 else self.width() + 25)
+                            self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
                         self.pet_state_timer = 0
-                        self.spawn_particle("heart")
-                else:
-                    self.pet_x += 0.8 * (1 if dx > 0 else -1)
 
-            elif self.pet_state == "greeting":
-                if self.pet_state_timer > 35:
-                    self.pet_state = "sitting"
-                    self.pet_state_timer = 0
+                elif self.pet_state == "walking":
+                    dx = self.pet_target_x - self.pet_x
+                    if abs(dx) < 1.0:
+                        self.pet_state = "sitting"
+                        self.pet_state_timer = 0
+                    else:
+                        self.pet_x += 0.7 * (1 if dx > 0 else -1)
 
-        if has_active_anim:
-            self.update()
-        else:
-            self.anim_timer.stop()
-            self.update()
+                elif self.pet_state == "sleeping":
+                    if self.pet_state_timer > random.randint(200, 360):
+                        self.pet_state = "sitting"
+                        self.pet_state_timer = 0
+
+                elif self.pet_state == "wandering":
+                    dx = self.pet_target_x - self.pet_x
+                    if abs(dx) < 1.0:
+                        if self.pet_state_timer > 90:
+                            self.pet_state = "walking"
+                            target_left = random.randint(20, 52)
+                            target_right = random.randint(max(60, self.width() - 52), max(65, self.width() - 20))
+                            self.pet_target_x = float(random.choice([target_left, target_right]))
+                            self.pet_dir = 1 if self.pet_target_x > self.pet_x else -1
+                            self.pet_state_timer = 0
+                            self.spawn_particle("heart")
+                    else:
+                        self.pet_x += 0.8 * (1 if dx > 0 else -1)
+
+                elif self.pet_state == "greeting":
+                    if self.pet_state_timer > 35:
+                        self.pet_state = "sitting"
+                        self.pet_state_timer = 0
+
+            if has_active_anim:
+                self.update()
+            else:
+                self.anim_timer.stop()
+                self.update()
+        except Exception:
+            pass
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
