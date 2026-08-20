@@ -472,6 +472,9 @@ class GardenDialog(QDialog):
         s_layout = QHBoxLayout(stat_card)
         s_layout.setContentsMargins(12, 10, 12, 10)
 
+        s_left = QLabel(f"📈 <b>최근 마음 날씨 평균:</b> <span style='color: #2563EB; font-size: 14px;'><b>{avg_score:.1f}</b> / 5.0</span>")
+        s_left.setStyleSheet("color: #1E293B; font-size: 12px;")
+
         unique_dates = {r.get("date", "") for r in mood_records if r.get("date")}
         if len(unique_dates) == 1 and mood_records:
             t_date = mood_records[0].get("date", "")

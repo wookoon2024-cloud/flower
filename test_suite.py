@@ -254,6 +254,18 @@ class TestAIPlantWidget(unittest.TestCase):
         self.assertEqual(worker.proactive_mode, "idle_nudge")
         self.assertEqual(worker.config["model"], "HCX-GOV-THINK-V1-32B")
 
+    def test_garden_dialog_initialization(self):
+        from PySide6.QtWidgets import QApplication
+        from ai_plant.ui.garden_dialog import GardenDialog
+        # Ensure QApplication exists for UI tests
+        app = QApplication.instance() or QApplication([])
+        engine = PlantEngine(self.db, self.config)
+        self.db.add_mood_entry("happy", 5, "오늘 기분 좋아")
+        dialog = GardenDialog(engine, self.db, self.config)
+        self.assertIsNotNone(dialog)
+        self.assertEqual(dialog.tabs.count(), 4)
+        dialog.close()
+
 if __name__ == "__main__":
     unittest.main()
 
