@@ -18,6 +18,7 @@ from .control_bar import ControlBarWidget
 from .chat_dialog import ChatDialog
 from .garden_dialog import GardenDialog
 from .settings_dialog import SettingsDialog
+from ..shop_data import PET_CATALOG, SAUCER_CATALOG
 from ..ai_client import AIChatWorker, analyze_user_sentiment
 from ..config import set_autostart_registry
 
@@ -122,6 +123,8 @@ class FloatingPlantWindow(QWidget):
         self.character = PlantCharacterWidget(self, scale_pct=scale_pct)
         self.character.set_species(self.engine.get_species())
         self.character.set_stage(self.engine.get_state().get("stage", 1))
+        self.character.set_equipped_saucer(self.engine.get_equipped_saucer())
+        self.character.set_equipped_pet(self.engine.get_equipped_pet())
 
     def apply_scale(self):
         scale_pct = self.config.get("plant_scale", 100)
@@ -186,13 +189,15 @@ class FloatingPlantWindow(QWidget):
         self.engine.warning_triggered.connect(self.on_plant_warning)
         self.engine.interaction_occurred.connect(self.on_plant_interaction)
         self.engine.achievement_unlocked.connect(self.on_achievement_unlocked)
+        self.engine.item_equipped.connect(self.on_item_equipped)
 
-        # Character Click & Eco Events
+        # Character Click & Eco Events & Pets
         self.character.clicked.connect(self.on_character_clicked)
         self.character.bug_cleared.connect(self.on_bug_cleared)
         self.character.pest_escaped.connect(self.on_pest_escaped)
         self.character.visitor_greeted.connect(self.on_visitor_greeted)
         self.character.eco_visitor_arrived.connect(self.on_eco_visitor_arrived)
+        self.character.pet_clicked.connect(self.on_pet_clicked)
 
         # Control Bar Actions
         self.control_bar.water_clicked.connect(self.handle_water)
@@ -200,6 +205,24 @@ class FloatingPlantWindow(QWidget):
         self.control_bar.chat_clicked.connect(self.open_chat_dialog)
         self.control_bar.garden_clicked.connect(self.open_garden_dialog)
         self.control_bar.settings_clicked.connect(self.open_settings_dialog)
+
+    def on_item_equipped(self, item_type: str, item_id: str):
+        """React to newly equipped saucer or pet."""
+        if item_type == "saucer":
+            self.character.set_equipped_saucer(item_id)
+        elif item_type == "pet":
+            self.character.set_equipped_pet(item_id)
+
+    def on_pet_clicked(self, pet_id: str):
+        """React to user clicking the animated pet companion."""
+        pet_info = PET_CATALOG.get(pet_id)
+        if pet_info and pet_info.get("dialogues"):
+            speech = random.choice(pet_info["dialogues"])
+            self.bubble.show_message(speech, 3)
+            # Affection boost (+3)
+            self.engine.state["affection"] = min(100, self.engine.state.get("affection", 0) + 3)
+            self.engine.save()
+            self.engine.state_changed.emit(self.engine.state)
 
     def on_character_clicked(self):
         """Show menu on click above pot and keep open for 6 seconds."""

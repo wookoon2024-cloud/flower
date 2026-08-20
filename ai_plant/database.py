@@ -198,6 +198,28 @@ class DatabaseManager:
                 )
             """)
 
+            # 10. user_inventory (Shop Purchased Items & Equipped Saucers/Pets) table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_inventory (
+                    item_type TEXT NOT NULL,
+                    item_id TEXT NOT NULL,
+                    purchased_at TIMESTAMP NOT NULL,
+                    is_equipped INTEGER DEFAULT 0,
+                    PRIMARY KEY (item_type, item_id)
+                )
+            """)
+
+            # Ensure default free items are present
+            now_str = datetime.datetime.now().isoformat()
+            cursor.execute("""
+                INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
+                VALUES ('saucer', 'none', ?, 1)
+            """, (now_str,))
+            cursor.execute("""
+                INSERT OR IGNORE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
+                VALUES ('pet', 'none', ?, 1)
+            """, (now_str,))
+
             # Insert initial state if not present
             cursor.execute("SELECT COUNT(*) FROM plant_state WHERE id = 1")
             if cursor.fetchone()[0] == 0:
@@ -560,6 +582,109 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DatabaseManager] get_secure_key error: {e}")
         return default
+
+    # --- Coin & Shop Economy System ---
+    def get_coins(self) -> int:
+        """Get current seed coins balance with retroactive grant check."""
+        current = self.get_stat("total_coins", -1)
+        if current < 0:
+            # Retroactive grant for existing achievements: 50 coins per achievement + 100 welcome bonus
+            ach_count = len(self.get_unlocked_achievements())
+            initial_coins = 100 + (ach_count * 50)
+            self.set_stat("total_coins", initial_coins)
+            return initial_coins
+        return current
+
+    def add_coins(self, amount: int) -> int:
+        """Add seed coins to player balance."""
+        if amount <= 0:
+            return self.get_coins()
+        new_total = self.get_coins() + amount
+        self.set_stat("total_coins", new_total)
+        return new_total
+
+    def spend_coins(self, amount: int) -> bool:
+        """Spend seed coins if sufficient balance exists."""
+        current = self.get_coins()
+        if current < amount:
+            return False
+        new_total = current - amount
+        self.set_stat("total_coins", new_total)
+        return True
+
+    def set_stat(self, key: str, value: int):
+        """Set an exact value for a lifetime stat."""
+        self._stats_cache[key] = value
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO lifetime_stats (key, value)
+                    VALUES (?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = ?
+                """, (key, value, value))
+                conn.commit()
+        except Exception as e:
+            print(f"[DatabaseManager] set_stat error: {e}")
+
+    # --- Inventory & Equipment System ---
+    def get_inventory(self, item_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get all purchased inventory items."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            if item_type:
+                cursor.execute("SELECT * FROM user_inventory WHERE item_type = ?", (item_type,))
+            else:
+                cursor.execute("SELECT * FROM user_inventory")
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+
+    def is_item_purchased(self, item_type: str, item_id: str) -> bool:
+        """Check if an item is purchased/owned."""
+        if item_id == "none":
+            return True
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM user_inventory WHERE item_type = ? AND item_id = ?", (item_type, item_id))
+            return cursor.fetchone()[0] > 0
+
+    def purchase_item(self, item_type: str, item_id: str, cost: int) -> bool:
+        """Purchase an item using coins and add to inventory."""
+        if self.is_item_purchased(item_type, item_id):
+            return True
+        if not self.spend_coins(cost):
+            return False
+        now_str = datetime.datetime.now().isoformat()
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO user_inventory (item_type, item_id, purchased_at, is_equipped)
+                VALUES (?, ?, ?, 0)
+            """, (item_type, item_id, now_str))
+            conn.commit()
+        return True
+
+    def equip_item(self, item_type: str, item_id: str) -> bool:
+        """Equip an item of a specific type (e.g. saucer or pet)."""
+        if not self.is_item_purchased(item_type, item_id):
+            return False
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE user_inventory SET is_equipped = 0 WHERE item_type = ?", (item_type,))
+            cursor.execute("UPDATE user_inventory SET is_equipped = 1 WHERE item_type = ? AND item_id = ?", (item_type, item_id))
+            conn.commit()
+        return True
+
+    def get_equipped_item(self, item_type: str) -> str:
+        """Get the currently equipped item ID for a given type (default 'none')."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT item_id FROM user_inventory WHERE item_type = ? AND is_equipped = 1", (item_type,))
+            row = cursor.fetchone()
+            if row:
+                return row["item_id"]
+        return "none"
+
 
 
 

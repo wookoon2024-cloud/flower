@@ -13,6 +13,7 @@ from PySide6.QtGui import QFont, QColor, QPainter, QPainterPath, QPen, QBrush, Q
 
 from ..plant_engine import SPECIES_INFO, ACHIEVEMENTS_DEF, STAGE_NAMES
 from ..achievements_data import ACHIEVEMENTS_100, ACHIEVEMENT_CATEGORIES
+from ..shop_data import SAUCER_CATALOG, PET_CATALOG
 from ..config import get_resource_path
 
 MOOD_METADATA = {
@@ -198,7 +199,7 @@ class GardenDialog(QDialog):
     def init_ui(self):
         plant_name = self.config.get("plant_name", "초록이")
         self.setWindowTitle(f"🌿 나의 화원 & 도감 - {plant_name}")
-        self.resize(560, 640)
+        self.resize(750, 600)
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowCloseButtonHint |
@@ -226,17 +227,17 @@ class GardenDialog(QDialog):
                 border: 1px solid #E2E8F0;
                 background-color: #FFFFFF;
                 border-radius: 10px;
-                padding: 10px;
+                padding: 8px;
             }
             QTabBar::tab {
                 background: #F1F5F9;
                 color: #475569;
-                padding: 9px 16px;
+                padding: 8px 14px;
                 margin-right: 4px;
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 11.5px;
             }
             QTabBar::tab:selected {
                 background: #10B981;
@@ -277,28 +278,32 @@ class GardenDialog(QDialog):
         header_row.addWidget(btn_close, 0)
         layout.addLayout(header_row)
 
-        # Tabs
+        # Tabs (Concise titles to prevent horizontal scrolling)
         self.tabs = QTabWidget(self)
         
-        # 1. Garden / Collection Tab
+        # 1. Garden
         self.tab_garden = self.create_garden_tab()
-        self.tabs.addTab(self.tab_garden, "🪴 나의 화원")
+        self.tabs.addTab(self.tab_garden, "🪴 화원")
 
-        # 2. 6-Species Collection & Full-Bloom Preview Tab (동기부여 뿜뿜!)
+        # 2. Species Showcase
         self.tab_species = self.create_species_tab()
-        self.tabs.addTab(self.tab_species, "🌸 6대 품종 도감 (만개 미리보기)")
+        self.tabs.addTab(self.tab_species, "🌸 품종")
 
-        # 3. Fortune Tab
-        self.tab_fortune = self.create_fortune_tab()
-        self.tabs.addTab(self.tab_fortune, "🥠 오늘의 포춘")
+        # 3. Shop (Saucers & Pet Companions)
+        self.tab_shop = self.create_shop_tab()
+        self.tabs.addTab(self.tab_shop, "🏪 상점")
 
-        # 4. Mood Chart Tab
-        self.tab_mood = self.create_mood_tab()
-        self.tabs.addTab(self.tab_mood, "📈 마음 날씨")
-
-        # 5. Achievements Tab (110 Achievements)
+        # 4. Achievements (112 Achievements + Coins)
         self.tab_achievements = self.create_achievements_tab()
-        self.tabs.addTab(self.tab_achievements, "🏆 110종 업적 도감")
+        self.tabs.addTab(self.tab_achievements, "🏆 업적")
+
+        # 5. Sentiment Mood Chart
+        self.tab_mood = self.create_mood_tab()
+        self.tabs.addTab(self.tab_mood, "📊 마음날씨")
+
+        # 6. Daily Fortune
+        self.tab_fortune = self.create_fortune_tab()
+        self.tabs.addTab(self.tab_fortune, "🥠 포춘")
 
         layout.addWidget(self.tabs, 1)
 
@@ -643,6 +648,244 @@ class GardenDialog(QDialog):
         scroll_layout.addStretch()
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll, 1)
+        return widget
+
+    def create_shop_tab(self) -> QWidget:
+        """Shop Tab for purchasing Pot Saucers and Pet Companions using Seed Coins."""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(10)
+
+        # 1. Top Coin Balance Card
+        balance_card = QFrame()
+        balance_card.setStyleSheet("""
+            QFrame {
+                background-color: #FFFBEB;
+                border: 1px solid #FDE68A;
+                border-radius: 10px;
+            }
+            QLabel { border: none; background: transparent; }
+        """)
+        b_layout = QHBoxLayout(balance_card)
+        b_layout.setContentsMargins(14, 10, 14, 10)
+        b_layout.setSpacing(10)
+
+        coins = self.engine.get_coins()
+        self.shop_coin_lbl = QLabel(f"💰 <b>나의 보유 씨앗 주화:</b> <span style='color: #D97706; font-size: 16px; font-weight: bold;'>{coins:,}</span> 🪙")
+        self.shop_coin_lbl.setStyleSheet("font-size: 13px; color: #92400E;")
+
+        guide_lbl = QLabel("💡 <b>주화 획득 꿀팁:</b> 업적 달성 시마다 <b>50 주화</b>, 매일 첫 포춘 뽑기 시 <b>20 주화</b> 적립!")
+        guide_lbl.setStyleSheet("font-size: 11px; color: #B45309;")
+        guide_lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        b_layout.addWidget(self.shop_coin_lbl, 0)
+        b_layout.addStretch()
+        b_layout.addWidget(guide_lbl, 0)
+        layout.addWidget(balance_card)
+
+        # 2. Scroll Area for Shop Categories
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setStyleSheet("QScrollArea { border: 1px solid #E2E8F0; border-radius: 8px; background: #FAFAFA; }")
+
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(8, 8, 8, 8)
+        scroll_layout.setSpacing(12)
+
+        # Section 1: 🪵 화분 받침대 컬렉션
+        sec1_lbl = QLabel("🪵 <b>화분 받침대 컬렉션 (화분 밑에 우아하게 놓아두기):</b>")
+        sec1_lbl.setStyleSheet("font-size: 12.5px; color: #1E293B;")
+        scroll_layout.addWidget(sec1_lbl)
+
+        grid1 = QGridLayout()
+        grid1.setHorizontalSpacing(10)
+        grid1.setVerticalSpacing(8)
+        self.saucer_card_widgets = {}
+
+        # Section 2: 🐾 반려동물 입양소
+        sec2_lbl = QLabel("🐾 <b>반려동물 입양소 (화분 주변을 자유롭게 돌아다니고 낮잠 자는 친구들):</b>")
+        sec2_lbl.setStyleSheet("font-size: 12.5px; color: #1E293B; margin-top: 8px;")
+
+        grid2 = QGridLayout()
+        grid2.setHorizontalSpacing(10)
+        grid2.setVerticalSpacing(8)
+        self.pet_card_widgets = {}
+
+        def refresh_shop_ui():
+            curr_coins = self.engine.get_coins()
+            self.shop_coin_lbl.setText(f"💰 <b>나의 보유 씨앗 주화:</b> <span style='color: #D97706; font-size: 16px; font-weight: bold;'>{curr_coins:,}</span> 🪙")
+
+            curr_saucer = self.engine.get_equipped_saucer()
+            curr_pet = self.engine.get_equipped_pet()
+
+            # Update Saucers
+            for s_id, (card, btn) in self.saucer_card_widgets.items():
+                is_owned = self.db.is_item_purchased("saucer", s_id)
+                is_eq = (s_id == curr_saucer)
+                s_info = SAUCER_CATALOG.get(s_id, {})
+                cost = s_info.get("cost", 0)
+
+                if is_eq:
+                    card.setStyleSheet("QFrame { background-color: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                    btn.setText("✨ 장착 중")
+                    btn.setStyleSheet("QPushButton { background-color: #10B981; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                    btn.setEnabled(False)
+                elif is_owned:
+                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
+                    btn.setText("장착하기")
+                    btn.setStyleSheet("QPushButton { background-color: #EFF6FF; color: #2563EB; font-weight: bold; border: 1px solid #BFDBFE; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #DBEAFE; }")
+                    btn.setEnabled(True)
+                else:
+                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
+                    can_buy = (curr_coins >= cost)
+                    btn.setText(f"구매 (🪙{cost})")
+                    if can_buy:
+                        btn.setStyleSheet("QPushButton { background-color: #F59E0B; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #D97706; }")
+                        btn.setEnabled(True)
+                    else:
+                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                        btn.setEnabled(True)
+
+            # Update Pets
+            for p_id, (card, btn) in self.pet_card_widgets.items():
+                is_owned = self.db.is_item_purchased("pet", p_id)
+                is_eq = (p_id == curr_pet)
+                p_info = PET_CATALOG.get(p_id, {})
+                cost = p_info.get("cost", 0)
+
+                if is_eq:
+                    card.setStyleSheet("QFrame { background-color: #FDF4FF; border: 1.5px solid #A855F7; border-radius: 8px; } QLabel { border: none; background: transparent; }")
+                    btn.setText("✨ 함께하는 중" if p_id != "none" else "✨ 기본 선택")
+                    btn.setStyleSheet("QPushButton { background-color: #A855F7; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                    btn.setEnabled(False)
+                elif is_owned:
+                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
+                    btn.setText("데려오기")
+                    btn.setStyleSheet("QPushButton { background-color: #FAF5FF; color: #7E22CE; font-weight: bold; border: 1px solid #E9D5FF; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #F3E8FF; }")
+                    btn.setEnabled(True)
+                else:
+                    card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
+                    can_buy = (curr_coins >= cost)
+                    btn.setText(f"입양 (🪙{cost})")
+                    if can_buy:
+                        btn.setStyleSheet("QPushButton { background-color: #8B5CF6; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #7C3AED; }")
+                        btn.setEnabled(True)
+                    else:
+                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                        btn.setEnabled(True)
+
+        # Build Saucer Cards (2 Columns)
+        for idx, (s_id, s_info) in enumerate(SAUCER_CATALOG.items()):
+            row = idx // 2
+            col = idx % 2
+            card = QFrame()
+            c_l = QHBoxLayout(card)
+            c_l.setContentsMargins(10, 8, 10, 8)
+            c_l.setSpacing(8)
+
+            icon_lbl = QLabel(s_info["emoji"])
+            icon_lbl.setStyleSheet("font-size: 24px; border: none; background: transparent;")
+            icon_lbl.setFixedWidth(30)
+            icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            info_l = QVBoxLayout()
+            info_l.setSpacing(2)
+            cost_str = f"🪙 {s_info['cost']} 주화" if s_info['cost'] > 0 else "무료"
+            title_l = QLabel(f"<b>{s_info['name']}</b> <span style='font-size:10px; color:#D97706; font-weight:bold;'>({cost_str})</span>")
+            title_l.setStyleSheet("font-size: 11.5px; color: #1E293B;")
+            desc_l = QLabel(s_info["desc"])
+            desc_l.setStyleSheet("font-size: 10px; color: #64748B;")
+            desc_l.setWordWrap(True)
+            info_l.addWidget(title_l)
+            info_l.addWidget(desc_l)
+
+            btn = QPushButton("구매")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedWidth(82)
+
+            def make_saucer_cb(sid=s_id, cost=s_info["cost"]):
+                def action():
+                    if self.db.is_item_purchased("saucer", sid):
+                        self.engine.equip_item("saucer", sid)
+                    else:
+                        if self.engine.get_coins() < cost:
+                            return
+                        self.engine.purchase_item("saucer", sid, cost)
+                        self.engine.equip_item("saucer", sid)
+                    refresh_shop_ui()
+                return action
+
+            btn.clicked.connect(make_saucer_cb(s_id, s_info["cost"]))
+
+            c_l.addWidget(icon_lbl, 0)
+            c_l.addLayout(info_l, 1)
+            c_l.addWidget(btn, 0)
+            grid1.addWidget(card, row, col)
+            self.saucer_card_widgets[s_id] = (card, btn)
+
+        scroll_layout.addLayout(grid1)
+        scroll_layout.addWidget(sec2_lbl)
+
+        # Build Pet Cards (2 Columns)
+        for idx, (p_id, p_info) in enumerate(PET_CATALOG.items()):
+            row = idx // 2
+            col = idx % 2
+            card = QFrame()
+            c_l = QHBoxLayout(card)
+            c_l.setContentsMargins(10, 8, 10, 8)
+            c_l.setSpacing(8)
+
+            icon_lbl = QLabel(p_info["emoji"])
+            icon_lbl.setStyleSheet("font-size: 24px; border: none; background: transparent;")
+            icon_lbl.setFixedWidth(30)
+            icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            info_l = QVBoxLayout()
+            info_l.setSpacing(2)
+            cost_str = f"🪙 {p_info['cost']} 주화" if p_info['cost'] > 0 else "무료"
+            title_l = QLabel(f"<b>{p_info['name']}</b> <span style='font-size:10px; color:#7E22CE; font-weight:bold;'>({cost_str})</span>")
+            title_l.setStyleSheet("font-size: 11.5px; color: #1E293B;")
+            desc_l = QLabel(p_info["desc"])
+            desc_l.setStyleSheet("font-size: 10px; color: #64748B;")
+            desc_l.setWordWrap(True)
+            info_l.addWidget(title_l)
+            info_l.addWidget(desc_l)
+
+            btn = QPushButton("입양")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedWidth(84)
+
+            def make_pet_cb(pid=p_id, cost=p_info["cost"]):
+                def action():
+                    if self.db.is_item_purchased("pet", pid):
+                        self.engine.equip_item("pet", pid)
+                    else:
+                        if self.engine.get_coins() < cost:
+                            return
+                        self.engine.purchase_item("pet", pid, cost)
+                        self.engine.equip_item("pet", pid)
+                    refresh_shop_ui()
+                return action
+
+            btn.clicked.connect(make_pet_cb(p_id, p_info["cost"]))
+
+            c_l.addWidget(icon_lbl, 0)
+            c_l.addLayout(info_l, 1)
+            c_l.addWidget(btn, 0)
+            grid2.addWidget(card, row, col)
+            self.pet_card_widgets[p_id] = (card, btn)
+
+        scroll_layout.addLayout(grid2)
+        scroll.setWidget(scroll_content)
+        layout.addWidget(scroll, 1)
+
+        refresh_shop_ui()
+        self.engine.coins_changed.connect(lambda _: refresh_shop_ui())
+        self.engine.item_equipped.connect(lambda _t, _i: refresh_shop_ui())
+
         return widget
 
     def show_species_detail_preview(self, sp_id: str):
@@ -1094,7 +1337,7 @@ class GardenDialog(QDialog):
                 icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 icon_lbl.setStyleSheet("font-size: 20px; border: none; background: transparent;")
                 
-                title_text = f"<b>{ach['title']}</b>" if is_unlocked else f"<span style='color: #64748B;'>🔒 {ach['title']}</span>"
+                title_text = f"<b>{ach['title']}</b> <span style='font-size:10px; color:#D97706; background:#FEF3C7; padding:1px 5px; border-radius:3px; font-weight:bold;'>🪙 +50 주화</span>" if is_unlocked else f"<span style='color: #64748B;'>🔒 {ach['title']}</span> <span style='font-size:10px; color:#94A3B8; background:#F1F5F9; padding:1px 5px; border-radius:3px;'>🪙 +50</span>"
                 desc_text = f"<span style='color: #475569; font-size: 11px;'>{ach['desc']}</span>" if is_unlocked else f"<span style='color: #94A3B8; font-size: 11px;'>{ach['desc']}</span>"
                 info_lbl = QLabel(f"{title_text}<br>{desc_text}")
                 info_lbl.setStyleSheet("font-size: 12px; border: none; background: transparent;")

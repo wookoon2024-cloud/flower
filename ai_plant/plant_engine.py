@@ -92,6 +92,8 @@ class PlantEngine(QObject):
     warning_triggered = Signal(str) # (warning_message)
     interaction_occurred = Signal(str, str) # (action_name, bubble_text)
     achievement_unlocked = Signal(dict) # (achievement_info)
+    coins_changed = Signal(int) # (new_coin_balance)
+    item_equipped = Signal(str, str) # (item_type, item_id)
 
     def __init__(self, db_manager, config_manager):
         super().__init__()
@@ -436,6 +438,10 @@ class PlantEngine(QObject):
         # Reward on first daily draw
         self.state["exp"] += 25
         self.state["affection"] = min(100, self.state["affection"] + 15)
+        # Daily Attendance Coin Bonus (+20 coins)
+        new_coins = self.db.add_coins(20)
+        self.coins_changed.emit(new_coins)
+
         self.check_evolution()
         self.check_achievements()
         self.save()
@@ -676,9 +682,55 @@ class PlantEngine(QObject):
 
     def _try_unlock(self, ach_id: str):
         if self.db.unlock_achievement(ach_id):
-            ach_info = next((a for a in ACHIEVEMENTS_DEF if a["id"] == ach_id), None)
+            # Award +50 seed coins for unlocking an achievement!
+            new_coins = self.db.add_coins(50)
+            self.coins_changed.emit(new_coins)
+
+            ach_info = next((a for a in ACHIEVEMENTS_100 if a["id"] == ach_id), None) or next((a for a in ACHIEVEMENTS_DEF if a["id"] == ach_id), None)
             if ach_info:
-                self.achievement_unlocked.emit(ach_info)
+                ach_info_copy = dict(ach_info)
+                ach_info_copy["coin_reward"] = 50
+                self.achievement_unlocked.emit(ach_info_copy)
+
+    # --- Shop & Inventory Helpers ---
+    def get_coins(self) -> int:
+        """Get current seed coins balance."""
+        return self.db.get_coins()
+
+    def add_coins(self, amount: int) -> int:
+        """Add seed coins."""
+        new_c = self.db.add_coins(amount)
+        self.coins_changed.emit(new_c)
+        return new_c
+
+    def spend_coins(self, amount: int) -> bool:
+        """Spend seed coins."""
+        ok = self.db.spend_coins(amount)
+        if ok:
+            self.coins_changed.emit(self.db.get_coins())
+        return ok
+
+    def get_equipped_saucer(self) -> str:
+        """Get equipped pot saucer ID (default 'none')."""
+        return self.db.get_equipped_item("saucer")
+
+    def get_equipped_pet(self) -> str:
+        """Get equipped pet ID (default 'none')."""
+        return self.db.get_equipped_item("pet")
+
+    def equip_item(self, item_type: str, item_id: str) -> bool:
+        """Equip item and emit update signal."""
+        ok = self.db.equip_item(item_type, item_id)
+        if ok:
+            self.item_equipped.emit(item_type, item_id)
+        return ok
+
+    def purchase_item(self, item_type: str, item_id: str, cost: int) -> bool:
+        """Purchase shop item using coins."""
+        ok = self.db.purchase_item(item_type, item_id, cost)
+        if ok:
+            self.coins_changed.emit(self.db.get_coins())
+        return ok
 
     def reset_state(self):
         """Reset plant to initial sprout."""
