@@ -207,11 +207,13 @@ class GardenDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
+                color: #1E293B;
                 font-family: 'Malgun Gothic', 'Segoe UI';
             }
             QLabel {
                 border: none;
                 background: transparent;
+                color: #1E293B;
             }
             QTabWidget::pane {
                 border: 1px solid #E2E8F0;

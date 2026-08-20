@@ -31,7 +31,13 @@ class SettingsDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
-                font-family: 'Malgun Gothic', 'Segoe UI';
+                color: #1E293B;
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+            }
+            QLabel {
+                color: #334155;
+                background: transparent;
+                font-size: 12px;
             }
             QGroupBox {
                 font-weight: bold;
@@ -40,6 +46,7 @@ class SettingsDialog(QDialog):
                 margin-top: 12px;
                 padding-top: 14px;
                 background-color: #FFFFFF;
+                color: #0F766E;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
@@ -47,15 +54,55 @@ class SettingsDialog(QDialog):
                 padding: 0 5px;
                 color: #0F766E;
             }
-            QLineEdit, QSpinBox {
+            QTabWidget::pane {
+                border: 1px solid #CBD5E1;
+                background-color: #F8FAFC;
+                border-radius: 8px;
+            }
+            QTabBar::tab {
+                background-color: #E2E8F0;
+                color: #475569;
+                padding: 7px 14px;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                font-weight: bold;
+                font-size: 11px;
+            }
+            QTabBar::tab:selected {
                 background-color: #FFFFFF;
+                color: #0F766E;
+                border-bottom: 2px solid #10B981;
+            }
+            QTabBar::tab:hover {
+                color: #0F766E;
+                background-color: #F1F5F9;
+            }
+            QLineEdit, QSpinBox, QComboBox {
+                background-color: #FFFFFF;
+                color: #1E293B;
                 border: 1px solid #CBD5E1;
                 border-radius: 6px;
                 padding: 5px 8px;
                 font-size: 12px;
             }
-            QLineEdit:focus, QSpinBox:focus {
+            QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
                 border: 1.5px solid #10B981;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #FFFFFF;
+                color: #1E293B;
+                selection-background-color: #ECFDF5;
+                selection-color: #065F46;
+                border: 1px solid #CBD5E1;
+            }
+            QCheckBox {
+                color: #334155;
+                font-size: 11px;
+                background: transparent;
+                spacing: 6px;
+            }
+            QCheckBox:hover {
+                color: #0F766E;
             }
         """)
 

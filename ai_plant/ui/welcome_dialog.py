@@ -35,11 +35,17 @@ class WelcomeSetupDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
+                color: #1E293B;
                 font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
             }
             QLabel {
                 border: none;
                 background: transparent;
+                color: #1E293B;
+            }
+            QLineEdit {
+                background-color: #FFFFFF;
+                color: #1E293B;
             }
         """)
 

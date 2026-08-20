@@ -215,7 +215,11 @@ class ChatDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
+                color: #1E293B;
                 font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+            }
+            QLabel {
+                color: #1E293B;
             }
         """)
 
