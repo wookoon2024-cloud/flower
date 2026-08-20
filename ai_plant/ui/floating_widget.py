@@ -446,11 +446,21 @@ class FloatingPlantWindow(QWidget):
             self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
-            if not self.garden_dialog:
-                self.garden_dialog = GardenDialog(self.engine, self.db, self.config, None)
-                self.garden_dialog.plant_graduated.connect(self.on_plant_graduated)
-                self.garden_dialog.fortune_drawn.connect(self.on_fortune_drawn)
+            if self.garden_dialog is not None:
+                try:
+                    self.garden_dialog.close()
+                    self.garden_dialog.deleteLater()
+                except Exception:
+                    pass
+                self.garden_dialog = None
+
+            self.garden_dialog = GardenDialog(self.engine, self.db, self.config, None)
+            self.garden_dialog.plant_graduated.connect(self.on_plant_graduated)
+            self.garden_dialog.fortune_drawn.connect(self.on_fortune_drawn)
             
+            self.garden_dialog.setWindowState(
+                (self.garden_dialog.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+            )
             self.garden_dialog.show()
             self.garden_dialog.raise_()
             self.garden_dialog.activateWindow()
@@ -622,12 +632,22 @@ class FloatingPlantWindow(QWidget):
         try:
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
-            if not self.settings_dialog:
-                self.settings_dialog = SettingsDialog(self.config, None)
-                self.settings_dialog.settings_saved.connect(self.apply_settings_changes)
-                self.settings_dialog.clear_chat_requested.connect(self.on_clear_chat)
-                self.settings_dialog.reset_plant_requested.connect(self.on_reset_plant)
+            if self.settings_dialog is not None:
+                try:
+                    self.settings_dialog.close()
+                    self.settings_dialog.deleteLater()
+                except Exception:
+                    pass
+                self.settings_dialog = None
+
+            self.settings_dialog = SettingsDialog(self.config, None)
+            self.settings_dialog.settings_saved.connect(self.apply_settings_changes)
+            self.settings_dialog.clear_chat_requested.connect(self.on_clear_chat)
+            self.settings_dialog.reset_plant_requested.connect(self.on_reset_plant)
             
+            self.settings_dialog.setWindowState(
+                (self.settings_dialog.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive
+            )
             self.settings_dialog.show()
             self.settings_dialog.raise_()
             self.settings_dialog.activateWindow()

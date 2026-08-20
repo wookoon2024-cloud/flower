@@ -204,6 +204,13 @@ class GardenDialog(QDialog):
             Qt.WindowType.WindowCloseButtonHint |
             Qt.WindowType.WindowMinimizeButtonHint
         )
+        screen = QApplication.primaryScreen()
+        if screen:
+            geom = screen.availableGeometry()
+            self.move(
+                geom.center().x() - self.width() // 2,
+                max(20, geom.center().y() - self.height() // 2)
+            )
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
