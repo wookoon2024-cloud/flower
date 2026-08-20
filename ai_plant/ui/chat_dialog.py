@@ -1,14 +1,13 @@
 """
 Chat Dialog Widget
-A friendly, modern chat window with KakaoTalk-style floating speech bubbles,
-custom plant-inspired color themes (distinct from Kakao's yellow),
-micro-assistant chips, in-dialogue typing status, and smooth scrolling.
+A friendly, modern chat window with 100% native PySide6 KakaoTalk-style message bubbles,
+guaranteed right-aligned user messages, custom plant-inspired emerald/white theme,
+micro-assistant chips, and rock-solid thread/event safety.
 """
-import html
 import datetime
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTextBrowser, QLineEdit,
-    QPushButton, QLabel, QWidget, QScrollArea, QFrame
+    QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton,
+    QLabel, QWidget, QScrollArea, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
@@ -28,6 +27,165 @@ def format_chat_time(timestamp_str: str) -> str:
         return f"{ampm} {display_hour}:{minute:02d}"
     except Exception:
         return ""
+
+
+class UserMessageBubble(QWidget):
+    """Native right-aligned user speech bubble with timestamp."""
+    def __init__(self, content: str, time_str: str, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("background: transparent; border: none;")
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 2, 4, 2)
+        layout.setSpacing(6)
+
+        # Push completely to the right edge
+        layout.addStretch(1)
+
+        # Timestamp on the left of user bubble, bottom-aligned
+        if time_str:
+            time_lbl = QLabel(time_str, self)
+            time_lbl.setStyleSheet("color: #8C9CAE; font-size: 10px; border: none; background: transparent;")
+            time_lbl.setAlignment(Qt.AlignmentFlag.AlignBottom)
+            layout.addWidget(time_lbl, 0, Qt.AlignmentFlag.AlignBottom)
+
+        # Bubble content
+        bubble = QLabel(content, self)
+        bubble.setWordWrap(True)
+        bubble.setMaximumWidth(265)
+        bubble.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        bubble.setStyleSheet("""
+            QLabel {
+                background-color: #059669;
+                color: #FFFFFF;
+                border-radius: 14px;
+                border-top-right-radius: 2px;
+                padding: 9px 13px;
+                font-size: 12px;
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+            }
+        """)
+        layout.addWidget(bubble, 0, Qt.AlignmentFlag.AlignRight)
+
+
+class BotMessageBubble(QWidget):
+    """Native left-aligned companion plant speech bubble with avatar and timestamp."""
+    def __init__(self, plant_name: str, content: str, time_str: str, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("background: transparent; border: none;")
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 2, 0, 2)
+        layout.setSpacing(8)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+        # Plant Avatar Icon
+        avatar = QLabel("🌱", self)
+        avatar.setFixedSize(32, 32)
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet("""
+            QLabel {
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 16px;
+                font-size: 15px;
+            }
+        """)
+        layout.addWidget(avatar, 0, Qt.AlignmentFlag.AlignTop)
+
+        # Content Column (Name + Bubble + Time)
+        col = QVBoxLayout()
+        col.setContentsMargins(0, 0, 0, 0)
+        col.setSpacing(3)
+
+        name_lbl = QLabel(f"🌱 {plant_name}", self)
+        name_lbl.setStyleSheet("color: #475569; font-size: 11px; font-weight: bold; border: none; background: transparent;")
+        col.addWidget(name_lbl)
+
+        bubble_row = QHBoxLayout()
+        bubble_row.setContentsMargins(0, 0, 0, 0)
+        bubble_row.setSpacing(6)
+
+        bubble = QLabel(content, self)
+        bubble.setWordWrap(True)
+        bubble.setMaximumWidth(265)
+        bubble.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        bubble.setStyleSheet("""
+            QLabel {
+                background-color: #FFFFFF;
+                color: #1E293B;
+                border: 1px solid #CBD5E1;
+                border-radius: 14px;
+                border-top-left-radius: 2px;
+                padding: 9px 13px;
+                font-size: 12px;
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+            }
+        """)
+        bubble_row.addWidget(bubble, 0, Qt.AlignmentFlag.AlignLeft)
+
+        if time_str:
+            time_lbl = QLabel(time_str, self)
+            time_lbl.setStyleSheet("color: #8C9CAE; font-size: 10px; border: none; background: transparent;")
+            time_lbl.setAlignment(Qt.AlignmentFlag.AlignBottom)
+            bubble_row.addWidget(time_lbl, 0, Qt.AlignmentFlag.AlignBottom)
+
+        col.addLayout(bubble_row)
+        layout.addLayout(col)
+
+        # Push to left
+        layout.addStretch(1)
+
+
+class TypingIndicatorBubble(QWidget):
+    """Typing indicator shown while AI is thinking."""
+    def __init__(self, plant_name: str, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("background: transparent; border: none;")
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 2, 0, 2)
+        layout.setSpacing(8)
+
+        avatar = QLabel("🌱", self)
+        avatar.setFixedSize(32, 32)
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet("""
+            QLabel {
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 16px;
+                font-size: 15px;
+            }
+        """)
+        layout.addWidget(avatar, 0, Qt.AlignmentFlag.AlignTop)
+
+        col = QVBoxLayout()
+        col.setContentsMargins(0, 0, 0, 0)
+        col.setSpacing(3)
+
+        name_lbl = QLabel(f"🌱 {plant_name}", self)
+        name_lbl.setStyleSheet("color: #475569; font-size: 11px; font-weight: bold; border: none; background: transparent;")
+        col.addWidget(name_lbl)
+
+        bubble = QLabel("답변을 작성하고 있어요... 💭", self)
+        bubble.setStyleSheet("""
+            QLabel {
+                background-color: #FFFFFF;
+                color: #059669;
+                border: 1px solid #A7F3D0;
+                border-radius: 14px;
+                border-top-left-radius: 2px;
+                padding: 8px 12px;
+                font-size: 11.5px;
+                font-style: italic;
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+            }
+        """)
+        col.addWidget(bubble)
+        layout.addLayout(col)
+        layout.addStretch(1)
+
 
 class ChatDialog(QDialog):
     message_sent = Signal(str)
@@ -91,18 +249,44 @@ class ChatDialog(QDialog):
         header_row.addWidget(self.btn_header_close, 0)
         layout.addLayout(header_row)
 
-        # Message History Browser (KakaoTalk style chatroom canvas)
-        self.browser = QTextBrowser(self)
-        self.browser.setOpenExternalLinks(False)
-        self.browser.setStyleSheet("""
-            QTextBrowser {
+        # Message History Canvas (Native QScrollArea with soft messenger background)
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setStyleSheet("""
+            QScrollArea {
                 background-color: #EBF1F6;
                 border: 1px solid #CBD5E1;
                 border-radius: 12px;
-                padding: 4px;
+            }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 6px;
+                margin: 4px 2px 4px 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #CBD5E1;
+                min-height: 20px;
+                border-radius: 3px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #94A3B8;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
             }
         """)
-        layout.addWidget(self.browser, 1)
+
+        self.scroll_content = QWidget()
+        self.scroll_content.setObjectName("scrollContent")
+        self.scroll_content.setStyleSheet("#scrollContent { background-color: #EBF1F6; }")
+        self.chat_vbox = QVBoxLayout(self.scroll_content)
+        self.chat_vbox.setContentsMargins(10, 10, 10, 10)
+        self.chat_vbox.setSpacing(10)
+        self.chat_vbox.addStretch(1)
+
+        self.scroll_area.setWidget(self.scroll_content)
+        layout.addWidget(self.scroll_area, 1)
 
         # Smart AI Assistant Chips Container
         chips_frame = QFrame(self)
@@ -233,158 +417,47 @@ class ChatDialog(QDialog):
         self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 힐링 대화방")
 
     def load_history(self):
-        """KakaoTalk-style messenger bubble view with clean custom emerald theme."""
-        self.browser.clear()
+        """Render native KakaoTalk style message bubble widgets into the scroll area."""
+        # 1. Remove all existing bubble widgets
+        while self.chat_vbox.count() > 1:
+            item = self.chat_vbox.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # 2. Fetch recent chat logs
         chats = self.db.get_recent_chat_history(limit=30)
         plant_name = self.config.get("plant_name", "초록이")
 
-        esc_plant = html.escape(str(plant_name))
-
-        html_body = []
-        html_body.append("""
-        <html>
-        <head>
-        <style>
-            body {
-                background-color: #EBF1F6;
-                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
-                margin: 0;
-                padding: 8px 4px;
-            }
-            .msg-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 12px;
-            }
-            .user-bubble {
-                background-color: #059669;
-                color: #FFFFFF;
-                padding: 8px 12px;
-                border-radius: 14px;
-                border-top-right-radius: 2px;
-                font-size: 12.5px;
-                line-height: 1.45;
-                max-width: 250px;
-                word-wrap: break-word;
-            }
-            .bot-bubble {
-                background-color: #FFFFFF;
-                color: #1E293B;
-                border: 1px solid #CBD5E1;
-                padding: 8px 12px;
-                border-radius: 14px;
-                border-top-left-radius: 2px;
-                font-size: 12.5px;
-                line-height: 1.45;
-                max-width: 250px;
-                word-wrap: break-word;
-            }
-            .bot-name {
-                font-size: 11px;
-                font-weight: bold;
-                color: #475569;
-                margin-bottom: 3px;
-            }
-            .avatar {
-                width: 32px;
-                height: 32px;
-                background-color: #ECFDF5;
-                border: 1px solid #A7F3D0;
-                border-radius: 16px;
-                text-align: center;
-                line-height: 28px;
-                font-size: 16px;
-            }
-            .time-str {
-                font-size: 10px;
-                color: #8C9CAE;
-                white-space: nowrap;
-            }
-        </style>
-        </head>
-        <body>
-        """)
-
+        # 3. Add bubble widgets before the bottom stretch
+        insert_idx = 0
         for chat in chats:
             role = chat.get("role")
-            content = chat.get("content", "")
+            content = str(chat.get("content", "")).strip()
+            if not content:
+                continue
             time_str = format_chat_time(chat.get("timestamp", ""))
-            esc_content = html.escape(str(content)).replace("\n", "<br>")
 
             if role == "user":
-                html_body.append(f"""
-                <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td align="right">
-                      <table border="0" cellpadding="0" cellspacing="0">
-                        <tr>
-                          <td valign="bottom" style="padding-right: 5px; padding-bottom: 2px;">
-                            <span class="time-str">{time_str}</span>
-                          </td>
-                          <td class="user-bubble">
-                            {esc_content}
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-                """)
+                bubble_w = UserMessageBubble(content, time_str, self.scroll_content)
             else:
-                html_body.append(f"""
-                <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td valign="top" width="36" style="padding-right: 8px;">
-                      <div class="avatar">🌱</div>
-                    </td>
-                    <td align="left">
-                      <div class="bot-name">{esc_plant}</div>
-                      <table border="0" cellpadding="0" cellspacing="0">
-                        <tr>
-                          <td class="bot-bubble">
-                            {esc_content}
-                          </td>
-                          <td valign="bottom" style="padding-left: 5px; padding-bottom: 2px;">
-                            <span class="time-str">{time_str}</span>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-                """)
-        
-        if self.is_thinking:
-            html_body.append(f"""
-            <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
-              <tr>
-                <td valign="top" width="36" style="padding-right: 8px;">
-                  <div class="avatar">🌱</div>
-                </td>
-                <td align="left">
-                  <div class="bot-name">{esc_plant}</div>
-                  <table border="0" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="background-color: #FFFFFF; color: #059669; border: 1px solid #A7F3D0; padding: 8px 12px; border-radius: 14px; border-top-left-radius: 2px; font-size: 12px; font-style: italic;">
-                        답변을 작성하고 있어요... 💭
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-            """)
+                bubble_w = BotMessageBubble(plant_name, content, time_str, self.scroll_content)
+            
+            self.chat_vbox.insertWidget(insert_idx, bubble_w)
+            insert_idx += 1
 
-        html_body.append("</body></html>")
-        self.browser.setHtml("".join(html_body))
+        # 4. If AI is thinking, add typing indicator
+        if self.is_thinking:
+            typing_w = TypingIndicatorBubble(plant_name, self.scroll_content)
+            self.chat_vbox.insertWidget(insert_idx, typing_w)
+
         self.scroll_to_bottom()
 
     def append_message(self, role: str, content: str):
         self.load_history()
 
     def scroll_to_bottom(self):
-        QTimer.singleShot(30, lambda: self.browser.verticalScrollBar().setValue(
-            self.browser.verticalScrollBar().maximum()
+        QTimer.singleShot(40, lambda: self.scroll_area.verticalScrollBar().setValue(
+            self.scroll_area.verticalScrollBar().maximum()
         ))
 
     def send_chip(self, text: str):

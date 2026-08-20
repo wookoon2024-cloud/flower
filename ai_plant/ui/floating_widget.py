@@ -43,6 +43,7 @@ class FloatingPlantWindow(QWidget):
         self.drag_position = QPoint()
         self.is_dragging = False
         self.ai_worker = None
+        self._active_workers = []
 
         self.chat_dialog = None
         self.garden_dialog = None
@@ -348,59 +349,63 @@ class FloatingPlantWindow(QWidget):
         self.bubble.show_message(f"🥠 {msg}", 4)
 
     def start_ai_chat(self, user_text: str):
-        # 1. Safely finish previous worker thread if still running
-        if self.ai_worker:
-            try:
-                if self.ai_worker.isRunning():
-                    self.ai_worker.quit()
-                    self.ai_worker.wait(300)
-            except Exception:
-                pass
-            self.ai_worker = None
+        try:
+            # 1. Extract recent history BEFORE saving current message
+            history = self.db.get_recent_chat_history(limit=6)
 
-        # 2. Extract recent history BEFORE saving current message
-        history = self.db.get_recent_chat_history(limit=6)
+            # 2. Save sentiment analysis and user message
+            mood_type, score = analyze_user_sentiment(user_text)
+            self.db.add_mood_entry(mood_type, score, user_text)
+            self.db.add_chat_message("user", user_text)
 
-        # 3. Save sentiment analysis and user message
-        mood_type, score = analyze_user_sentiment(user_text)
-        self.db.add_mood_entry(mood_type, score, user_text)
-        self.db.add_chat_message("user", user_text)
+            # 3. Refresh chat dialog immediately so user message appears on the right
+            if self.chat_dialog:
+                self.chat_dialog.load_history()
 
-        # 4. Refresh chat dialog to immediately display the user's message
-        if self.chat_dialog:
-            self.chat_dialog.load_history()
+            # 4. Start async AI worker thread safely with lifetime tracking
+            worker = AIChatWorker(
+                config=dict(self.config.config),
+                plant_state=dict(self.engine.get_state()),
+                chat_history=list(history),
+                user_message=user_text
+            )
+            self._active_workers.append(worker)
+            worker.response_received.connect(self.on_ai_response_received)
+            worker.finished.connect(lambda w=worker: self._on_worker_finished(w))
+            worker.start()
+        except Exception as e:
+            print(f"[FloatingPlantWindow] start_ai_chat error: {e}")
+            if self.chat_dialog:
+                self.chat_dialog.set_loading(False)
 
-        # 5. Start async AI worker thread
-        self.ai_worker = AIChatWorker(
-            config=self.config.config,
-            plant_state=self.engine.get_state(),
-            chat_history=history,
-            user_message=user_text,
-            parent=self
-        )
-        self.ai_worker.response_received.connect(self.on_ai_response_received)
-        self.ai_worker.start()
+    def _on_worker_finished(self, worker):
+        if worker in self._active_workers:
+            self._active_workers.remove(worker)
+        worker.deleteLater()
 
     def on_ai_response_received(self, reply_text: str, is_fallback: bool, action_tags: list):
-        self.db.add_chat_message("assistant", reply_text)
-        if self.chat_dialog:
-            self.chat_dialog.set_loading(False)
-            self.chat_dialog.load_history()
+        try:
+            self.db.add_chat_message("assistant", reply_text)
+            if self.chat_dialog:
+                self.chat_dialog.set_loading(False)
+                self.chat_dialog.load_history()
 
-        self.engine.on_chat_completed()
+            self.engine.on_chat_completed()
 
-        # In-Chat Interactive Actions (Water / Sun / Pet)
-        if "water" in action_tags:
-            self.engine.give_water()
-            self.character.spawn_particle("drop")
-        if "sun" in action_tags:
-            self.engine.give_sunlight()
-            self.character.spawn_particle("sun")
-        if "pet" in action_tags:
-            self.engine.pet()
-            self.character.spawn_particle("heart")
+            # In-Chat Interactive Actions (Water / Sun / Pet)
+            if "water" in action_tags:
+                self.engine.give_water()
+                self.character.spawn_particle("drop")
+            if "sun" in action_tags:
+                self.engine.give_sunlight()
+                self.character.spawn_particle("sun")
+            if "pet" in action_tags:
+                self.engine.pet()
+                self.character.spawn_particle("heart")
 
-        self.bubble.show_message(reply_text, 4)
+            self.bubble.show_message(reply_text, 4)
+        except Exception as e:
+            print(f"[FloatingPlantWindow] on_ai_response_received error: {e}")
 
     # --- Settings Dialog ---
     def open_settings_dialog(self):
