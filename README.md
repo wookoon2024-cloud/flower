@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.9.4-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.9.5-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,11 +22,11 @@
 
 | 구분 | 버전 | 업데이트 | 배포 파일명 | 원클릭 다운로드 |
 | :---: | :---: | :---: | :---: | :---: |
-| 🚀 **단독 실행파일 (.exe)** | **`v1.9.4`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.9.4.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.9.4.zip) |
-| 💻 **순수 소스코드 (.py)** | **`v1.9.4`** | **`2026-08-20`** | `마음지킴이_소스_v1.9.4.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.9.4.zip) |
+| 🚀 **단독 실행파일 (.exe)** | **`v1.9.5`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.9.5.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.9.5.zip) |
+| 💻 **순수 소스코드 (.py)** | **`v1.9.5`** | **`2026-08-20`** | `마음지킴이_소스_v1.9.5.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.9.5.zip) |
 
-> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.9.4.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
-> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.9.4.zip` 압축 해제 후 `python main.py`를 실행하세요.
+> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.9.5.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
+> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.9.5.zip` 압축 해제 후 `python main.py`를 실행하세요.
 
 ---
 
@@ -175,6 +175,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.9.5`** | 2026-08-20 | • **🌿 화원 요약 카드 내 불필요한 중첩 박스 테두리선 완전 제거 및 미니멀 플랫 링크 개편**<br>• **UI 깔끔화:** '🪴 나의 화원' 상단 요약 카드 안에 들어있던 테두리 박스 형태의 버튼을 완전히 없애고, 우측 상단에 깔끔한 플랫 텍스트 링크(`🔍 6대 품종 만개 도감 둘러보기 →`)로 통합하여 '박스 속의 박스선' 답답함을 100% 해소 |
 | **`v1.9.4`** | 2026-08-20 | • **🎓 화원 졸업 및 새 씨앗 심기 창 2열 그리드(3행x2열) 전격 개편 & `🎓 졸업 완료` 뱃지 탑재**<br>• **스크롤 없는 6종 한눈에 보기:** 1줄에 2개씩(좌/우 2열, 총 3행) 배치하여 창을 열자마자 스크롤할 필요 없이 전체 6대 품종을 한 화면에서 즉시 비교하고 선택 가능<br>• **`🎓 졸업 완료` 상태 표시:** 이미 키워서 화원에 영구 등록된 품종은 카드 상단에 파란색 `🎓 졸업 완료` 뱃지와 `다시 키우기` 버튼이 표시되어 육성 여부를 한눈에 명확히 확인 가능 |
 | **`v1.9.3`** | 2026-08-20 | • **🌱 물주기/상태바(ControlBar)를 말풍선 위로 완벽 재배치하여 겹침 현상 100% 해소**<br>• **컴포넌트 3단 수직 분리 정렬:** 하단 화분 캐릭터 ➡️ 중간 대화 말풍선(`SpeechBubble`) ➡️ 최상단 메뉴/물주기 컨트롤바(`ControlBar`) 순으로 위치를 재조정하여, 물을 주거나 말을 걸 때 말풍선 글자와 메뉴바 버튼이 겹치지 않고 쾌적하게 조작 가능하도록 개선 |
 | **`v1.9.2`** | 2026-08-20 | • **🌟 히든 전설 품종('은하수 별빛 장미') 표정/스마일 시 화분 색상 변색 현상 완벽 해결**<br>• **원인 해결:** 유휴/클릭 표정(`_draw_facial_expression`) 렌더러가 기존 황토 화분 색상(`#D27D46`)으로 눈/입을 마스킹하여, 은하수 별빛 장미의 로열 자수정 보라색 화분(`#4C1D95`) 위에 갈색 얼룩이 묻어나오던 문제를 해결. 전설 전용 로열 자수정 마스크 및 황금빛(`FEF08A`, `#FDE047`) 눈/입 렌더러로 완벽 분기 처리 완료<br>• **🌱 5대 품종 완주 카운트 계산 누락 버그 완벽 해결:** 첫 번째 기본 품종(`classic`) 또는 현재 6단계 만개에 도달한 5번째 화분이 화원 졸업 버튼을 누르기 전에도 실시간 해금 진행도(`5/5종 완료`)에 정확하게 산입되어, 5번째 품종 6단계 도달 즉시 '은하수 별빛 장미'가 100% 해금되도록 보강 |

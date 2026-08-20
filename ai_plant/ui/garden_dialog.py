@@ -328,40 +328,41 @@ class GardenDialog(QDialog):
             }
         """)
         card_layout = QVBoxLayout(summary_card)
-        card_layout.setContentsMargins(12, 10, 12, 10)
+        card_layout.setContentsMargins(14, 11, 14, 11)
         card_layout.setSpacing(4)
 
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
         title_lbl = QLabel(f"{sp_info['emoji']} <b>현재 키우는 화분:</b> {plant_name} ({sp_info['name']})")
         title_lbl.setStyleSheet("color: #065F46; font-size: 13px;")
+        header_row.addWidget(title_lbl)
+        header_row.addStretch()
+
+        btn_view_species = QPushButton("🔍 6대 품종 만개 도감 둘러보기 →")
+        btn_view_species.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_view_species.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                border: none;
+                color: #059669;
+                font-size: 11.5px;
+                font-weight: bold;
+                padding: 0px 4px;
+                text-decoration: underline;
+            }
+            QPushButton:hover {
+                color: #047857;
+            }
+        """)
+        btn_view_species.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
+        header_row.addWidget(btn_view_species)
+        card_layout.addLayout(header_row)
+
         stage_int = int(stage) if str(stage).isdigit() else 1
         stage_name = STAGE_NAMES.get(stage_int, f"{stage_int}단계")
         desc_lbl = QLabel(f"성장 단계: <b>{stage_name}</b> | 경험치: <b>{state.get('exp', 0)} EXP</b> | 애정도: <b>{state.get('affection', 20)}💖</b>")
         desc_lbl.setStyleSheet("color: #047857; font-size: 11px;")
-        
-        card_layout.addWidget(title_lbl)
         card_layout.addWidget(desc_lbl)
-
-        # Motivation button to view all species
-        btn_view_species = QPushButton("🔍 다른 품종 6단계 만개 모습 & 도감 둘러보기 (동기부여 뿜뿜! 🚀)", summary_card)
-        btn_view_species.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_view_species.setStyleSheet("""
-            QPushButton {
-                background-color: #ECFDF5;
-                border: 1px solid #6EE7B7;
-                border-radius: 6px;
-                padding: 6px 10px;
-                color: #047857;
-                font-size: 11px;
-                font-weight: bold;
-                margin-top: 4px;
-            }
-            QPushButton:hover {
-                background-color: #D1FAE5;
-                border-color: #34D399;
-            }
-        """)
-        btn_view_species.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
-        card_layout.addWidget(btn_view_species)
 
         layout.addWidget(summary_card)
 
