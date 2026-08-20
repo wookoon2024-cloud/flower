@@ -5,8 +5,8 @@ and give their companion plant a custom nickname before starting.
 """
 import os
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QScrollArea, QFrame, QApplication
+    QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
+    QLineEdit, QScrollArea, QFrame, QApplication, QWidget
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
@@ -26,7 +26,7 @@ class WelcomeSetupDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("🌱 환영합니다! 나만의 AI 반려화분 입양하기")
-        self.resize(540, 620)
+        self.resize(620, 600)
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowCloseButtonHint |
@@ -35,7 +35,7 @@ class WelcomeSetupDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
-                font-family: 'Malgun Gothic', 'Segoe UI';
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
             }
             QLabel {
                 border: none;
@@ -44,16 +44,21 @@ class WelcomeSetupDialog(QDialog):
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(12)
 
         # 1. Welcome Banner
         banner = QFrame(self)
+        banner.setObjectName("WelcomeBanner")
         banner.setStyleSheet("""
-            QFrame {
+            QFrame#WelcomeBanner {
                 background-color: #ECFDF5;
                 border: 1.5px solid #A7F3D0;
                 border-radius: 12px;
+            }
+            #WelcomeBanner QLabel {
+                border: none;
+                background: transparent;
             }
         """)
         b_layout = QVBoxLayout(banner)
@@ -61,9 +66,9 @@ class WelcomeSetupDialog(QDialog):
         b_layout.setSpacing(4)
 
         t_lbl = QLabel("👋 <b>환영합니다! 공직자님의 책상 위 힐링 메이트</b>", banner)
-        t_lbl.setStyleSheet("color: #065F46; font-size: 15px;")
+        t_lbl.setStyleSheet("color: #065F46; font-size: 15px; border: none; background: transparent;")
         desc_lbl = QLabel("매일의 업무 피로와 스트레스를 덜어주고 힘이 되어줄 나만의 반려식물 정보를 설정해주세요 🌸", banner)
-        desc_lbl.setStyleSheet("color: #047857; font-size: 11px;")
+        desc_lbl.setStyleSheet("color: #047857; font-size: 11px; border: none; background: transparent;")
         desc_lbl.setWordWrap(True)
 
         b_layout.addWidget(t_lbl)
@@ -72,7 +77,9 @@ class WelcomeSetupDialog(QDialog):
 
         # 2. User Nickname
         user_row = QHBoxLayout()
-        user_row.addWidget(QLabel("👤 <b>공직자님의 호칭/닉네임:</b>"))
+        user_lbl = QLabel("👤 <b>공직자님의 호칭/닉네임:</b>")
+        user_lbl.setStyleSheet("border: none; background: transparent;")
+        user_row.addWidget(user_lbl)
         self.edit_user_name = QLineEdit("공직자님", self)
         self.edit_user_name.setPlaceholderText("예: 김주무관, 민원해결사 등")
         self.edit_user_name.setStyleSheet("""
@@ -80,7 +87,7 @@ class WelcomeSetupDialog(QDialog):
                 background-color: #FFFFFF;
                 border: 1px solid #CBD5E1;
                 border-radius: 8px;
-                padding: 8px 12px;
+                padding: 7px 12px;
                 font-size: 12px;
                 color: #1E293B;
             }
@@ -89,8 +96,10 @@ class WelcomeSetupDialog(QDialog):
         user_row.addWidget(self.edit_user_name, 1)
         layout.addLayout(user_row)
 
-        # 3. Plant Species Card List
-        layout.addWidget(QLabel("🪴 <b>함께 시작할 반려식물 품종 선택:</b>"))
+        # 3. Plant Species Card Grid (2 cards per row)
+        species_title = QLabel("🪴 <b>함께 시작할 반려식물 품종 선택 (한 줄에 2종류씩):</b>")
+        species_title.setStyleSheet("border: none; background: transparent;")
+        layout.addWidget(species_title)
 
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
@@ -98,76 +107,90 @@ class WelcomeSetupDialog(QDialog):
         scroll.setStyleSheet("QScrollArea { border: 1px solid #E2E8F0; border-radius: 10px; background: #FAFAFA; }")
 
         scroll_content = QWidget()
-        scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(6, 6, 6, 6)
-        scroll_layout.setSpacing(6)
+        scroll_content.setStyleSheet("QWidget { background: transparent; }")
+        scroll_layout = QGridLayout(scroll_content)
+        scroll_layout.setContentsMargins(8, 8, 8, 8)
+        scroll_layout.setHorizontalSpacing(8)
+        scroll_layout.setVerticalSpacing(8)
 
         self.card_widgets = {}
 
         def update_cards():
             for sid, (card, badge) in self.card_widgets.items():
                 if sid == self.selected_species[0]:
-                    card.setStyleSheet("""
-                        QFrame {
+                    card.setStyleSheet(f"""
+                        QFrame#PlantCard_{sid} {{
                             background-color: #ECFDF5;
                             border: 2px solid #10B981;
                             border-radius: 10px;
-                        }
-                        QLabel { border: none; background: transparent; }
+                        }}
+                        #PlantCard_{sid} QLabel {{
+                            border: none;
+                            background: transparent;
+                        }}
                     """)
                     badge.setText("선택됨 ✨")
-                    badge.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 11px; background-color: #10B981; border-radius: 6px; padding: 4px 8px; border: none;")
+                    badge.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 10px; background-color: #10B981; border-radius: 5px; padding: 2px 6px; border: none;")
                 else:
-                    card.setStyleSheet("""
-                        QFrame {
+                    card.setStyleSheet(f"""
+                        QFrame#PlantCard_{sid} {{
                             background-color: #FFFFFF;
                             border: 1px solid #E2E8F0;
                             border-radius: 10px;
-                        }
-                        QFrame:hover {
+                        }}
+                        QFrame#PlantCard_{sid}:hover {{
                             border-color: #CBD5E1;
                             background-color: #F8FAFC;
-                        }
-                        QLabel { border: none; background: transparent; }
+                        }}
+                        #PlantCard_{sid} QLabel {{
+                            border: none;
+                            background: transparent;
+                        }}
                     """)
                     badge.setText("선택하기")
-                    badge.setStyleSheet("color: #64748B; font-size: 11px; background-color: #F1F5F9; border-radius: 6px; padding: 4px 8px; border: none;")
+                    badge.setStyleSheet("color: #64748B; font-size: 10px; background-color: #F1F5F9; border-radius: 5px; padding: 2px 6px; border: none;")
 
-        for sp_id, info in SPECIES_INFO.items():
+        for idx, (sp_id, info) in enumerate(SPECIES_INFO.items()):
             card = QFrame()
+            card.setObjectName(f"PlantCard_{sp_id}")
             card.setCursor(Qt.CursorShape.PointingHandCursor)
+            
             c_layout = QHBoxLayout(card)
-            c_layout.setContentsMargins(10, 8, 12, 8)
-            c_layout.setSpacing(12)
+            c_layout.setContentsMargins(8, 8, 8, 8)
+            c_layout.setSpacing(8)
 
             img_lbl = QLabel()
-            img_lbl.setFixedSize(50, 50)
+            img_lbl.setFixedSize(44, 44)
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             img_path = get_resource_path(os.path.join("assets", f"stage_{sp_id}_6.png"))
             if os.path.exists(img_path):
-                pm = QPixmap(img_path).scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                pm = QPixmap(img_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 img_lbl.setPixmap(pm)
             else:
                 img_lbl.setText(info["emoji"])
-                img_lbl.setStyleSheet("font-size: 26px;")
+                img_lbl.setStyleSheet("font-size: 24px;")
 
             info_layout = QVBoxLayout()
             info_layout.setSpacing(2)
-            name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
-            name_lbl.setStyleSheet("font-size: 13px; color: #1E293B;")
-            desc_lbl = QLabel(info["desc"])
-            desc_lbl.setStyleSheet("font-size: 11px; color: #64748B;")
-            desc_lbl.setWordWrap(True)
-            info_layout.addWidget(name_lbl)
-            info_layout.addWidget(desc_lbl)
 
+            top_row = QHBoxLayout()
+            name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
+            name_lbl.setStyleSheet("font-size: 12px; color: #1E293B;")
             badge_lbl = QLabel("선택하기")
-            badge_lbl.setFixedSize(72, 26)
             badge_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            top_row.addWidget(name_lbl, 1)
+            top_row.addWidget(badge_lbl, 0)
+
+            desc_lbl = QLabel(info["desc"])
+            desc_lbl.setStyleSheet("font-size: 10px; color: #64748B;")
+            desc_lbl.setWordWrap(True)
+
+            info_layout.addLayout(top_row)
+            info_layout.addWidget(desc_lbl)
 
             c_layout.addWidget(img_lbl, 0)
             c_layout.addLayout(info_layout, 1)
-            c_layout.addWidget(badge_lbl, 0)
 
             def make_handler(sid):
                 def handler(event):
@@ -177,7 +200,10 @@ class WelcomeSetupDialog(QDialog):
 
             card.mousePressEvent = make_handler(sp_id)
             self.card_widgets[sp_id] = (card, badge_lbl)
-            scroll_layout.addWidget(card)
+
+            row = idx // 2
+            col = idx % 2
+            scroll_layout.addWidget(card, row, col)
 
         update_cards()
         scroll.setWidget(scroll_content)
@@ -185,7 +211,9 @@ class WelcomeSetupDialog(QDialog):
 
         # 4. Plant Nickname
         plant_row = QHBoxLayout()
-        plant_row.addWidget(QLabel("🏷️ <b>반려화분의 애칭/이름:</b>"))
+        plant_lbl = QLabel("🏷️ <b>반려화분의 애칭/이름:</b>")
+        plant_lbl.setStyleSheet("border: none; background: transparent;")
+        plant_row.addWidget(plant_lbl)
         self.edit_plant_name = QLineEdit("초록이", self)
         self.edit_plant_name.setPlaceholderText("예: 초록이, 햇살이, 뽀송이 등")
         self.edit_plant_name.setStyleSheet("""
@@ -193,7 +221,7 @@ class WelcomeSetupDialog(QDialog):
                 background-color: #FFFFFF;
                 border: 1px solid #CBD5E1;
                 border-radius: 8px;
-                padding: 8px 12px;
+                padding: 7px 12px;
                 font-size: 12px;
                 color: #1E293B;
             }
@@ -212,8 +240,8 @@ class WelcomeSetupDialog(QDialog):
                 font-weight: bold;
                 border: none;
                 border-radius: 10px;
-                padding: 12px;
-                font-size: 14px;
+                padding: 11px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background-color: #059669;

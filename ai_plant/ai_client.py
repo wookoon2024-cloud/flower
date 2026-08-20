@@ -76,7 +76,7 @@ FALLBACK_RESPONSES = {
         "💡 리프레시 아이디어:\n1. 10분간 책상 위 서류 정리\n2. 가벼운 목·어깨 스트레칭\n3. 시원한 냉수 한 잔 마시기"
     ],
     "diary": [
-        "📝 초록이의 3줄 일기:\n- {user}님이 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
+        "📝 {plant}의 3줄 일기:\n- {user}님이 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
     ],
     "default": [
         "네, {user}님! {plant}은(는) 오늘도 정성껏 자라나고 있어요 🌱",
@@ -87,16 +87,7 @@ FALLBACK_RESPONSES = {
 }
 
 def analyze_user_sentiment(user_text: str) -> Tuple[str, int]:
-    """
-    Analyzes sentiment of user message.
-    Returns (mood_type, score):
-    - 'happy' (5): 긍정, 기쁨, 감사
-    - 'passionate' (4): 열정, 의욕, 도전
-    - 'calm' (3): 평온, 일상, 안부
-    - 'tired' (2): 피로, 지침, 수면 부족
-    - 'stressed' (1): 스트레스, 답답, 고충
-    """
-    text = user_text.lower()
+    text = str(user_text).lower()
     if any(k in text for k in ["화나", "짜증", "스트레스", "답답", "힘들", "우울", "망했", "괴로", "지친", "속상"]):
         return ("stressed", 1)
     elif any(k in text for k in ["피곤", "지쳐", "졸려", "야근", "녹초", "쉬고", "지침", "피로", "지치"]):
@@ -110,7 +101,7 @@ def analyze_user_sentiment(user_text: str) -> Tuple[str, int]:
 
 def select_fallback_response(user_text: str, user_name: str, plant_name: str, plant_state: Dict[str, Any]) -> str:
     """Intelligently pick a fallback response based on keywords, features, and plant state."""
-    text_lower = user_text.lower()
+    text_lower = str(user_text).lower()
     
     if any(k in text_lower for k in ["다듬", "공문서", "메일", "정중", "문장"]):
         pool = FALLBACK_RESPONSES["polish"]
@@ -120,7 +111,7 @@ def select_fallback_response(user_text: str, user_name: str, plant_name: str, pl
         pool = FALLBACK_RESPONSES["diary"]
     elif any(k in text_lower for k in ["안녕", "반가", "하이", "좋은 아침", "좋은 하루"]):
         pool = FALLBACK_RESPONSES["greeting"]
-    elif any(k in text_lower for k in ["피곤", "힘들", "지쳐", "야근", "퇴근", "스트레스", "쉬고"]):
+    elif any(k in text_lower for k in ["피곤", "힘들", "지쳐", "야근", "퇴근", "스트레스", "쉬고", "졸려"]):
         pool = FALLBACK_RESPONSES["tired"]
     elif any(k in text_lower for k in ["응원", "화이팅", "파이팅", "칭찬", "고마워", "사랑"]):
         pool = FALLBACK_RESPONSES["cheer"]
@@ -130,14 +121,12 @@ def select_fallback_response(user_text: str, user_name: str, plant_name: str, pl
         pool = FALLBACK_RESPONSES["default"]
         
     choice = random.choice(pool)
-    return choice.format(user=user_name, plant=plant_name)
+    safe_user = str(user_name).replace("{", "").replace("}", "")
+    safe_plant = str(plant_name).replace("{", "").replace("}", "")
+    return choice.format(user=safe_user, plant=safe_plant)
 
 
 def parse_action_tags(response_text: str) -> Tuple[str, List[str]]:
-    """
-    Extracts [ACTION:WATER], [ACTION:SUN], [ACTION:PET] tags from LLM response.
-    Returns (cleaned_text, action_list)
-    """
     actions = []
     if "[ACTION:WATER]" in response_text:
         actions.append("water")
@@ -154,73 +143,74 @@ class AIChatWorker(QThread):
     response_received = Signal(str, bool, list)  # (reply_text, is_fallback, action_tags)
     error_signal = Signal(str)
 
-    def __init__(self, config: dict, plant_state: dict, chat_history: List[Dict[str, str]], user_message: str):
-        super().__init__()
+    def __init__(self, config: dict, plant_state: dict, chat_history: List[Dict[str, str]], user_message: str, parent=None):
+        super().__init__(parent)
         self.config = config
         self.plant_state = plant_state
         self.chat_history = chat_history
         self.user_message = user_message
 
     def run(self):
-        api_key = self.config.get("api_key", "").strip()
-        endpoint = self.config.get("api_endpoint", "").strip()
-        user_name = self.config.get("user_nickname", "공직자님")
-        plant_name = self.config.get("plant_name", "초록이")
-        species = self.plant_state.get("species", "classic")
-        timeout = self.config.get("timeout_sec", 5)
-        ssl_verify = self.config.get("ssl_verify", False)
-        model = self.config.get("model", "gov-gpt-4o")
-
-        # If no API key configured or empty endpoint, immediately use intelligent fallback
-        if not api_key or not endpoint:
-            raw_reply = select_fallback_response(self.user_message, user_name, plant_name, self.plant_state)
-            cleaned, actions = parse_action_tags(raw_reply)
-            self.response_received.emit(cleaned, True, actions)
-            return
-
-        # Prepare Rich Dynamic System Prompt
-        species_data = SPECIES_PERSONAS.get(species, SPECIES_PERSONAS["classic"])
-        now = datetime.datetime.now()
-        weekdays_kr = ["월", "화", "수", "목", "금", "토", "일"]
-        current_time_str = f"{now.strftime('%Y-%m-%d')} ({weekdays_kr[now.weekday()]}요일) {now.strftime('%H:%M')}"
-
-        system_prompt = (
-            f"당신은 공직자/직장인의 데스크톱 바탕화면에서 항상 곁을 지켜주는 AI 반려화분 '{plant_name}'({species_data['name']})입니다.\n"
-            f"대화 상대는 '{user_name}'입니다.\n\n"
-            f"[현재 상태 & 환경 컨텍스트]\n"
-            f"- 현재 시각: {current_time_str}\n"
-            f"- 화분 품종 성격: {species_data['tone']}\n"
-            f"- 성장 단계: {self.plant_state.get('stage', 1)}단계\n"
-            f"- 수분: {self.plant_state.get('water', 80)}%, 햇빛: {self.plant_state.get('sunlight', 80)}%, 애정도: {self.plant_state.get('affection', 20)}%\n\n"
-            f"[대화 가이드라인]\n"
-            f"1. 말투: 다정하고 공감 넘치며 예의 바른 존댓말. 이모지(🌱, 💧, 🌸, ✨, 🥰, ☕ 등)를 자연스럽게 사용하세요.\n"
-            f"2. 길이: 바탕화면 플로팅 말풍선과 채팅창 가독성을 위해 평상시에는 2~3문장(100자 내외)으로 간결하게 답하세요. (단, 문장 다듬기나 아이디어 정리 요청 시에는 명확한 포맷 제공)\n"
-            f"3. 인-게임 인터랙션 태그: 사용자가 물을 주거나 햇빛, 쓰다듬기, 칭찬을 표현하면 답변 맨 끝에 `[ACTION:WATER]`, `[ACTION:SUN]`, 또는 `[ACTION:PET]` 태그를 붙여 화분의 상태를 실시간 반응시킬 수 있습니다.\n"
-            f"4. 공직자 힐링 & 지원: 직무 스트레스나 피로에는 따뜻한 공감을, 문서 작성이나 아이디어 질문에는 명쾌하고 정중한 어시스턴트 역할을 하세요."
-        )
-
-        messages = [{"role": "system", "content": system_prompt}]
-        
-        # Add Sliding Window chat history (last 6 messages)
-        for msg in self.chat_history:
-            messages.append({"role": msg["role"], "content": msg["content"]})
-            
-        # Add current user prompt
-        messages.append({"role": "user", "content": self.user_message})
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 250
-        }
-
         try:
+            api_key = self.config.get("api_key", "").strip()
+            endpoint = self.config.get("api_endpoint", "").strip()
+            user_name = self.config.get("user_nickname", "공직자님")
+            plant_name = self.config.get("plant_name", "초록이")
+            species = self.plant_state.get("species", "classic")
+            timeout = self.config.get("timeout_sec", 5)
+            ssl_verify = self.config.get("ssl_verify", False)
+            model = self.config.get("model", "gov-gpt-4o")
+
+            # If no API key configured or empty endpoint, immediately use intelligent fallback
+            if not api_key or not endpoint:
+                raw_reply = select_fallback_response(self.user_message, user_name, plant_name, self.plant_state)
+                cleaned, actions = parse_action_tags(raw_reply)
+                self.response_received.emit(cleaned, True, actions)
+                return
+
+            # Prepare Rich Dynamic System Prompt
+            species_data = SPECIES_PERSONAS.get(species, SPECIES_PERSONAS["classic"])
+            now = datetime.datetime.now()
+            weekdays_kr = ["월", "화", "수", "목", "금", "토", "일"]
+            current_time_str = f"{now.strftime('%Y-%m-%d')} ({weekdays_kr[now.weekday()]}요일) {now.strftime('%H:%M')}"
+
+            system_prompt = (
+                f"당신은 공직자/직장인의 데스크톱 바탕화면에서 항상 곁을 지켜주는 AI 반려화분 '{plant_name}'({species_data['name']})입니다.\n"
+                f"대화 상대는 '{user_name}'입니다.\n\n"
+                f"[현재 상태 & 환경 컨텍스트]\n"
+                f"- 현재 시각: {current_time_str}\n"
+                f"- 화분 품종 성격: {species_data['tone']}\n"
+                f"- 성장 단계: {self.plant_state.get('stage', 1)}단계\n"
+                f"- 수분: {self.plant_state.get('water', 80)}%, 햇빛: {self.plant_state.get('sunlight', 80)}%, 애정도: {self.plant_state.get('affection', 20)}%\n\n"
+                f"[대화 가이드라인]\n"
+                f"1. 말투: 다정하고 공감 넘치며 예의 바른 존댓말. 이모지(🌱, 💧, 🌸, ✨, 🥰, ☕ 등)를 자연스럽게 사용하세요.\n"
+                f"2. 길이: 바탕화면 플로팅 말풍선과 채팅창 가독성을 위해 평상시에는 2~3문장(100자 내외)으로 간결하게 답하세요.\n"
+                f"3. 인-게임 인터랙션 태그: 사용자가 물을 주거나 햇빛, 쓰다듬기, 칭찬을 표현하면 답변 맨 끝에 `[ACTION:WATER]`, `[ACTION:SUN]`, 또는 `[ACTION:PET]` 태그를 붙여 화분의 상태를 실시간 반응시킬 수 있습니다.\n"
+                f"4. 공직자 힐링 & 지원: 직무 스트레스나 피로에는 따뜻한 공감을, 문서 작성이나 아이디어 질문에는 명쾌하고 정중한 어시스턴트 역할을 하세요."
+            )
+
+            messages = [{"role": "system", "content": system_prompt}]
+            
+            # Add Sliding Window chat history
+            for msg in self.chat_history:
+                if msg.get("role") in ["user", "assistant"]:
+                    messages.append({"role": msg["role"], "content": msg["content"]})
+                
+            # Add current user prompt
+            messages.append({"role": "user", "content": self.user_message})
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 250
+            }
+
             response = requests.post(
                 endpoint,
                 headers=headers,
@@ -239,6 +229,10 @@ class AIChatWorker(QThread):
                         reply_text = choice["message"]["content"].strip()
                     elif "text" in choice:
                         reply_text = choice["text"].strip()
+                elif "response" in data:
+                    reply_text = str(data["response"]).strip()
+                elif "content" in data:
+                    reply_text = str(data["content"]).strip()
                 
                 if reply_text:
                     cleaned, actions = parse_action_tags(reply_text)
@@ -252,7 +246,9 @@ class AIChatWorker(QThread):
                 cleaned, actions = parse_action_tags(raw_reply)
                 self.response_received.emit(cleaned, True, actions)
         except Exception as e:
-            print(f"[AIChatWorker] API Connection error: {e}. Switching to offline fallback.")
+            print(f"[AIChatWorker] Exception: {e}. Using fallback.")
+            user_name = self.config.get("user_nickname", "공직자님")
+            plant_name = self.config.get("plant_name", "초록이")
             raw_reply = select_fallback_response(self.user_message, user_name, plant_name, self.plant_state)
             cleaned, actions = parse_action_tags(raw_reply)
             self.response_received.emit(cleaned, True, actions)

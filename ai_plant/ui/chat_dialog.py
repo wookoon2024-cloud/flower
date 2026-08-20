@@ -4,6 +4,7 @@ A friendly, modern chat window for conversing with the AI companion plant,
 equipped with smart micro-assistant chips (emotional care, business text polisher, brainstorming, mini-diary),
 in-browser thinking indicator (no layout jitter), and smooth message bubbles.
 """
+import html
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextBrowser, QLineEdit,
     QPushButton, QLabel, QWidget, QScrollArea, QFrame
@@ -33,7 +34,7 @@ class ChatDialog(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
-                font-family: 'Malgun Gothic', 'Segoe UI';
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
             }
         """)
 
@@ -88,7 +89,7 @@ class ChatDialog(QDialog):
         """)
         layout.addWidget(self.browser, 1)
 
-        # Smart AI Assistant Chips Container (Fixed height, no layout jumps)
+        # Smart AI Assistant Chips Container
         chips_frame = QFrame(self)
         chips_frame.setStyleSheet("""
             QFrame {
@@ -217,43 +218,47 @@ class ChatDialog(QDialog):
         self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 힐링 대화방")
 
     def load_history(self):
-        """Load and render chat logs into the browser."""
+        """Load and safely render chat logs into the browser with HTML escaping."""
         self.browser.clear()
         chats = self.db.get_recent_chat_history(limit=25)
         user_name = self.config.get("user_nickname", "나")
         plant_name = self.config.get("plant_name", "초록이")
 
-        html = ""
+        esc_user = html.escape(str(user_name))
+        esc_plant = html.escape(str(plant_name))
+
+        html_parts = []
         for chat in chats:
             role = chat.get("role")
             content = chat.get("content", "")
+            esc_content = html.escape(str(content)).replace("\n", "<br>")
             if role == "user":
-                html += f"""
+                html_parts.append(f"""
                 <div style="text-align: right; margin-bottom: 8px;">
                     <span style="display: inline-block; background-color: #DCF8C6; color: #1F2937; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%; text-align: left;">
-                        <b>{user_name}</b>: {content}
+                        <b>{esc_user}</b>: {esc_content}
                     </span>
                 </div>
-                """
+                """)
             else:
-                html += f"""
+                html_parts.append(f"""
                 <div style="text-align: left; margin-bottom: 8px;">
                     <span style="display: inline-block; background-color: #F1F5F9; color: #1F2937; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%;">
-                        <b>{plant_name}</b>: {content}
+                        <b>{esc_plant}</b>: {esc_content}
                     </span>
                 </div>
-                """
+                """)
         
         if self.is_thinking:
-            html += f"""
+            html_parts.append(f"""
             <div style="text-align: left; margin-bottom: 8px;">
                 <span style="display: inline-block; background-color: #F1F5F9; color: #059669; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%; font-style: italic;">
-                    🌱 <b>{plant_name}</b>이(가) 생각을 가다듬고 있어요... 💭
+                    🌱 <b>{esc_plant}</b>이(가) 생각을 가다듬고 있어요... 💭
                 </span>
             </div>
-            """
+            """)
 
-        self.browser.setHtml(html)
+        self.browser.setHtml("".join(html_parts))
         self.scroll_to_bottom()
 
     def append_message(self, role: str, content: str):
@@ -261,8 +266,9 @@ class ChatDialog(QDialog):
         self.load_history()
 
     def scroll_to_bottom(self):
-        scrollbar = self.browser.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
+        QTimer.singleShot(30, lambda: self.browser.verticalScrollBar().setValue(
+            self.browser.verticalScrollBar().maximum()
+        ))
 
     def send_chip(self, text: str):
         self.input_edit.setText(text)
@@ -279,12 +285,8 @@ class ChatDialog(QDialog):
 
     def set_loading(self, is_loading: bool):
         self.is_thinking = is_loading
-        if is_loading:
-            self.input_edit.setEnabled(False)
-            self.btn_send.setEnabled(False)
-            self.load_history()
-        else:
-            self.input_edit.setEnabled(True)
-            self.btn_send.setEnabled(True)
-            self.load_history()
+        self.input_edit.setEnabled(not is_loading)
+        self.btn_send.setEnabled(not is_loading)
+        self.load_history()
+        if not is_loading:
             self.input_edit.setFocus()

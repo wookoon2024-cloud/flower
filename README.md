@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.0.0-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.0.1-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.0.1`** | 2026-08-20 | • **UI/UX 개선 및 대화 안정화 패치**<br>• 온보딩 환영창 상단 배너 중첩 박스선 제거 및 품종 선택 2열(한 줄에 2개씩) 그리드 배치 적용<br>• 컨트롤 바 버튼 한글 텍스트 제거 및 깔끔한 아이콘 전용 캡슐 버튼(`[💧] [☀️] [💬] [🌿] [⚙️]`) 개편<br>• 대화 전송 시 비동기 스레드 수명 주기(QThread) 메모리 안전성 및 HTML 이스케이프 파싱 예외 완전 해결 |
 | **`v1.0.0`** | 2026-08-20 | • **공식 최초 정식 릴리즈**<br>• 5종 품종 및 6단계 마스터 성장 진화 시스템 구축<br>• 10대 테마 100종 업적 도감 및 필터링 브라우저 탑재<br>• 범정부 AI / OpenAI / 로컬 LLM 연동 및 품종별 AI 페르소나 적용<br>• 작업표시줄 0px 자석 스냅, HWND_TOPMOST 최상위 고정, Ctrl+휠 줌 크기 조절 지원<br>• 마음 날씨 감정 그래프, 일일 포춘 쿠키, 온보딩 환영창 탑재 |
 
 ---

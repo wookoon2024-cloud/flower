@@ -348,16 +348,35 @@ class FloatingPlantWindow(QWidget):
         self.bubble.show_message(f"🥠 {msg}", 4)
 
     def start_ai_chat(self, user_text: str):
+        # 1. Safely finish previous worker thread if still running
+        if self.ai_worker:
+            try:
+                if self.ai_worker.isRunning():
+                    self.ai_worker.quit()
+                    self.ai_worker.wait(300)
+            except Exception:
+                pass
+            self.ai_worker = None
+
+        # 2. Extract recent history BEFORE saving current message
+        history = self.db.get_recent_chat_history(limit=6)
+
+        # 3. Save sentiment analysis and user message
         mood_type, score = analyze_user_sentiment(user_text)
         self.db.add_mood_entry(mood_type, score, user_text)
         self.db.add_chat_message("user", user_text)
 
-        history = self.db.get_recent_chat_history(limit=6)
+        # 4. Refresh chat dialog to immediately display the user's message
+        if self.chat_dialog:
+            self.chat_dialog.load_history()
+
+        # 5. Start async AI worker thread
         self.ai_worker = AIChatWorker(
             config=self.config.config,
             plant_state=self.engine.get_state(),
             chat_history=history,
-            user_message=user_text
+            user_message=user_text,
+            parent=self
         )
         self.ai_worker.response_received.connect(self.on_ai_response_received)
         self.ai_worker.start()
@@ -366,7 +385,7 @@ class FloatingPlantWindow(QWidget):
         self.db.add_chat_message("assistant", reply_text)
         if self.chat_dialog:
             self.chat_dialog.set_loading(False)
-            self.chat_dialog.append_message("assistant", reply_text)
+            self.chat_dialog.load_history()
 
         self.engine.on_chat_completed()
 

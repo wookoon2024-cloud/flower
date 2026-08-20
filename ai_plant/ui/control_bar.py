@@ -1,7 +1,7 @@
 """
 Control Bar Widget
 Interactive popup control bar providing mini status gauges (water, sunlight, affection)
-and quick interaction buttons (water, sun, chat, garden, settings).
+and icon-only quick interaction buttons (water, sun, chat, garden, settings).
 All buttons and gauges are dynamically sized and cleanly centered without clipping.
 """
 from PySide6.QtWidgets import (
@@ -85,12 +85,12 @@ class ControlBarWidget(QWidget):
         """)
 
         container_layout = QVBoxLayout(self.container)
-        container_layout.setContentsMargins(6, 6, 6, 6)
-        container_layout.setSpacing(4)
+        container_layout.setContentsMargins(8, 6, 8, 6)
+        container_layout.setSpacing(5)
 
         # 1. Mini Status Gauges row
         gauge_row = QHBoxLayout()
-        gauge_row.setSpacing(5)
+        gauge_row.setSpacing(6)
         gauge_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.water_bar = StatusMiniBar("💧", "수분 상태", "#3B82F6", self.container)
@@ -102,22 +102,74 @@ class ControlBarWidget(QWidget):
         gauge_row.addWidget(self.aff_bar)
         container_layout.addLayout(gauge_row)
 
-        # 2. Buttons row
+        # 2. Icon-only Buttons row
         btn_row = QHBoxLayout()
-        btn_row.setSpacing(3)
+        btn_row.setSpacing(5)
         btn_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        btn_style_normal = """
+        # Common button styling for icon-only action buttons
+        btn_style_blue = """
+            QPushButton {
+                background-color: #EFF6FF;
+                border: 1px solid #BFDBFE;
+                border-radius: 7px;
+                font-size: 13px;
+                height: 26px;
+                width: 28px;
+            }
+            QPushButton:hover {
+                background-color: #DBEAFE;
+                border-color: #93C5FD;
+            }
+            QPushButton:pressed {
+                background-color: #BFDBFE;
+            }
+        """
+
+        btn_style_amber = """
+            QPushButton {
+                background-color: #FFFBEB;
+                border: 1px solid #FDE68A;
+                border-radius: 7px;
+                font-size: 13px;
+                height: 26px;
+                width: 28px;
+            }
+            QPushButton:hover {
+                background-color: #FEF3C7;
+                border-color: #FCD34D;
+            }
+            QPushButton:pressed {
+                background-color: #FDE68A;
+            }
+        """
+
+        btn_style_green = """
+            QPushButton {
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 7px;
+                font-size: 13px;
+                height: 26px;
+                width: 28px;
+            }
+            QPushButton:hover {
+                background-color: #D1FAE5;
+                border-color: #6EE7B7;
+            }
+            QPushButton:pressed {
+                background-color: #A7F3D0;
+            }
+        """
+
+        btn_style_slate = """
             QPushButton {
                 background-color: #F8FAFC;
                 border: 1px solid #CBD5E1;
-                border-radius: 6px;
-                padding: 3px 4px;
-                font-size: 11px;
-                font-family: 'Malgun Gothic', 'Segoe UI';
-                font-weight: bold;
-                color: #334155;
-                height: 24px;
+                border-radius: 7px;
+                font-size: 13px;
+                height: 26px;
+                width: 28px;
             }
             QPushButton:hover {
                 background-color: #F1F5F9;
@@ -128,82 +180,46 @@ class ControlBarWidget(QWidget):
             }
         """
 
-        self.btn_water = QPushButton("💧 물주기", self.container)
-        self.btn_water.setStyleSheet(btn_style_normal)
+        self.btn_water = QPushButton("💧", self.container)
+        self.btn_water.setStyleSheet(btn_style_blue)
+        self.btn_water.setFixedSize(28, 26)
         self.btn_water.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_water.setToolTip("화분에 물을 줍니다 (+25 수분)")
+        self.btn_water.setToolTip("💧 물주기 (+25 수분)")
         self.btn_water.clicked.connect(self.water_clicked.emit)
 
-        self.btn_sun = QPushButton("☀️ 햇빛", self.container)
-        self.btn_sun.setStyleSheet(btn_style_normal)
+        self.btn_sun = QPushButton("☀️", self.container)
+        self.btn_sun.setStyleSheet(btn_style_amber)
+        self.btn_sun.setFixedSize(28, 26)
         self.btn_sun.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_sun.setToolTip("화분에 햇빛을 쬡니다 (+25 햇빛)")
+        self.btn_sun.setToolTip("☀️ 햇빛 쬐기 (+25 햇빛)")
         self.btn_sun.clicked.connect(self.sun_clicked.emit)
 
-        self.btn_chat = QPushButton("💬 대화", self.container)
-        self.btn_chat.setStyleSheet("""
-            QPushButton {
-                background-color: #ECFDF5;
-                border: 1px solid #A7F3D0;
-                border-radius: 6px;
-                padding: 3px 4px;
-                font-size: 11px;
-                font-family: 'Malgun Gothic', 'Segoe UI';
-                font-weight: bold;
-                color: #065F46;
-                height: 24px;
-            }
-            QPushButton:hover {
-                background-color: #D1FAE5;
-                border-color: #6EE7B7;
-            }
-            QPushButton:pressed {
-                background-color: #A7F3D0;
-            }
-        """)
+        self.btn_chat = QPushButton("💬", self.container)
+        self.btn_chat.setStyleSheet(btn_style_green)
+        self.btn_chat.setFixedSize(28, 26)
         self.btn_chat.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_chat.setToolTip("AI 반려식물과 대화합니다")
+        self.btn_chat.setToolTip("💬 AI와 대화하기")
         self.btn_chat.clicked.connect(self.chat_clicked.emit)
 
         self.btn_garden = QPushButton("🌿", self.container)
-        self.btn_garden.setStyleSheet("""
-            QPushButton {
-                background-color: #FEF3C7;
-                border: 1px solid #FDE68A;
-                border-radius: 6px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #FDE68A;
-            }
-        """)
-        self.btn_garden.setFixedSize(24, 24)
+        self.btn_garden.setStyleSheet(btn_style_amber)
+        self.btn_garden.setFixedSize(28, 26)
         self.btn_garden.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_garden.setToolTip("나의 화원 & 100종 업적 도감 / 졸업 / 포춘")
+        self.btn_garden.setToolTip("🌿 나의 화원 & 업적 도감")
         self.btn_garden.clicked.connect(self.garden_clicked.emit)
 
         self.btn_settings = QPushButton("⚙️", self.container)
-        self.btn_settings.setStyleSheet("""
-            QPushButton {
-                background-color: #F8FAFC;
-                border: 1px solid #CBD5E1;
-                border-radius: 6px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #F1F5F9;
-            }
-        """)
-        self.btn_settings.setFixedSize(24, 24)
+        self.btn_settings.setStyleSheet(btn_style_slate)
+        self.btn_settings.setFixedSize(28, 26)
         self.btn_settings.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_settings.setToolTip("환경 설정")
+        self.btn_settings.setToolTip("⚙️ 환경 설정")
         self.btn_settings.clicked.connect(self.settings_clicked.emit)
 
-        btn_row.addWidget(self.btn_water, 1)
-        btn_row.addWidget(self.btn_sun, 1)
-        btn_row.addWidget(self.btn_chat, 1)
-        btn_row.addWidget(self.btn_garden, 0)
-        btn_row.addWidget(self.btn_settings, 0)
+        btn_row.addWidget(self.btn_water)
+        btn_row.addWidget(self.btn_sun)
+        btn_row.addWidget(self.btn_chat)
+        btn_row.addWidget(self.btn_garden)
+        btn_row.addWidget(self.btn_settings)
         container_layout.addLayout(btn_row)
 
         main_layout.addWidget(self.container)
