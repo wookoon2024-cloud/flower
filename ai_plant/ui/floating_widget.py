@@ -6,6 +6,7 @@ Bottom-aligned flowerpot design for 0-gap pixel-perfect taskbar & dock contact.
 """
 import ctypes
 import datetime
+import random
 from PySide6.QtWidgets import QWidget, QMenu, QApplication
 from PySide6.QtCore import Qt, QPoint, QTimer
 from PySide6.QtGui import QPainter
@@ -51,6 +52,7 @@ class FloatingPlantWindow(QWidget):
 
         self.last_hourly_peek_hour = -1
         self.idle_notified = False
+        self.last_pet_bubble_time = None
 
         self.init_window()
         self.init_ui()
@@ -428,7 +430,19 @@ class FloatingPlantWindow(QWidget):
             self.last_user_interaction_time = datetime.datetime.now()
             if action_name == "pet":
                 self.character.spawn_particle("heart")
-            self.bubble.show_message(bubble_text, 3)
+                now = datetime.datetime.now()
+                # Show speech bubble comfortably (at least 20s gap or 35% chance so it never spams!)
+                should_show = False
+                if not self.last_pet_bubble_time or (now - self.last_pet_bubble_time).total_seconds() > 20:
+                    should_show = True
+                elif random.random() < 0.35:
+                    should_show = True
+
+                if should_show:
+                    self.last_pet_bubble_time = now
+                    self.bubble.show_message(bubble_text, 3)
+            else:
+                self.bubble.show_message(bubble_text, 3)
         except Exception as e:
             print(f"[FloatingPlantWindow] on_plant_interaction error: {e}")
 

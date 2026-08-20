@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.5.1-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.5.2-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.5.2`** | 2026-08-20 | • **말풍선 발화 타이밍 스마트 최적화 & 쓰다듬기 발화 빈도 다듬기**<br>• **클릭 시 과도한 말풍선 억제:** 화분을 클릭할 때마다 매번 말풍선이 떠서 번잡해지지 않도록, 하트 파티클 및 행복 표정은 100% 즉각 반응하되 말풍선은 20초 쿨다운 또는 35% 확률로 가끔씩만 다정하게 응원 대사를 건네도록 스마트 조절<br>• **발화 시점 정리:** 매 시각 정각 알림(9시 출근, 12시 점심, 15:30 스트레칭, 18시 퇴근 등), 수분/햇빛 부족(25% 이하 경고), 성장 단계 진화, 110종 업적 달성, 8종 생태계 방문객(꿀벌, 나비, 파랑새 등) 출현, AI 대화 실시간 답변 시 자연스럽게 발화 |
 | **`v1.5.1`** | 2026-08-20 | • **화분 마우스 클릭 & 드래그 위치 이동 완전 분리 및 실시간 드래그 복구**<br>• **드래그 이동 복구:** 화분을 마우스로 잡고 이동할 때 부모 윈도우로 드래그 좌표를 실시간 전달하도록 `character_widget.py` 및 `floating_widget.py` 핸들러를 보강하여 화분을 누르고 끌어서 자유롭게 바탕화면 이동 가능<br>• **클릭 vs 드래그 자동 분기:** 마우스를 5px 이내로 눌렀다 떼면 즉시 메뉴가 팝업되고 쓰다듬기(하트 파티클)가 발동하며, 5px 이상 드래그하면 작업표시줄 자석 스냅과 함께 부드럽게 바탕화면 원하는 위치로 이동 |
 | **`v1.5.0`** | 2026-08-20 | • **생태계 방문객(꿀벌/지렁이) 렌더링 시 `QPointF` 참조 누락 예외 긴급 복구**<br>• `character_widget.py` 상단 import문에 `QPointF`를 추가하여, 꿀벌 꽃가루/지렁이 잎 갉아먹기 애니메이션 렌더링 시 발생하던 `NameError: name 'QPointF' is not defined` 예외 원천 해결 |
 | **`v1.4.9`** | 2026-08-20 | • **SQLite DB 내 `secure_vault` 테이블 기반 이동식(Portable) 암호화 금고 탑재**<br>• **`config.json` 평문 노출 100% 원천 제거:** `config.json` 파일에는 더 이상 API 키나 비밀키가 저장되지 않으며 일반 UI 설정만 보관<br>• **SQLite 내 암호화 금고(`secure_vault`) 저장:** API 키는 `plant_data.db` 내부의 `secure_vault` 테이블에 표준 스트림 암호화(`"VAULT_v1:..."`)되어 보관되므로 DB 파일을 직접 열람해도 암호문으로만 안전하게 표시<br>• **기기/계정 이동 호환성 완비:** 특정 PC 하드웨어 종속성을 배제하여 다른 PC, VDI 가상 데스크톱, 다른 사용자 계정으로 DB 및 소스를 이동해도 손상이나 오류 없이 안정적으로 복호화 및 실행 가능 |
