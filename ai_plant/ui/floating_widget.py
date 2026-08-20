@@ -784,19 +784,25 @@ class FloatingPlantWindow(QWidget):
         menu.setStyleSheet("""
             QMenu {
                 background-color: #FFFFFF;
+                color: #1E293B;
                 border: 1px solid #CBD5E1;
                 border-radius: 8px;
                 padding: 4px;
-                font-family: 'Malgun Gothic';
+                font-family: 'Malgun Gothic', 'Segoe UI';
                 font-size: 12px;
             }
             QMenu::item {
-                padding: 6px 18px;
+                background-color: transparent;
+                color: #1E293B;
+                padding: 6px 20px;
                 border-radius: 4px;
             }
             QMenu::item:selected {
                 background-color: #ECFDF5;
                 color: #065F46;
+            }
+            QMenu::item:disabled {
+                color: #94A3B8;
             }
             QMenu::separator {
                 height: 1px;
@@ -824,6 +830,7 @@ class FloatingPlantWindow(QWidget):
 
         # Dynamic Scale submenu
         scale_menu = menu.addMenu("🔍 화분 크기 조절")
+        scale_menu.setStyleSheet(menu.styleSheet())
         curr_s = self.config.get("plant_scale", 100)
         scale_options = [
             ("75% (아주 아담한 미니 화분)", 75),

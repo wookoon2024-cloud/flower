@@ -25,6 +25,30 @@ def main():
     app.setApplicationName("AI Companion Plant")
     app.setOrganizationName("GovAI")
     app.setQuitOnLastWindowClosed(False)  # Keep desktop companion plant alive when dialogs close
+    app.setStyleSheet("""
+        QMenu {
+            background-color: #FFFFFF;
+            color: #1E293B;
+            border: 1px solid #CBD5E1;
+            font-family: 'Malgun Gothic', 'Segoe UI';
+        }
+        QMenu::item {
+            color: #1E293B;
+            background-color: transparent;
+        }
+        QMenu::item:selected {
+            background-color: #ECFDF5;
+            color: #065F46;
+        }
+        QToolTip {
+            background-color: #1E293B;
+            color: #FFFFFF;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+    """)
 
     # Single-Instance Enforcement to prevent duplicate overlapping windows
     server_name = "AICompanionPlant_SingleInstance_GovAI"
