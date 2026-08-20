@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.5.2-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.5.3-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.5.3`** | 2026-08-20 | • **업무망(VDI/가상 데스크톱) 다중 클릭 하트 파티클 그래픽 렉 완전 해소**<br>• **원인 해결:** 업무망(VDI/망분리) 환경의 소프트웨어 렌더링 특성상, 클릭 연타 시 수십 개의 반투명 하트 파티클 및 3개의 비동기 타이머가 초당 90회 이상의 무거운 화면 재렌더링(`paintEvent`)을 유발하던 문제를 원천 해결<br>• **단일 마스터 애니메이션 엔진 탑재:** 3개의 개별 타이머를 30 FPS 단일 통합 마스터 루프로 통합하여 초당 화면 갱신 횟수를 정확히 1회로 고정하고, 애니메이션 종료 시 즉시 0% 대기 모드로 전환<br>• **파티클 스마트 상한선(최대 5개) 적용:** 광클릭 시에도 화면에 생성되는 하트 파티클을 최대 5개로 제한하고 페이드아웃 속도를 경쾌하게 최적화하여 업무망에서도 렉이나 프레임 드랍 없이 물 흐르듯 부드럽게 동작 |
 | **`v1.5.2`** | 2026-08-20 | • **말풍선 발화 타이밍 스마트 최적화 & 쓰다듬기 발화 빈도 다듬기**<br>• **클릭 시 과도한 말풍선 억제:** 화분을 클릭할 때마다 매번 말풍선이 떠서 번잡해지지 않도록, 하트 파티클 및 행복 표정은 100% 즉각 반응하되 말풍선은 20초 쿨다운 또는 35% 확률로 가끔씩만 다정하게 응원 대사를 건네도록 스마트 조절<br>• **발화 시점 정리:** 매 시각 정각 알림(9시 출근, 12시 점심, 15:30 스트레칭, 18시 퇴근 등), 수분/햇빛 부족(25% 이하 경고), 성장 단계 진화, 110종 업적 달성, 8종 생태계 방문객(꿀벌, 나비, 파랑새 등) 출현, AI 대화 실시간 답변 시 자연스럽게 발화 |
 | **`v1.5.1`** | 2026-08-20 | • **화분 마우스 클릭 & 드래그 위치 이동 완전 분리 및 실시간 드래그 복구**<br>• **드래그 이동 복구:** 화분을 마우스로 잡고 이동할 때 부모 윈도우로 드래그 좌표를 실시간 전달하도록 `character_widget.py` 및 `floating_widget.py` 핸들러를 보강하여 화분을 누르고 끌어서 자유롭게 바탕화면 이동 가능<br>• **클릭 vs 드래그 자동 분기:** 마우스를 5px 이내로 눌렀다 떼면 즉시 메뉴가 팝업되고 쓰다듬기(하트 파티클)가 발동하며, 5px 이상 드래그하면 작업표시줄 자석 스냅과 함께 부드럽게 바탕화면 원하는 위치로 이동 |
 | **`v1.5.0`** | 2026-08-20 | • **생태계 방문객(꿀벌/지렁이) 렌더링 시 `QPointF` 참조 누락 예외 긴급 복구**<br>• `character_widget.py` 상단 import문에 `QPointF`를 추가하여, 꿀벌 꽃가루/지렁이 잎 갉아먹기 애니메이션 렌더링 시 발생하던 `NameError: name 'QPointF' is not defined` 예외 원천 해결 |

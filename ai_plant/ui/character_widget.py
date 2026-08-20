@@ -18,11 +18,11 @@ from ..config import get_resource_path
 class FloatingParticle:
     def __init__(self, pixmap: QPixmap, start_pos: QPoint):
         self.pixmap = pixmap
-        self.x = float(start_pos.x() + random.randint(-15, 15))
+        self.x = float(start_pos.x() + random.randint(-12, 12))
         self.y = float(start_pos.y())
-        self.vy = -2.0 - random.random() * 1.5
+        self.vy = -2.2 - random.random() * 1.2
         self.alpha = 255.0
-        self.fade_rate = 6.0
+        self.fade_rate = 8.5  # Faster, crisper fade (~30 frames = 1.0s)
         self.alive = True
 
     def update(self):
@@ -268,22 +268,18 @@ class PlantCharacterWidget(QWidget):
 
         # Eco-Visitor (Bee 🐝, Bug 🐛, Butterfly 🦋, etc.)
         self.eco_visitor: Optional[EcoVisitor] = None
-        self.eco_timer = QTimer(self)
-        self.eco_timer.timeout.connect(self._on_eco_tick)
         self.eco_spawn_timer = QTimer(self)
         self.eco_spawn_timer.setSingleShot(True)
         self.eco_spawn_timer.timeout.connect(self._spawn_random_eco_visitor)
 
-        # Interactive Particle animation timer
-        self.anim_timer = QTimer(self)
-        self.anim_timer.timeout.connect(self.update_particles)
-
         # Dynamic Facial Expression System (Blink, Yawn, Merong/Tongue, Wink)
-        self.expr_timer = QTimer(self)
-        self.expr_timer.timeout.connect(self._on_expr_tick)
         self.idle_trigger_timer = QTimer(self)
         self.idle_trigger_timer.setSingleShot(True)
         self.idle_trigger_timer.timeout.connect(self._trigger_random_expression)
+
+        # Unified 30 FPS Master Animation Engine (Zero VDI/Intranet Lag)
+        self.anim_timer = QTimer(self)
+        self.anim_timer.timeout.connect(self._on_master_anim_tick)
 
         self.expr_type = "none"  # "blink", "yawn", "tongue", "wink", "happy"
         self.expr_frame = 0
@@ -361,18 +357,8 @@ class PlantCharacterWidget(QWidget):
         ]
         chosen_type = random.choice(types)
         self.eco_visitor = EcoVisitor(chosen_type, self.width(), self.height())
-        self.eco_timer.start(33)  # ~30 fps
         self.eco_visitor_arrived.emit(chosen_type)
-        self.update()
-
-    def _on_eco_tick(self):
-        if self.eco_visitor:
-            self.eco_visitor.update()
-            if not self.eco_visitor.alive:
-                self.eco_visitor = None
-                self.eco_timer.stop()
-                self._schedule_next_eco_visitor()
-            self.update()
+        self._ensure_master_anim_running()
 
     # --- Cute Facial Expression Idle Animation System ---
     def _schedule_next_expression(self):
@@ -397,44 +383,69 @@ class PlantCharacterWidget(QWidget):
         else:
             self.expr_total_frames = 30
 
-        self.expr_timer.start(33)
-
-    def _on_expr_tick(self):
-        self.expr_frame += 1
-        if self.expr_frame >= self.expr_total_frames:
-            self.expr_type = "none"
-            self.expr_frame = 0
-            self.expr_timer.stop()
-            self.update()
-            self._schedule_next_expression()
-            return
-        self.update()
+        self._ensure_master_anim_running()
 
     # --- Interactive Reaction Particles ---
     def spawn_particle(self, particle_type: str = "heart"):
-        """Spawn floating icon on interaction."""
+        """Spawn floating icon on interaction with maximum 5 active particle cap for zero lag."""
         pm = self.particle_pixmaps.get(particle_type)
         if pm and not pm.isNull():
             center_pt = QPoint(self.width() // 2 - 14, self.height() // 2 - 20)
+            # Prune oldest particles when spam-clicked to prevent VDI / intranet lag
+            if len(self.particles) >= 5:
+                self.particles.pop(0)
             self.particles.append(FloatingParticle(pm, center_pt))
-            if not self.anim_timer.isActive():
-                self.anim_timer.start(33)
+            self._ensure_master_anim_running()
 
-    def update_particles(self):
-        if not self.particles:
+    # --- Unified 30 FPS Master Animation Loop ---
+    def _ensure_master_anim_running(self):
+        if not self.anim_timer.isActive():
+            self.anim_timer.start(33)
+
+    def _on_master_anim_tick(self):
+        """
+        Unified 30 FPS Master Animation Engine.
+        Updates particles, facial expressions, and eco-visitors in 1 single frame,
+        triggering exactly ONE update() per frame to eliminate VDI / intranet lag.
+        """
+        has_active_anim = False
+
+        # 1. Update Particles
+        if self.particles:
+            alive_particles = []
+            for p in self.particles:
+                p.update()
+                if p.alive:
+                    alive_particles.append(p)
+            self.particles = alive_particles
+            if self.particles:
+                has_active_anim = True
+
+        # 2. Update Facial Expression
+        if self.expr_type != "none":
+            self.expr_frame += 1
+            if self.expr_frame >= self.expr_total_frames:
+                self.expr_type = "none"
+                self.expr_frame = 0
+                self._schedule_next_expression()
+            else:
+                has_active_anim = True
+
+        # 3. Update Eco-Visitor
+        if self.eco_visitor:
+            self.eco_visitor.update()
+            if not self.eco_visitor.alive:
+                self.eco_visitor = None
+                self._schedule_next_eco_visitor()
+            else:
+                has_active_anim = True
+
+        # Redraw
+        if has_active_anim:
+            self.update()
+        else:
             self.anim_timer.stop()
             self.update()
-            return
-        
-        alive_particles = []
-        for p in self.particles:
-            p.update()
-            if p.alive:
-                alive_particles.append(p)
-        self.particles = alive_particles
-        if not self.particles:
-            self.anim_timer.stop()
-        self.update()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
