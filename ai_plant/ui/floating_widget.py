@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QWidget, QApplication, QMenu
 )
 from PySide6.QtCore import Qt, QPoint, QTimer
-from PySide6.QtGui import QAction, QCursor
+from PySide6.QtGui import QAction, QCursor, QPainter
 
 from .bubble_widget import SpeechBubbleWidget
 from .character_widget import PlantCharacterWidget
