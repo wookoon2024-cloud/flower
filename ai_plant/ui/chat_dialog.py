@@ -4,6 +4,7 @@ A friendly, modern chat window with 100% native PySide6 KakaoTalk-style message 
 guaranteed right-aligned user messages with comfortable margin protection (no text clipping),
 custom plant-inspired emerald/white theme, micro-assistant chips, and rock-solid thread safety.
 """
+import random
 import datetime
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton,
@@ -301,41 +302,52 @@ class ChatDialog(QDialog):
         chips_frame = QFrame(self)
         chips_frame.setStyleSheet("""
             QFrame {
-                background-color: #F1F5F9;
+                background-color: #F8FAFC;
                 border: 1px solid #E2E8F0;
                 border-radius: 10px;
-                padding: 4px;
             }
         """)
         chips_vbox = QVBoxLayout(chips_frame)
-        chips_vbox.setContentsMargins(6, 6, 6, 6)
-        chips_vbox.setSpacing(5)
+        chips_vbox.setContentsMargins(8, 6, 8, 6)
+        chips_vbox.setSpacing(4)
 
-        # Chip Row 1: Workplace Stress & Counseling (상사/팀원/업무 고민상담)
-        row1 = QHBoxLayout()
-        row1.setSpacing(5)
-        r1_chips = [
-            ("🍵 직장 고민 상담소", f"{plant_name}아, 오늘 회사에서 스트레스 받는 일이 있었는데 내 이야기 좀 들어줘...", True),
-            ("👔 상사·동료 갈등 털어놓기", f"{plant_name}아, 오늘 계장님/과장님/팀원 때문에 답답하고 속상한 일이 있어: ", False),
-            ("📑 업무 과부하 토닥토닥", f"{plant_name}아, 일이 너무 몰리고 지쳐서 번아웃 올 것 같아... 힐링 위로 부탁해 🌸", True)
-        ]
-        for label, prompt_or_prefix, is_direct in r1_chips:
-            btn = self.create_chip_btn(label, prompt_or_prefix, direct_send=is_direct)
-            row1.addWidget(btn)
-        chips_vbox.addLayout(row1)
+        # Header Row (Title + Shuffle button)
+        header_chip_row = QHBoxLayout()
+        header_chip_row.setContentsMargins(0, 0, 0, 0)
+        lbl_chip_title = QLabel("💡 <b>AI 스마트 추천 질문</b>", chips_frame)
+        lbl_chip_title.setStyleSheet("color: #475569; font-size: 11px; border: none; background: transparent;")
 
-        # Chip Row 2: Office & Desk Micro-Assistant
-        row2 = QHBoxLayout()
-        row2.setSpacing(5)
-        r2_chips = [
-            ("✉️ 문장 다듬기", f"{plant_name}아, 다음 문장을 공직자용으로 정중하고 부드럽게 다듬어줘: ", False),
-            ("💡 3줄 아이디어", f"{plant_name}아, 다음에 대한 창의적인 아이디어 3가지만 제안해줘: ", False),
-            ("📝 오늘의 3줄 일기", f"{plant_name}아, 오늘 우리 함께한 하루를 귀여운 3줄 일기로 요약해줘! 🌸", True)
-        ]
-        for label, prompt_or_prefix, is_direct in r2_chips:
-            btn = self.create_chip_btn(label, prompt_or_prefix, direct_send=is_direct)
-            row2.addWidget(btn)
-        chips_vbox.addLayout(row2)
+        self.btn_refresh_chips = QPushButton("🔄 다른 질문 보기", chips_frame)
+        self.btn_refresh_chips.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_refresh_chips.setAutoDefault(False)
+        self.btn_refresh_chips.setDefault(False)
+        self.btn_refresh_chips.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                border: none;
+                color: #059669;
+                font-size: 11px;
+                font-weight: bold;
+                padding: 1px 4px;
+            }
+            QPushButton:hover {
+                color: #047857;
+                text-decoration: underline;
+            }
+        """)
+        self.btn_refresh_chips.clicked.connect(self.shuffle_chips)
+
+        header_chip_row.addWidget(lbl_chip_title, 1)
+        header_chip_row.addWidget(self.btn_refresh_chips, 0)
+        chips_vbox.addLayout(header_chip_row)
+
+        self.chips_row1 = QHBoxLayout()
+        self.chips_row1.setSpacing(5)
+        self.chips_row2 = QHBoxLayout()
+        self.chips_row2.setSpacing(5)
+
+        chips_vbox.addLayout(self.chips_row1)
+        chips_vbox.addLayout(self.chips_row2)
 
         layout.addWidget(chips_frame)
 
@@ -389,7 +401,77 @@ class ChatDialog(QDialog):
         input_row.addWidget(self.btn_send)
         layout.addLayout(input_row)
 
+        self.shuffle_chips()
         self.load_history()
+
+    def shuffle_chips(self):
+        """Randomly select and render 6 diverse prompt chips from 25+ curated presets."""
+        plant_name = self.config.get("plant_name", "초록이")
+
+        # 1. Clear existing chip buttons
+        while self.chips_row1.count():
+            item = self.chips_row1.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        while self.chips_row2.count():
+            item = self.chips_row2.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # 2. 4 Diverse Preset Pools (25+ items)
+        pools = [
+            # Group 1: Workplace Stress & Mentoring (직장 스트레스 & 멘토링)
+            [
+                ("🍵 직장 고민 상담소", f"{plant_name}아, 오늘 회사에서 스트레스 받는 일이 있었는데 내 이야기 좀 들어줘...", True),
+                ("👔 상사·동료 갈등 털어놓기", f"{plant_name}아, 오늘 계장님/과장님/팀원 때문에 답답하고 속상한 일이 있어: ", False),
+                ("📑 업무 과부하 토닥토닥", f"{plant_name}아, 일이 너무 몰리고 지쳐서 번아웃 올 것 같아... 힐링 위로 부탁해 🌸", True),
+                ("😤 악성 민원/무리한 요구", f"{plant_name}아, 오늘 억지 민원/무리한 업무 요구를 받아서 멘탈이 흔들려... 토닥여줘 🥺", True),
+                ("🕊️ 퇴근 후 머리 비우기", f"{plant_name}아, 오늘 퇴근하고 집에 왔는데 업무 생각 안 나게 머릿속을 비우는 힐링 가이드 해줘", True),
+                ("💪 월요병/출근 극복 응원", f"{plant_name}아, 오늘따라 출근하기 너무 힘들고 무기력해... 힘나는 응원 한마디 해줘!", True),
+                ("☕ 3분 티타임 힐링", f"{plant_name}아, 잠깐 3분 동안 심호흡하고 마음을 안정시키는 짧은 명상 가이드 해줘 🍵", True)
+            ],
+            # Group 2: Office & Desk Micro-Assistant (공직/오피스 업무 비서)
+            [
+                ("✉️ 문장 다듬기", f"{plant_name}아, 다음 문장을 공직자용으로 정중하고 명확하게 다듬어줘: ", False),
+                ("💡 3줄 아이디어", f"{plant_name}아, 다음에 대한 창의적인 기획 아이디어 3가지만 제안해줘: ", False),
+                ("📊 긴 글 3줄 핵심 요약", f"{plant_name}아, 다음 긴 글이나 보고 자료를 핵심만 3줄로 알기 쉽게 요약해줘: ", False),
+                ("📧 공손한 메일/답장 작성", f"{plant_name}아, 다음 상황에 맞는 공손하고 깔끔한 업무 메신저/메일 답장을 작성해줘: ", False),
+                ("🗓️ 오늘 할 일 우선순위 정리", f"{plant_name}아, 오늘 해야 할 일들을 중요도/긴급도별로 깔끔하게 정리해줘: ", False),
+                ("⚖️ 상사/동료 완곡한 거절", f"{plant_name}아, 업무 부탁이나 요청을 정중하고 기분 상하지 않게 거절하는 표현 알려줘: ", False)
+            ],
+            # Group 3: Plant Tamagotchi & Fun (반려식물 교감 & 재미)
+            [
+                ("📝 오늘의 3줄 일기", f"{plant_name}아, 오늘 우리 함께한 하루를 귀여운 3줄 일기로 요약해줘! 🌸", True),
+                ("🥠 오늘의 힐링 포춘", f"{plant_name}아, 오늘 나를 위한 행운의 포춘 메시지와 행운의 색상을 알려줘! 🍀", True),
+                ("🌱 화분아 뭐하고 있어?", f"{plant_name}아, 지금 화분에서 무슨 생각하고 있어? 오늘 기분 어때? 💕", True),
+                ("🎧 집중/힐링 음악 추천", f"{plant_name}아, 지금 차분하게 집중하기 좋은 음악 장르나 플레이리스트 키워드 추천해줘 🎶", True),
+                ("🍱 오늘 점심/저녁 메뉴", f"{plant_name}아, 오늘 먹으면 든든하고 기운 나는 점심/저녁 메뉴 3가지만 추천해줘! 🥗", True),
+                ("🎯 가벼운 힐링 퀴즈", f"{plant_name}아, 머리 식힐 겸 가볍게 맞출 수 있는 힐링 넌센스나 상식 퀴즈 하나 내줘! 🧠", True)
+            ],
+            # Group 4: Mindfulness & Self-Care (마음 챙김 & 자기 돌봄)
+            [
+                ("🙆 1분 오피스 스트레칭", f"{plant_name}아, 오래 앉아 일하느라 뻐근한 목과 어깨를 풀어주는 1분 스트레칭 알려줘 ✨", True),
+                ("💖 나를 칭찬하는 한마디", f"{plant_name}아, 오늘 하루도 열심히 버텨낸 나 자신에게 해줄 수 있는 따뜻한 칭찬 메시지 해줘 🌿", True),
+                ("☀️ 아침 긍정 확언", f"{plant_name}아, 오늘 하루를 활기차고 긍정적으로 시작할 수 있는 아침 확언 한 줄 들려줘 🌈", True),
+                ("💤 숙면을 돕는 밤 인사", f"{plant_name}아, 오늘 밤 편안하게 푹 잘 수 있도록 다정한 밤 인사와 수면 팁 건네줘 🌙", True)
+            ]
+        ]
+
+        # 3. Pick 6 diverse chips: 2 from group 1, 2 from group 2, 1 from group 3, 1 from group 4
+        chosen = []
+        chosen.extend(random.sample(pools[0], min(2, len(pools[0]))))
+        chosen.extend(random.sample(pools[1], min(2, len(pools[1]))))
+        chosen.extend(random.sample(pools[2], min(1, len(pools[2]))))
+        chosen.extend(random.sample(pools[3], min(1, len(pools[3]))))
+        random.shuffle(chosen)
+
+        # 4. Distribute into Row 1 (3 chips) and Row 2 (3 chips)
+        for i, (label, prompt_or_prefix, is_direct) in enumerate(chosen):
+            btn = self.create_chip_btn(label, prompt_or_prefix, direct_send=is_direct)
+            if i < 3:
+                self.chips_row1.addWidget(btn)
+            else:
+                self.chips_row2.addWidget(btn)
 
     def create_chip_btn(self, label: str, prompt_text: str, direct_send: bool) -> QPushButton:
         btn = QPushButton(label, self)
@@ -428,6 +510,7 @@ class ChatDialog(QDialog):
         user_name = self.config.get("user_nickname", "공직자님")
         self.setWindowTitle(f"🌱 {plant_name}와(과) 대화하기")
         self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 힐링 대화방")
+        self.shuffle_chips()
 
     def load_history(self):
         """Render native KakaoTalk style message bubble widgets into the scroll area."""

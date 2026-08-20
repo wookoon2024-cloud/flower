@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.4.4-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.4.5-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.4.5`** | 2026-08-20 | • **AI 스마트 추천 질문 칩 동적 셔플 & 25종 다채로운 상황별 프리셋 시스템 탑재**<br>• 대화창 내 질문 칩을 4가지 핵심 테마(직장 고민·멘토링, 공직/오피스 업무 비서, 반려식물 교감·재미, 마음 챙김·자기 돌봄) 총 25종 이상의 프리셋으로 확장<br>• **`🔄 다른 질문 보기`** 원클릭 새로고침 기능으로 클릭할 때마다 6개의 엄선된 다채로운 추천 질문이 동적으로 교체되어 상황에 맞게 풍성한 대화 지원 |
 | **`v1.4.4`** | 2026-08-20 | • **말풍선 상·하 텍스트 잘림 현상 완벽 해결 & 넉넉한 224x72px 가독성 렌더링**<br>• 말풍선 높이(`72px`) 및 너비(`224px`)를 대폭 확장하고 내부 레이아웃 패딩 마진을 최적화하여 3줄 이상의 장문 및 이모지가 포함된 안내 메시지도 위아래/좌우 잘림 없이 100% 온전하고 선명하게 표시되도록 개선 |
 | **`v1.4.3`** | 2026-08-20 | • **`PlantCharacterWidget` 성장 단계(Stage) 동기화 메서드(`set_stage`) 참조 누락 긴급 복구**<br>• 크기 조정 리팩토링 중 누락되었던 `set_stage` 메서드를 안전하게 복구하여 프로그램 실행 시 `AttributeError` 예외 완전 해결 |
 | **`v1.4.2`** | 2026-08-20 | • **지렁이/애벌레 바닥 기어가기 & 화분 벽 오르기 실감 물리 애니메이션 탑재**<br>• 하늘을 날아다니던 애벌레/지렁이 궤적을 전면 개편하여, **작업표시줄 바닥면(`Angle 0°`)에서 출발하여 기어가다가 화분 밑동에 도달하면 경사면을 타고 화분 벽을 기어올라가(`Angle ±62°`) 잎사귀/화분 테두리에 안착**하도록 현실적인 보행 물리 시뮬레이션 적용<br>• 자벌레 특유의 U자 등 굽힘과 웅크렸다 펴는 신축 아코디언 애니메이션 렌더링<br>• 마우스 클릭 퇴치 시 하늘로 날아가지 않고 **바닥으로 툭 떨어져 재빠르게 바닥면을 타고 도망치도록** 퇴치 물리 개선 |
