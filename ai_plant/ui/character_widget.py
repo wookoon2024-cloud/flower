@@ -362,8 +362,8 @@ class PlantCharacterWidget(QWidget):
 
     # --- Cute Facial Expression Idle Animation System ---
     def _schedule_next_expression(self):
-        """Schedule next expression after 3.5 ~ 6.5 seconds."""
-        interval_ms = random.randint(3500, 6500)
+        """Schedule next expression after 12 ~ 25 seconds for lightweight natural idle life."""
+        interval_ms = random.randint(12000, 25000)
         self.idle_trigger_timer.start(interval_ms)
 
     def _trigger_random_expression(self):

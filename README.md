@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.7.0-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.7.1-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,7 +22,7 @@
 
 | 릴리즈 버전 | 최종 업데이트 | 배포 패키지 파일명 | 바로가기 링크 |
 | :---: | :---: | :---: | :---: |
-| **`v1.7.0` (최신 정식 버전)** | **`2026-08-20`** | `마음지킴이_소스_v1.7.0.zip` | [**📥 소스코드 패키지 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.0.zip) |
+| **`v1.7.1` (최신 정식 버전)** | **`2026-08-20`** | `마음지킴이_소스_v1.7.1.zip` | [**📥 소스코드 패키지 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.1.zip) |
 
 > 🔒 **업무망/폐쇄망 보안 적합:** 사내 보안망 전송 규격에 맞추어 `.exe` 등 실행 파일이 제외된 **순수 파이썬 소스(`.py` 22개) + 고화질 그래픽 에셋(`.png` 46개)**으로만 구성되어 있습니다.  
 > 🚀 **실행 방법:** 압축 해제 후 `python main.py` 실행 (또는 `python build_exe.py` 실행 시 단독 `마음지킴이.exe` 생성 가능)
@@ -174,6 +174,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.7.1`** | 2026-08-20 | • **마우스 진입/이동 시 Win32 Z-Order API 호출 잔재 전면 제거로 마우스 로딩 회전(Busy Spinner) 100% 원천 박멸**<br>• **원인 해결:** 마우스가 화분 및 투명 위젯 영역에 진입(`enterEvent`)할 때마다 호출되던 Win32 `SetWindowPos` C API가 Windows DWM/셸에 윈도우 순위 재배치를 통보하여, Windows OS가 백그라운드 작업(AppStarting)으로 인식하고 마우스 커서를 로딩 스피너(빙글빙글 파란 원)로 깜빡이게 하던 잔재를 100% 원천 제거<br>• **100% 네이티브 Qt 최상위 전환:** `ctypes` 및 Win32 C API 의존성을 완전히 삭제하고 PySide6 `WindowStaysOnTopHint` 플래그로만 깔끔하게 동작하도록 정리<br>• **유휴 표정 주기 최적화 (3.5초 ➡️ 15~25초):** 화분이 가만히 있을 때 3초마다 표정 루프를 돌던 빈도를 15~25초로 자연스럽게 늘려 평소 CPU 사용률을 0%에 수렴하도록 최적화 |
 | **`v1.7.0`** | 2026-08-20 | • **히든 전설 마스터 품종 '🌟 은하수 별빛 장미(Starlight Galaxy Rose)' 및 5종 선행 졸업 해금 시스템 탑재**<br>• **5대 기본 품종 완주 선행 해금 시스템:** 기존 5종(다정한 화분, 햇살 해바라기, 동글 선인장, 행운의 클로버, 봄날 벚꽃나무)을 **모두 6단계 만개까지 화원에 졸업 등록**해야만 봉인이 해제되는 최고 등급의 히든 전설 품종 탑재<br>• **초고화질 전설 전용 그래픽(1~6단계):** 신비로운 로열 자수정 골드 팟, 오로라빛 크리스탈 줄기, 은하수 꽃잎, 6단계 만개 시 8개 황금 별자리 오로라 후광 및 흩날리는 별가루 이펙트 적용<br>• **신규 고유 AI 페르소나:** 5대 품종을 완주한 공직자님을 향한 깊은 존경과 우주처럼 깊고 영롱한 별빛 치유를 전하는 천상 마스터 멘토 대사 탑재<br>• **신규 업적 2종 추가 (총 112종):** `spec_starlight_rose` (별빛 장미의 탄생), `master_botanist` (전설의 올마스터 가드너 👑) |
 | **`v1.6.0`** | 2026-08-20 | • **말풍선 페이징 표시 시간 1초 연장(4.5초) & 대화창 오픈 시 위젯 말풍선 출력 100% 원천 차단**<br>• **대화창 오픈 시 위젯 말풍선 중복 노출 완전 박멸:** `start_ai_chat`, `on_ai_response_received`, `trigger_proactive_speech`, `on_proactive_response_received` 전 구간에서 대화창(`ChatDialog`)이 열려 있을 경우 위젯 바탕화면 말풍선 스트리밍 및 최종 답변 팝업을 100% 차단하고 대화창 내에만 표시<br>• **장문 페이징 표시 시간 1초 연장 (3.5초 ➡️ 4.5초):** 1/3, 2/3 등 여러 페이지로 나뉘어 순차 흐름되는 장문 말풍선이 너무 빨리 지나가지 않도록 각 페이지당 노출 시간을 4.5초(마지막 페이지 5.5초)로 1초 더 여유롭게 늘려 편안한 독서 보장 |
 | **`v1.5.9`** | 2026-08-20 | • **환경설정창 타이틀바 닫기(X) 버튼 및 상단 전용 닫기 버튼 완벽 활성화**<br>• **원인 해결:** 기존 환경설정창(`SettingsDialog`)이 일반 다이얼로그 모드로 생성되면서 Windows 타이틀바 닫기(`X`) 버튼 플래그가 누락되어 닫기가 안 되던 문제를 해결<br>• **네이티브 닫기 플래그 & 상단 닫기 ✕ 버튼 탑재:** `WindowCloseButtonHint` 및 `WindowMinimizeButtonHint`를 명시적으로 등록하고, 대화창과 동일하게 상단 헤더에 깔끔한 **`닫기 ✕` 버튼**을 추가하여 타이틀바 X 버튼, 상단 닫기 버튼, 하단 취소 버튼, ESC 키 어디로든 즉시 창을 닫을 수 있도록 개선 |

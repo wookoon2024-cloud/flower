@@ -4,12 +4,15 @@ Frameless, translucent, HWND_TOPMOST floating desktop widget.
 Supports dynamic size scaling (70% ~ 150%) via settings dialog, right-click menu, or Ctrl+MouseWheel zoom!
 Bottom-aligned flowerpot design for 0-gap pixel-perfect taskbar & dock contact.
 """
-import ctypes
+import os
 import datetime
-import random
-from PySide6.QtWidgets import QWidget, QMenu, QApplication
+from typing import Dict, Any, Optional
+
+from PySide6.QtWidgets import (
+    QWidget, QApplication, QMenu
+)
 from PySide6.QtCore import Qt, QPoint, QTimer
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QAction, QCursor
 
 from .bubble_widget import SpeechBubbleWidget
 from .character_widget import PlantCharacterWidget
@@ -18,21 +21,6 @@ from .chat_dialog import ChatDialog
 from .garden_dialog import GardenDialog
 from .settings_dialog import SettingsDialog
 from ..ai_client import AIChatWorker, analyze_user_sentiment
-
-class LASTINPUTINFO(ctypes.Structure):
-    _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
-
-def get_system_idle_seconds() -> float:
-    """Returns seconds since last keyboard or mouse activity on Windows."""
-    try:
-        lii = LASTINPUTINFO()
-        lii.cbSize = ctypes.sizeof(LASTINPUTINFO)
-        if ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lii)):
-            millis = ctypes.windll.kernel32.GetTickCount() - lii.dwTime
-            return max(0.0, millis / 1000.0)
-    except Exception:
-        pass
-    return 0.0
 
 class FloatingPlantWindow(QWidget):
     def __init__(self, plant_engine, db_manager, config_manager):
@@ -43,16 +31,13 @@ class FloatingPlantWindow(QWidget):
         
         self.drag_position = QPoint()
         self.is_dragging = False
-        self.ai_worker = None
+        self.active_dialogs = []
         self._active_workers = []
 
         self.chat_dialog = None
         self.garden_dialog = None
         self.settings_dialog = None
-
         self.last_hourly_peek_hour = -1
-        self.idle_notified = False
-        self.last_pet_bubble_time = None
 
         self.init_window()
         self.init_ui()
@@ -62,18 +47,6 @@ class FloatingPlantWindow(QWidget):
 
         # Initial greeting (4 seconds)
         QTimer.singleShot(800, self.initial_greeting)
-        QTimer.singleShot(500, self.force_topmost)
-
-    def force_topmost(self):
-        """Forces the window to the absolute highest Z-order above all toolbars, docks, and taskbars."""
-        if not self.config.get("always_on_top", True):
-            return
-        try:
-            hwnd = int(self.winId())
-            # HWND_TOPMOST = -1, SWP_NOSIZE(1) | SWP_NOMOVE(2) | SWP_NOACTIVATE(16) | SWP_SHOWWINDOW(64)
-            ctypes.windll.user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x0053)
-        except Exception:
-            pass
 
     def init_window(self):
         # Frameless, Tool Window & Always-on-top so it stays on the topmost layer above taskbar & quickbars
@@ -303,7 +276,6 @@ class FloatingPlantWindow(QWidget):
             print(f"[FloatingPlantWindow] on_idle_timer_tick error: {e}")
 
     def enterEvent(self, event):
-        self.force_topmost()
         if self.config.get("ghost_mode", False):
             self.setWindowOpacity(1.0)
         super().enterEvent(event)
