@@ -116,7 +116,23 @@ class WelcomeSetupDialog(QDialog):
         self.card_widgets = {}
 
         def update_cards():
-            for sid, (card, badge) in self.card_widgets.items():
+            for sid, (card, badge, is_unlocked) in self.card_widgets.items():
+                if not is_unlocked:
+                    card.setStyleSheet(f"""
+                        QFrame#PlantCard_{sid} {{
+                            background-color: #F1F5F9;
+                            border: 1px dashed #CBD5E1;
+                            border-radius: 10px;
+                        }}
+                        #PlantCard_{sid} QLabel {{
+                            border: none;
+                            background: transparent;
+                        }}
+                    """)
+                    badge.setText("🔒 잠김")
+                    badge.setStyleSheet("color: #94A3B8; font-size: 10px; font-weight: bold; background-color: #E2E8F0; border-radius: 5px; padding: 2px 6px; border: none;")
+                    continue
+
                 if sid == self.selected_species[0]:
                     card.setStyleSheet(f"""
                         QFrame#PlantCard_{sid} {{
@@ -151,9 +167,10 @@ class WelcomeSetupDialog(QDialog):
                     badge.setStyleSheet("color: #64748B; font-size: 10px; background-color: #F1F5F9; border-radius: 5px; padding: 2px 6px; border: none;")
 
         for idx, (sp_id, info) in enumerate(SPECIES_INFO.items()):
+            is_unlocked = self.engine.is_species_unlocked(sp_id)
             card = QFrame()
             card.setObjectName(f"PlantCard_{sp_id}")
-            card.setCursor(Qt.CursorShape.PointingHandCursor)
+            card.setCursor(Qt.CursorShape.PointingHandCursor if is_unlocked else Qt.CursorShape.ForbiddenCursor)
             
             c_layout = QHBoxLayout(card)
             c_layout.setContentsMargins(8, 8, 8, 8)
@@ -174,7 +191,13 @@ class WelcomeSetupDialog(QDialog):
             info_layout.setSpacing(2)
 
             top_row = QHBoxLayout()
-            name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
+            if info.get("is_secret"):
+                if is_unlocked:
+                    name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b> <span style='font-size:9px; color:#7E22CE;'>👑 전설</span>")
+                else:
+                    name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b> <span style='font-size:9px; color:#DC2626;'>🔒 전설</span>")
+            else:
+                name_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
             name_lbl.setStyleSheet("font-size: 12px; color: #1E293B;")
             badge_lbl = QLabel("선택하기")
             badge_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -182,8 +205,12 @@ class WelcomeSetupDialog(QDialog):
             top_row.addWidget(name_lbl, 1)
             top_row.addWidget(badge_lbl, 0)
 
-            desc_lbl = QLabel(info["desc"])
-            desc_lbl.setStyleSheet("font-size: 10px; color: #64748B;")
+            if info.get("is_secret") and not is_unlocked:
+                desc_lbl = QLabel("🔒 5대 기본 품종을 모두 화원에 졸업시키면 봉인이 해제됩니다.")
+                desc_lbl.setStyleSheet("font-size: 9.5px; color: #DC2626; font-weight: bold;")
+            else:
+                desc_lbl = QLabel(info["desc"])
+                desc_lbl.setStyleSheet("font-size: 10px; color: #64748B;")
             desc_lbl.setWordWrap(True)
 
             info_layout.addLayout(top_row)
@@ -192,14 +219,16 @@ class WelcomeSetupDialog(QDialog):
             c_layout.addWidget(img_lbl, 0)
             c_layout.addLayout(info_layout, 1)
 
-            def make_handler(sid):
+            def make_handler(sid, unlocked):
                 def handler(event):
+                    if not unlocked:
+                        return
                     self.selected_species[0] = sid
                     update_cards()
                 return handler
 
-            card.mousePressEvent = make_handler(sp_id)
-            self.card_widgets[sp_id] = (card, badge_lbl)
+            card.mousePressEvent = make_handler(sp_id, is_unlocked)
+            self.card_widgets[sp_id] = (card, badge_lbl, is_unlocked)
 
             row = idx // 2
             col = idx % 2

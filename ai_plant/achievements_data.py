@@ -126,6 +126,8 @@ ACHIEVEMENTS_100 = [
     {"id": "spec_cactus", "cat": "garden", "title": "선인장의 황금꽃", "icon": "🌵", "desc": "'동글 선인장' 품종을 6단계 만개까지 키웠습니다."},
     {"id": "spec_clover", "cat": "garden", "title": "네잎클로버의 기적", "icon": "🍀", "desc": "'행운의 클로버' 품종을 6단계 만개까지 키웠습니다."},
     {"id": "spec_cherry", "cat": "garden", "title": "봄날 벚꽃의 만개", "icon": "🌺", "desc": "'봄날 벚꽃나무' 품종을 6단계 만개까지 키웠습니다."},
+    {"id": "spec_starlight_rose", "cat": "garden", "title": "별빛 장미의 탄생", "icon": "🌟", "desc": "히든 전설 품종 '은하수 별빛 장미'를 6단계 만개까지 키웠습니다."},
+    {"id": "master_botanist", "cat": "garden", "title": "전설의 올마스터 가드너 👑", "icon": "👑", "desc": "5대 기본 품종을 모두 6단계 만개까지 졸업시켜 히든 품종의 봉인을 풀었습니다."},
 
     # 10. ⏰ 공직자 일과 & 힐링 (10개)
     {"id": "routine_morning", "cat": "office_life", "title": "상쾌한 모닝커피 ☕", "icon": "☕", "desc": "아침 출근 시간(07~09시)에 화분과 인사를 나누었습니다."},

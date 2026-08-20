@@ -278,6 +278,131 @@ def create_assets(output_dir="assets"):
 
         img.save(os.path.join(output_dir, f"stage_cherry_{stg}.png"))
 
+    def draw_royal_pot(draw: ImageDraw.ImageDraw, face_type: int = 3):
+        # Royal Amethyst & Gold Celestial Pot
+        draw.polygon([(50, 143), (150, 143), (135, 198), (65, 198)], fill="#4C1D95", outline="#FFD700", width=3)
+        draw.rounded_rectangle([(42, 133), (158, 145)], radius=5, fill="#5B21B6", outline="#FFD700", width=3)
+        # Cosmic Star Soil
+        draw.ellipse([(55, 138), (145, 148)], fill="#1E1B4B")
+        # Gold Star Emblem on Pot
+        draw.polygon([(100, 148), (103, 154), (110, 155), (105, 159), (106, 166), (100, 162), (94, 166), (95, 159), (90, 155), (97, 154)], fill="#FDE047")
+        # Cute sparkling Face
+        draw.ellipse([(84, 170), (92, 178)], fill="#FEF08A")
+        draw.ellipse([(108, 170), (116, 178)], fill="#FEF08A")
+        draw.ellipse([(86, 172), (89, 175)], fill="#1E1B4B")
+        draw.ellipse([(110, 172), (113, 175)], fill="#1E1B4B")
+        # Cheerful mouth & glowing blush
+        draw.arc([(93, 174), (107, 186)], start=0, end=180, fill="#F472B6", width=2)
+        draw.ellipse([(74, 173), (82, 179)], fill="#E879F9")
+        draw.ellipse([(118, 173), (126, 179)], fill="#E879F9")
+
+    # 6. Secret Legendary Starlight Galaxy Rose (🌟 은하수 별빛 장미, 1~6단계)
+    for stg in range(1, 7):
+        img = Image.new("RGBA", (200, 200), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        draw_royal_pot(d, 3)
+
+        if stg == 1:
+            # 1. Luminous celestial sprout
+            d.arc([(90, 88), (115, 135)], start=180, end=300, fill="#10B981", width=5)
+            d.ellipse([(78, 80), (102, 102)], fill="#38BDF8", outline="#818CF8", width=2)
+            d.polygon([(90, 75), (93, 81), (99, 82), (95, 86), (96, 92), (90, 88), (84, 92), (85, 86), (81, 82), (87, 81)], fill="#FDE047")
+        elif stg == 2:
+            # 2. Dual crystalline aurora leaves
+            d.arc([(88, 80), (122, 135)], start=180, end=300, fill="#10B981", width=6)
+            d.pieslice([(70, 70), (105, 105)], start=170, end=310, fill="#38BDF8", outline="#6366F1", width=2)
+            d.pieslice([(95, 65), (130, 100)], start=230, end=370, fill="#A78BFA", outline="#6366F1", width=2)
+            # Floating stars
+            for sx, sy in [(65, 60), (135, 55)]:
+                d.polygon([(sx, sy-4), (sx+2, sy), (sx+6, sy+1), (sx+3, sy+3), (sx+4, sy+7), (sx, sy+4), (sx-4, sy+7), (sx-3, sy+3), (sx-6, sy+1), (sx-2, sy)], fill="#FDE047")
+        elif stg == 3:
+            # 3. Celestial triple-stem & shimmering foliage
+            d.line([(100, 130), (100, 65)], fill="#059669", width=7)
+            d.pieslice([(50, 75), (98, 115)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
+            d.pieslice([(102, 70), (150, 110)], start=230, end=390, fill="#C084FC", outline="#4338CA", width=2)
+            d.pieslice([(65, 50), (105, 85)], start=130, end=290, fill="#E879F9", outline="#4338CA", width=2)
+            # Radiant aura particles
+            for sx, sy in [(50, 45), (145, 40), (100, 35)]:
+                d.polygon([(sx, sy-5), (sx+3, sy), (sx+8, sy+1), (sx+4, sy+4), (sx+5, sy+9), (sx, sy+5), (sx-5, sy+9), (sx-4, sy+4), (sx-8, sy+1), (sx-3, sy)], fill="#FDE047")
+        elif stg == 4:
+            # 4. Delicate glowing galaxy rose bud
+            d.line([(100, 130), (100, 55)], fill="#047857", width=8)
+            d.pieslice([(45, 65), (98, 108)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
+            d.pieslice([(102, 65), (155, 108)], start=230, end=390, fill="#818CF8", outline="#4338CA", width=2)
+            # Rose bud layers
+            d.ellipse([(80, 26), (120, 66)], fill="#7C3AED", outline="#4C1D95", width=2)
+            d.ellipse([(86, 32), (114, 60)], fill="#C084FC", outline="#6D28D9", width=2)
+            d.ellipse([(92, 38), (108, 54)], fill="#F472B6")
+            # Sepals
+            d.polygon([(82, 60), (100, 72), (118, 60)], fill="#10B981")
+            for sx, sy in [(40, 30), (160, 25)]:
+                d.polygon([(sx, sy-6), (sx+4, sy), (sx+9, sy+1), (sx+5, sy+5), (sx+6, sy+10), (sx, sy+6), (sx-6, sy+10), (sx-5, sy+5), (sx-9, sy+1), (sx-4, sy)], fill="#FDE047")
+        elif stg == 5:
+            # 5. Blooming Galaxy Rose
+            d.line([(100, 130), (100, 52)], fill="#047857", width=8)
+            d.pieslice([(42, 70), (96, 112)], start=150, end=310, fill="#38BDF8", outline="#4338CA", width=2)
+            d.pieslice([(104, 70), (158, 112)], start=230, end=390, fill="#818CF8", outline="#4338CA", width=2)
+            # Outer rose petals (6 directions)
+            for ang in range(0, 360, 60):
+                rad = math.radians(ang)
+                px = 100 + int(24 * math.cos(rad))
+                py = 42 + int(24 * math.sin(rad))
+                d.ellipse([(px-16, py-16), (px+16, py+16)], fill="#A855F7", outline="#581C87", width=2)
+            # Inner layered rose spiral
+            for ang in range(30, 390, 60):
+                rad = math.radians(ang)
+                px = 100 + int(14 * math.cos(rad))
+                py = 42 + int(14 * math.sin(rad))
+                d.ellipse([(px-12, py-12), (px+12, py+12)], fill="#EC4899", outline="#831843", width=2)
+            # Glowing core
+            d.ellipse([(88, 30), (112, 54)], fill="#FDE047", outline="#D97706", width=2)
+            d.ellipse([(94, 36), (106, 48)], fill="#FFFFFF")
+            # Stardust aura
+            for sx, sy in [(30, 35), (170, 30), (35, 75), (165, 70)]:
+                d.polygon([(sx, sy-6), (sx+4, sy), (sx+9, sy+1), (sx+5, sy+5), (sx+6, sy+10), (sx, sy+6), (sx-6, sy+10), (sx-5, sy+5), (sx-9, sy+1), (sx-4, sy)], fill="#FDE047")
+        elif stg == 6:
+            # 6. 🌟 Legendary Starlight Galaxy Rose Master Bloom with Constellation Halo
+            d.line([(100, 130), (100, 48)], fill="#064E3B", width=9)
+            d.pieslice([(38, 68), (96, 115)], start=150, end=310, fill="#06B6D4", outline="#1E1B4B", width=2)
+            d.pieslice([(104, 68), (162, 115)], start=230, end=390, fill="#8B5CF6", outline="#1E1B4B", width=2)
+            d.pieslice([(60, 45), (105, 80)], start=130, end=290, fill="#EC4899", outline="#1E1B4B", width=2)
+            d.pieslice([(95, 45), (140, 80)], start=250, end=410, fill="#38BDF8", outline="#1E1B4B", width=2)
+
+            # Radiating Celestial Outer Rose Petals (8 directions)
+            for ang in range(0, 360, 45):
+                rad = math.radians(ang)
+                px = 100 + int(32 * math.cos(rad))
+                py = 40 + int(32 * math.sin(rad))
+                d.ellipse([(px-18, py-18), (px+18, py+18)], fill="#8B5CF6", outline="#4C1D95", width=2)
+                d.ellipse([(px-12, py-12), (px+12, py+12)], fill="#C084FC")
+
+            # Mid Petals
+            for ang in range(22, 382, 45):
+                rad = math.radians(ang)
+                px = 100 + int(20 * math.cos(rad))
+                py = 40 + int(20 * math.sin(rad))
+                d.ellipse([(px-14, py-14), (px+14, py+14)], fill="#F43F5E", outline="#9F1239", width=2)
+                d.ellipse([(px-8, py-8), (px+8, py+8)], fill="#FB7185")
+
+            # Core Cosmic Crystal
+            d.ellipse([(82, 22), (118, 58)], fill="#FEF08A", outline="#D97706", width=3)
+            d.ellipse([(88, 28), (112, 52)], fill="#FFFFFF")
+            # Star twinkle in center
+            d.polygon([(100, 30), (103, 37), (110, 40), (103, 43), (100, 50), (97, 43), (90, 40), (97, 37)], fill="#F59E0B")
+
+            # Constellation Crown Halo (8 Golden Stars orbiting)
+            for ang in range(0, 360, 45):
+                rad = math.radians(ang)
+                sx = 100 + int(56 * math.cos(rad))
+                sy = 40 + int(48 * math.sin(rad))
+                d.polygon([(sx, sy-7), (sx+4, sy), (sx+10, sy+1), (sx+5, sy+5), (sx+6, sy+11), (sx, sy+7), (sx-6, sy+11), (sx-5, sy+5), (sx-10, sy+1), (sx-4, sy)], fill="#FFD700")
+
+            # Stardust drifting particles
+            for px, py in [(25, 95), (175, 90), (35, 120), (165, 115), (70, 110), (130, 108)]:
+                d.ellipse([(px-4, py-4), (px+4, py+4)], fill="#FDE047")
+
+        img.save(os.path.join(output_dir, f"stage_starlight_rose_{stg}.png"))
+
     # Reaction particle icons
     img_heart = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     dh = ImageDraw.Draw(img_heart)

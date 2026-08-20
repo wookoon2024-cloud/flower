@@ -59,6 +59,14 @@ SPECIES_INFO = {
         "emoji": "🌺",
         "desc": "봄바람처럼 따뜻하고 화사한 벚꽃을 피우는 화분",
         "color": "#F43F5E"
+    },
+    "starlight_rose": {
+        "name": "은하수 별빛 장미",
+        "emoji": "🌟",
+        "desc": "은하수와 별빛을 머금어 영롱한 오로라빛으로 피어나는 전설의 반려화분",
+        "color": "#8B5CF6",
+        "is_secret": True,
+        "required_graduations": 5
     }
 }
 
@@ -106,6 +114,30 @@ class PlantEngine(QObject):
 
     def get_species(self) -> str:
         return self.state.get("species", "classic")
+
+    def is_species_unlocked(self, species_id: str) -> bool:
+        """
+        Determines whether a plant species is available for cultivation.
+        Basic 5 species are always unlocked.
+        'starlight_rose' requires all 5 basic species to have graduated (at Stage 6).
+        """
+        if species_id not in SPECIES_INFO:
+            return False
+        if not SPECIES_INFO[species_id].get("is_secret", False):
+            return True
+
+        graduated = self.db.get_graduated_plants()
+        grad_species_set = set(p.get("species") for p in graduated if p.get("species"))
+        base_species = ["classic", "sunflower", "cactus", "clover", "cherry"]
+        return all(sp in grad_species_set for sp in base_species)
+
+    def get_species_unlock_progress(self, species_id: str = "starlight_rose") -> Tuple[int, int]:
+        """Returns (completed_count, required_count) for secret species unlock."""
+        graduated = self.db.get_graduated_plants()
+        grad_species_set = set(p.get("species") for p in graduated if p.get("species"))
+        base_species = ["classic", "sunflower", "cactus", "clover", "cherry"]
+        completed = sum(1 for sp in base_species if sp in grad_species_set)
+        return completed, len(base_species)
 
     def apply_offline_decay(self):
         """Calculates state decay for the time elapsed while the app was closed."""
@@ -495,8 +527,12 @@ class PlantEngine(QObject):
         if stg >= 6:
             all_species.add(self.get_species())
         for sp in all_species:
-            if sp in ["classic", "sunflower", "cactus", "clover", "cherry"]:
+            if sp in ["classic", "sunflower", "cactus", "clover", "cherry", "starlight_rose"]:
                 self._try_unlock(f"spec_{sp}")
+        
+        base_5 = ["classic", "sunflower", "cactus", "clover", "cherry"]
+        if all(sp in all_species for sp in base_5):
+            self._try_unlock("master_botanist")
 
         # 10. Office Life & Routines
         hour = datetime.datetime.now().hour

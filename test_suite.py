@@ -189,7 +189,7 @@ class TestAIPlantWidget(unittest.TestCase):
 
     def test_100_achievements_structure(self):
         from ai_plant.achievements_data import ACHIEVEMENTS_100, ACHIEVEMENT_CATEGORIES
-        self.assertEqual(len(ACHIEVEMENTS_100), 110)
+        self.assertEqual(len(ACHIEVEMENTS_100), 112)
         self.assertEqual(len(ACHIEVEMENT_CATEGORIES), 12)  # all + 11 categories
         
         # Verify all achievements have unique IDs and required fields
@@ -305,9 +305,42 @@ class TestAIPlantWidget(unittest.TestCase):
         self.assertIn("firefly_night", unlocked)
         self.assertIn("eco_first_meet", unlocked)
 
-        # 4. Check total achievements count is 110
+        # 4. Check total achievements count is 112
         from ai_plant.achievements_data import ACHIEVEMENTS_100
-        self.assertEqual(len(ACHIEVEMENTS_100), 110)
+        self.assertEqual(len(ACHIEVEMENTS_100), 112)
+
+    def test_species_unlock_and_starlight_rose(self):
+        engine = PlantEngine(self.db, self.config)
+
+        # 1. Basic 5 species are always unlocked
+        for sp in ["classic", "sunflower", "cactus", "clover", "cherry"]:
+            self.assertTrue(engine.is_species_unlocked(sp))
+
+        # 2. Secret species 'starlight_rose' is locked initially
+        self.assertFalse(engine.is_species_unlocked("starlight_rose"))
+        comp, req = engine.get_species_unlock_progress("starlight_rose")
+        self.assertEqual(comp, 0)
+        self.assertEqual(req, 5)
+
+        # 3. Graduate 4 species -> still locked
+        base_4 = ["classic", "sunflower", "cactus", "clover"]
+        for sp in base_4:
+            self.db.graduate_plant(f"Plant_{sp}", sp, 1200)
+
+        self.assertFalse(engine.is_species_unlocked("starlight_rose"))
+        comp, req = engine.get_species_unlock_progress("starlight_rose")
+        self.assertEqual(comp, 4)
+
+        # 4. Graduate the 5th species ('cherry') -> Unlocked!
+        self.db.graduate_plant("Plant_cherry", "cherry", 1500)
+        self.assertTrue(engine.is_species_unlocked("starlight_rose"))
+        comp, req = engine.get_species_unlock_progress("starlight_rose")
+        self.assertEqual(comp, 5)
+
+        # 5. Check achievements trigger
+        engine.check_achievements()
+        unlocked = self.db.get_unlocked_achievements()
+        self.assertIn("master_botanist", unlocked)
 
 if __name__ == "__main__":
     unittest.main()
