@@ -286,6 +286,8 @@ class ChatDialog(QDialog):
         self.chat_vbox.addStretch(1)
 
         self.scroll_area.setWidget(self.scroll_content)
+        # Auto-scroll to bottom whenever layout height expands
+        self.scroll_area.verticalScrollBar().rangeChanged.connect(self._on_scroll_range_changed)
         layout.addWidget(self.scroll_area, 1)
 
         # Smart AI Assistant Chips Container
@@ -452,13 +454,19 @@ class ChatDialog(QDialog):
 
         self.scroll_to_bottom()
 
+    def _on_scroll_range_changed(self, min_val, max_val):
+        """Automatically scroll to bottom whenever new message bubbles expand the canvas."""
+        self.scroll_area.verticalScrollBar().setValue(max_val)
+
     def append_message(self, role: str, content: str):
         self.load_history()
 
     def scroll_to_bottom(self):
-        QTimer.singleShot(40, lambda: self.scroll_area.verticalScrollBar().setValue(
-            self.scroll_area.verticalScrollBar().maximum()
-        ))
+        """Forces immediate and deferred scroll to the lowest bottom pixel."""
+        vbar = self.scroll_area.verticalScrollBar()
+        vbar.setValue(vbar.maximum())
+        QTimer.singleShot(20, lambda: vbar.setValue(vbar.maximum()))
+        QTimer.singleShot(80, lambda: vbar.setValue(vbar.maximum()))
 
     def send_chip(self, text: str):
         self.input_edit.setText(text)
