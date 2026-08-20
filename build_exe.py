@@ -11,9 +11,12 @@ def build():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(base_dir)
 
-    print("=== [1/3] Generating PNG and ICO assets ===")
+    print("=== [1/3] Generating PNG/ICO assets & config.json ===")
     import generate_assets
     generate_assets.create_assets(os.path.join(base_dir, "assets"))
+    
+    from ai_plant.config import ConfigManager
+    ConfigManager()  # Ensures config.json is created with defaults if not present
 
     print("=== [2/3] Running PyInstaller build ===")
     icon_path = os.path.join(base_dir, "assets", "app_icon.ico")
