@@ -282,17 +282,21 @@ class GardenDialog(QDialog):
         
         # 1. Garden / Collection Tab
         self.tab_garden = self.create_garden_tab()
-        self.tabs.addTab(self.tab_garden, "🪴 화원 & 졸업")
+        self.tabs.addTab(self.tab_garden, "🪴 나의 화원")
 
-        # 2. Fortune Tab
+        # 2. 6-Species Collection & Full-Bloom Preview Tab (동기부여 뿜뿜!)
+        self.tab_species = self.create_species_tab()
+        self.tabs.addTab(self.tab_species, "🌸 6대 품종 도감 (만개 미리보기)")
+
+        # 3. Fortune Tab
         self.tab_fortune = self.create_fortune_tab()
         self.tabs.addTab(self.tab_fortune, "🥠 오늘의 포춘")
 
-        # 3. Mood Chart Tab
+        # 4. Mood Chart Tab
         self.tab_mood = self.create_mood_tab()
         self.tabs.addTab(self.tab_mood, "📈 마음 날씨")
 
-        # 4. Achievements Tab (110 Achievements)
+        # 5. Achievements Tab (110 Achievements)
         self.tab_achievements = self.create_achievements_tab()
         self.tabs.addTab(self.tab_achievements, "🏆 110종 업적 도감")
 
@@ -336,6 +340,29 @@ class GardenDialog(QDialog):
         
         card_layout.addWidget(title_lbl)
         card_layout.addWidget(desc_lbl)
+
+        # Motivation button to view all species
+        btn_view_species = QPushButton("🔍 다른 품종 6단계 만개 모습 & 도감 둘러보기 (동기부여 뿜뿜! 🚀)", summary_card)
+        btn_view_species.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_view_species.setStyleSheet("""
+            QPushButton {
+                background-color: #ECFDF5;
+                border: 1px solid #6EE7B7;
+                border-radius: 6px;
+                padding: 6px 10px;
+                color: #047857;
+                font-size: 11px;
+                font-weight: bold;
+                margin-top: 4px;
+            }
+            QPushButton:hover {
+                background-color: #D1FAE5;
+                border-color: #34D399;
+            }
+        """)
+        btn_view_species.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
+        card_layout.addWidget(btn_view_species)
+
         layout.addWidget(summary_card)
 
         # Graduation Button Area (Active if Stage 6)
@@ -427,6 +454,304 @@ class GardenDialog(QDialog):
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll, 1)
         return widget
+
+    def create_species_tab(self) -> QWidget:
+        """6-Species Showcase & Full-Bloom Preview Tab to inspire and motivate the user."""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(10)
+
+        # Top Motivation Banner
+        completed_cnt, total_req = self.engine.get_species_unlock_progress("starlight_rose")
+        curr_species = self.engine.get_species()
+        curr_stage = self.engine.get_state().get("stage", 1)
+
+        banner = QFrame()
+        banner.setStyleSheet("""
+            QFrame {
+                background-color: #F0FDF4;
+                border: 1px solid #BBF7D0;
+                border-radius: 10px;
+            }
+            QLabel {
+                border: none;
+                background: transparent;
+            }
+        """)
+        b_layout = QVBoxLayout(banner)
+        b_layout.setContentsMargins(12, 10, 12, 10)
+        b_layout.setSpacing(4)
+
+        b_title = QLabel("🌸 <b>공직자님의 반려화분 6대 품종 도감 & 만개 컬렉션</b>")
+        b_title.setStyleSheet("color: #065F46; font-size: 13px;")
+        b_desc = QLabel(f"현재 키우시는 화분을 <b>6단계(만개)</b>까지 키워 화원에 졸업 등록하면, 아래의 매력적인 새 씨앗들을 자유롭게 선택하여 키울 수 있습니다!<br><span style='color: #059669;'>🌱 5대 품종 완주 진행도: <b>{completed_cnt}/{total_req}종 졸업 완료</b> (5종 완주 시 전설의 <b>은하수 별빛 장미</b> 봉인 해제!)</span>")
+        b_desc.setStyleSheet("color: #047857; font-size: 11px; line-height: 1.4;")
+        b_desc.setWordWrap(True)
+
+        b_layout.addWidget(b_title)
+        b_layout.addWidget(b_desc)
+        layout.addWidget(banner)
+
+        # Species Cards Scroll Area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setStyleSheet("QScrollArea { border: 1px solid #E2E8F0; border-radius: 8px; background: #FAFAFA; }")
+
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(6, 6, 6, 6)
+        scroll_layout.setSpacing(8)
+
+        graduated = self.db.get_graduated_plants()
+        graduated_species = set(p.get("species") for p in graduated)
+
+        for sp_id, info in SPECIES_INFO.items():
+            is_unlocked = self.engine.is_species_unlocked(sp_id)
+            is_current = (sp_id == curr_species)
+            is_grad = (sp_id in graduated_species)
+            is_secret = info.get("is_secret", False)
+
+            card = QFrame()
+            if is_secret:
+                card.setStyleSheet("""
+                    QFrame {
+                        background-color: #FAF5FF;
+                        border: 1.5px solid #D8B4FE;
+                        border-radius: 10px;
+                    }
+                    QLabel { border: none; background: transparent; }
+                """)
+            elif is_current:
+                card.setStyleSheet("""
+                    QFrame {
+                        background-color: #ECFDF5;
+                        border: 1.5px solid #34D399;
+                        border-radius: 10px;
+                    }
+                    QLabel { border: none; background: transparent; }
+                """)
+            else:
+                card.setStyleSheet("""
+                    QFrame {
+                        background-color: #FFFFFF;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 10px;
+                    }
+                    QLabel { border: none; background: transparent; }
+                """)
+
+            c_layout = QHBoxLayout(card)
+            c_layout.setContentsMargins(12, 10, 12, 10)
+            c_layout.setSpacing(12)
+
+            # Left: Stage 6 Full-Bloom Thumbnail
+            img_lbl = QLabel()
+            img_lbl.setFixedSize(58, 58)
+            img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            img_path = get_resource_path(os.path.join("assets", f"stage_{sp_id}_6.png"))
+            if os.path.exists(img_path):
+                pm = QPixmap(img_path).scaled(56, 56, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                img_lbl.setPixmap(pm)
+            else:
+                img_lbl.setText(info["emoji"])
+                img_lbl.setStyleSheet("font-size: 30px;")
+
+            # Center: Info & Perks
+            info_layout = QVBoxLayout()
+            info_layout.setSpacing(3)
+
+            # Title Row with Badges
+            title_row = QHBoxLayout()
+            title_row.setSpacing(6)
+            name_text = f"<b>{info['emoji']} {info['name']}</b>"
+            title_lbl = QLabel(name_text)
+            title_lbl.setStyleSheet("font-size: 13px; color: #1E293B;" if not is_secret else "font-size: 13px; color: #6B21A8;")
+            title_row.addWidget(title_lbl)
+
+            if is_current:
+                stg_name = STAGE_NAMES.get(curr_stage, f"{curr_stage}단계")
+                status_lbl = QLabel(f"🌱 현재 육성 중 ({stg_name})")
+                status_lbl.setStyleSheet("color: #065F46; font-size: 10px; font-weight: bold; background-color: #D1FAE5; border-radius: 4px; padding: 2px 6px;")
+                title_row.addWidget(status_lbl)
+            elif is_grad:
+                grad_lbl = QLabel("🎓 졸업 등록 완료")
+                grad_lbl.setStyleSheet("color: #1E40AF; font-size: 10px; font-weight: bold; background-color: #DBEAFE; border-radius: 4px; padding: 2px 6px;")
+                title_row.addWidget(grad_lbl)
+            elif is_secret and not is_unlocked:
+                lock_lbl = QLabel(f"🔒 잠김 ({completed_cnt}/{total_req})")
+                lock_lbl.setStyleSheet("color: #991B1B; font-size: 10px; font-weight: bold; background-color: #FEE2E2; border-radius: 4px; padding: 2px 6px;")
+                title_row.addWidget(lock_lbl)
+            else:
+                avail_lbl = QLabel("🔓 다음 졸업 시 입양 가능")
+                avail_lbl.setStyleSheet("color: #475569; font-size: 10px; font-weight: bold; background-color: #F1F5F9; border-radius: 4px; padding: 2px 6px;")
+                title_row.addWidget(avail_lbl)
+
+            title_row.addStretch()
+            info_layout.addLayout(title_row)
+
+            # Description
+            desc_lbl = QLabel(info.get("desc", ""))
+            desc_lbl.setStyleSheet("font-size: 11px; color: #64748B;" if not is_secret else "font-size: 11px; color: #7E22CE; font-weight: bold;")
+            desc_lbl.setWordWrap(True)
+            info_layout.addWidget(desc_lbl)
+
+            # Special Perk Line
+            perk_texts = {
+                "classic": "✨ <b>특징:</b> 다정하고 포근한 힐링 파트너! 언제나 상냥한 위로와 격려 멘트",
+                "sunflower": "✨ <b>특징:</b> 비타민 100% 활력소! 피로를 날려주는 긍정 에너지와 밝은 응원",
+                "cactus": "✨ <b>특징:</b> 외유내강 든든한 보디가드! 묵묵히 곁을 지켜주는 츤데레 매력",
+                "clover": "✨ <b>특징:</b> 행운의 네잎클로버 요정! 공직자님의 일상에 매일 행운의 축복 전달",
+                "cherry": "✨ <b>특징:</b> 낭만적인 벚꽃비! 문학적인 힐링 시와 감성 충전 메시지",
+                "starlight_rose": "✨ <b>특징:</b> 🌟 6단계 만개 시 8개 황금 별자리 회전 오로라 후광을 두르는 천상 마스터의 상징!"
+            }
+            perk_lbl = QLabel(perk_texts.get(sp_id, ""))
+            perk_lbl.setStyleSheet("font-size: 10.5px; color: #0F766E;" if not is_secret else "font-size: 10.5px; color: #9333EA;")
+            perk_lbl.setWordWrap(True)
+            info_layout.addWidget(perk_lbl)
+
+            # Right: Detail Preview Button
+            btn_preview = QPushButton("🔍 만개 모습 보기")
+            btn_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_preview.setStyleSheet("""
+                QPushButton {
+                    background-color: #F8FAFC;
+                    border: 1px solid #CBD5E1;
+                    border-radius: 6px;
+                    padding: 6px 10px;
+                    font-size: 11px;
+                    color: #334155;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #E2E8F0;
+                    border-color: #94A3B8;
+                }
+            """)
+            def make_preview_cb(sid=sp_id):
+                return lambda: self.show_species_detail_preview(sid)
+            btn_preview.clicked.connect(make_preview_cb(sp_id))
+
+            c_layout.addWidget(img_lbl, 0)
+            c_layout.addLayout(info_layout, 1)
+            c_layout.addWidget(btn_preview, 0)
+
+            scroll_layout.addWidget(card)
+
+        scroll_layout.addStretch()
+        scroll.setWidget(scroll_content)
+        layout.addWidget(scroll, 1)
+        return widget
+
+    def show_species_detail_preview(self, sp_id: str):
+        """Displays a beautiful, motivating preview popup of a species in full bloom."""
+        info = SPECIES_INFO.get(sp_id, SPECIES_INFO["classic"])
+        is_secret = info.get("is_secret", False)
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"{info['emoji']} {info['name']} - 6단계 만개 모습 미리보기")
+        dlg.resize(420, 480)
+        dlg.setStyleSheet("""
+            QDialog {
+                background-color: #F8FAFC;
+                font-family: 'Malgun Gothic', 'Segoe UI';
+            }
+            QLabel {
+                border: none;
+                background: transparent;
+            }
+        """)
+
+        d_layout = QVBoxLayout(dlg)
+        d_layout.setContentsMargins(18, 16, 18, 16)
+        d_layout.setSpacing(12)
+
+        # Big Image Box
+        img_box = QFrame()
+        img_box.setStyleSheet("""
+            QFrame {
+                background-color: #FFFFFF;
+                border: 1.5px solid #E2E8F0;
+                border-radius: 12px;
+            }
+        """ if not is_secret else """
+            QFrame {
+                background-color: #FAF5FF;
+                border: 2px solid #C084FC;
+                border-radius: 12px;
+            }
+        """)
+        ib_layout = QVBoxLayout(img_box)
+        ib_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ib_layout.setContentsMargins(14, 14, 14, 14)
+
+        big_img_lbl = QLabel()
+        big_img_lbl.setFixedSize(140, 140)
+        big_img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        img_path = get_resource_path(os.path.join("assets", f"stage_{sp_id}_6.png"))
+        if os.path.exists(img_path):
+            pm = QPixmap(img_path).scaled(136, 136, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            big_img_lbl.setPixmap(pm)
+        else:
+            big_img_lbl.setText(info["emoji"])
+            big_img_lbl.setStyleSheet("font-size: 64px;")
+        ib_layout.addWidget(big_img_lbl)
+
+        stage_lbl = QLabel("✨ <b>[6단계 영광의 만개]</b> 최종 완성 모습 ✨")
+        stage_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        stage_lbl.setStyleSheet("color: #D97706; font-size: 12px; font-weight: bold; margin-top: 4px;")
+        ib_layout.addWidget(stage_lbl)
+
+        d_layout.addWidget(img_box)
+
+        # Title & Lore
+        title_lbl = QLabel(f"<b>{info['emoji']} {info['name']}</b>")
+        title_lbl.setStyleSheet("font-size: 16px; color: #1E293B;" if not is_secret else "font-size: 16px; color: #6B21A8;")
+        title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        d_layout.addWidget(title_lbl)
+
+        desc_lbl = QLabel(info.get("desc", ""))
+        desc_lbl.setStyleSheet("font-size: 12px; color: #475569; line-height: 1.4;")
+        desc_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        desc_lbl.setWordWrap(True)
+        d_layout.addWidget(desc_lbl)
+
+        # Motivational Callout
+        callout = QFrame()
+        callout.setStyleSheet("""
+            QFrame {
+                background-color: #F0FDF4;
+                border: 1px solid #86EFAC;
+                border-radius: 8px;
+            }
+        """)
+        c_l = QVBoxLayout(callout)
+        c_l.setContentsMargins(10, 8, 10, 8)
+        m_msg = QLabel("💡 <b>동기부여 한마디:</b><br>현재 키우시는 화분에 매일 물과 햇빛을 주고 정성껏 대화를 나누면 금방 6단계 만개에 도달할 수 있습니다! 졸업 후 다음 주인공으로 이 친구를 맞이해보세요! 🚀✨")
+        m_msg.setStyleSheet("color: #065F46; font-size: 11px; line-height: 1.4;")
+        m_msg.setWordWrap(True)
+        c_l.addWidget(m_msg)
+        d_layout.addWidget(callout)
+
+        btn_ok = QPushButton("닫기", dlg)
+        btn_ok.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_ok.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981;
+                color: white;
+                font-weight: bold;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            QPushButton:hover { background-color: #059669; }
+        """)
+        btn_ok.clicked.connect(dlg.accept)
+        d_layout.addWidget(btn_ok)
+
+        dlg.exec()
 
     def create_fortune_tab(self) -> QWidget:
         widget = QWidget()
