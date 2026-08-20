@@ -1010,6 +1010,13 @@ class GardenDialog(QDialog):
 
         dlg.exec()
 
+    def accept(self):
+        """Prevent default QDialog closing on Enter key."""
+        pass
+
+    def reject(self):
+        self.hide()
+
     def closeEvent(self, event):
         self.hide()
         event.accept()

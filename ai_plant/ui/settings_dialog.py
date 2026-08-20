@@ -393,6 +393,13 @@ class SettingsDialog(QDialog):
             self.reset_plant_requested.emit()
             QMessageBox.information(self, "완료", "화분이 새싹(1단계)으로 초기화되었습니다.")
 
+    def accept(self):
+        """Prevent default QDialog closing on Enter key."""
+        pass
+
+    def reject(self):
+        self.hide()
+
     def closeEvent(self, event):
         self.hide()
         event.accept()

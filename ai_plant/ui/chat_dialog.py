@@ -231,6 +231,8 @@ class ChatDialog(QDialog):
         self.header_lbl.setStyleSheet("color: #334155; font-size: 13px;")
 
         self.btn_header_close = QPushButton("닫기 ✕", self)
+        self.btn_header_close.setAutoDefault(False)
+        self.btn_header_close.setDefault(False)
         self.btn_header_close.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_header_close.setStyleSheet("""
             QPushButton {
@@ -358,6 +360,8 @@ class ChatDialog(QDialog):
         self.input_edit.returnPressed.connect(self.handle_send)
 
         self.btn_send = QPushButton("전송 🚀", self)
+        self.btn_send.setAutoDefault(False)
+        self.btn_send.setDefault(False)
         self.btn_send.setStyleSheet("""
             QPushButton {
                 background-color: #10B981;
@@ -389,6 +393,8 @@ class ChatDialog(QDialog):
 
     def create_chip_btn(self, label: str, prompt_text: str, direct_send: bool) -> QPushButton:
         btn = QPushButton(label, self)
+        btn.setAutoDefault(False)
+        btn.setDefault(False)
         btn.setStyleSheet("""
             QPushButton {
                 background-color: #FFFFFF;
@@ -478,6 +484,8 @@ class ChatDialog(QDialog):
         self.handle_send()
 
     def handle_send(self):
+        if self.is_thinking:
+            return
         text = self.input_edit.text().strip()
         if not text:
             return
@@ -488,11 +496,22 @@ class ChatDialog(QDialog):
 
     def set_loading(self, is_loading: bool):
         self.is_thinking = is_loading
-        self.input_edit.setEnabled(not is_loading)
+        self.input_edit.setReadOnly(is_loading)
         self.btn_send.setEnabled(not is_loading)
-        self.load_history()
-        if not is_loading:
+        if is_loading:
+            self.input_edit.setPlaceholderText("답변을 정성껏 작성하는 중입니다... 🌱")
+        else:
+            self.input_edit.setPlaceholderText("메시지를 입력하세요 (Enter로 전송)...")
             self.input_edit.setFocus()
+        self.load_history()
+
+    def accept(self):
+        """Prevent default QDialog accept from closing on Enter key."""
+        pass
+
+    def reject(self):
+        """Hide dialog on cancel."""
+        self.hide()
 
     def closeEvent(self, event):
         self.hide()
@@ -501,5 +520,9 @@ class ChatDialog(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
+        elif event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if not self.is_thinking and not self.input_edit.isReadOnly():
+                self.handle_send()
+            event.accept()
         else:
             super().keyPressEvent(event)
