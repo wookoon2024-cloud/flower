@@ -331,12 +331,15 @@ class PlantCharacterWidget(QWidget):
                     Qt.TransformationMode.SmoothTransformation
                 )
                 self.particle_pixmaps[p_name] = pm
-                self.particle_pixmaps[p_name] = pm
 
     def set_species(self, species: str):
         if self.current_species != species:
             self.load_resources(species)
             self.update()
+
+    def set_stage(self, stage: int):
+        self.current_stage = max(1, min(6, stage))
+        self.update()
 
     # --- Eco-Visitor (Bee, Bug, Ladybug, Bird, Cat Paw, Rain Cloud, Fireflies) System ---
     def _schedule_next_eco_visitor(self):
