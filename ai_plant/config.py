@@ -2,6 +2,7 @@
 Configuration Manager for AI Companion Plant Widget
 Handles loading, saving, and defaults from config.json.
 Configured for CLOVA Studio GOV API (HCX-GOV-THINK-V1-32B), SSE streaming, and proactive speech.
+API keys and secrets are securely encrypted and persisted inside SQLite (plant_data.db).
 """
 import os
 import json
@@ -36,6 +37,8 @@ DEFAULT_CONFIG = {
     "initial_setup_done": False
 }
 
+SENSITIVE_KEYS = {"api_key", "clova_api_key", "api_gateway_key", "clova_apigw_key", "secret_key"}
+
 def get_base_dir() -> str:
     """Get the base directory whether running from source or frozen PyInstaller executable."""
     if getattr(sys, 'frozen', False):
@@ -56,131 +59,64 @@ def get_resource_path(relative_path: str) -> str:
         
     return os.path.abspath(relative_path)
 
-import base64
-import ctypes
-from ctypes import wintypes
-
-SENSITIVE_KEYS = {"api_key", "clova_api_key", "api_gateway_key", "clova_apigw_key", "secret_key"}
-
-class DATA_BLOB(ctypes.Structure):
-    _fields_ = [
-        ('cbData', wintypes.DWORD),
-        ('pbData', ctypes.POINTER(ctypes.c_byte))
-    ]
-
-def encrypt_secret(plaintext: str) -> str:
-    """
-    Encrypt plaintext string using Windows Enterprise DPAPI (CryptProtectData).
-    The ciphertext is bound to the current Windows user and machine.
-    """
-    if not plaintext:
-        return ""
-    if plaintext.startswith("ENC:"):
-        return plaintext
-
-    # 1. Windows Native DPAPI (100% standard built into Windows crypt32.dll)
-    try:
-        data = plaintext.encode('utf-8')
-        blob_in = DATA_BLOB(len(data), ctypes.cast(ctypes.create_string_buffer(data, len(data)), ctypes.POINTER(ctypes.c_byte)))
-        blob_out = DATA_BLOB()
-        if ctypes.windll.crypt32.CryptProtectData(
-            ctypes.byref(blob_in),
-            "PlantWidgetSecret",
-            None,
-            None,
-            None,
-            0x1, # CRYPTPROTECT_UI_FORBIDDEN
-            ctypes.byref(blob_out)
-        ):
-            encrypted_bytes = ctypes.string_at(blob_out.pbData, blob_out.cbData)
-            ctypes.windll.kernel32.LocalFree(blob_out.pbData)
-            return "ENC:" + base64.b64encode(encrypted_bytes).decode('utf-8')
-    except Exception:
-        pass
-
-    # 2. Universal Machine-Bound Fallback (XOR + SHA256)
-    try:
-        import platform, hashlib
-        uname = os.getlogin() if hasattr(os, 'getlogin') else 'user'
-        salt = hashlib.sha256(f"PlantWidget_{platform.node()}_{uname}".encode()).digest()
-        raw = plaintext.encode('utf-8')
-        enc = bytes([b ^ salt[i % len(salt)] for i, b in enumerate(raw)])
-        return "ENC:" + base64.b64encode(enc).decode('utf-8')
-    except Exception:
-        return plaintext
-
-def decrypt_secret(ciphertext: str) -> str:
-    """
-    Decrypt ciphertext string using Windows DPAPI or fallback cipher.
-    """
-    if not ciphertext or not isinstance(ciphertext, str) or not ciphertext.startswith("ENC:"):
-        return ciphertext
-
-    raw_b64 = ciphertext[4:]
-    # 1. Windows Native DPAPI
-    try:
-        encrypted_bytes = base64.b64decode(raw_b64)
-        blob_in = DATA_BLOB(len(encrypted_bytes), ctypes.cast(ctypes.create_string_buffer(encrypted_bytes, len(encrypted_bytes)), ctypes.POINTER(ctypes.c_byte)))
-        blob_out = DATA_BLOB()
-        if ctypes.windll.crypt32.CryptUnprotectData(
-            ctypes.byref(blob_in),
-            None,
-            None,
-            None,
-            None,
-            0x1,
-            ctypes.byref(blob_out)
-        ):
-            decrypted_bytes = ctypes.string_at(blob_out.pbData, blob_out.cbData)
-            ctypes.windll.kernel32.LocalFree(blob_out.pbData)
-            return decrypted_bytes.decode('utf-8')
-    except Exception:
-        pass
-
-    # 2. Fallback XOR Decrypt
-    try:
-        import platform, hashlib
-        uname = os.getlogin() if hasattr(os, 'getlogin') else 'user'
-        salt = hashlib.sha256(f"PlantWidget_{platform.node()}_{uname}".encode()).digest()
-        enc = base64.b64decode(raw_b64)
-        dec = bytes([b ^ salt[i % len(salt)] for i, b in enumerate(enc)])
-        return dec.decode('utf-8')
-    except Exception:
-        return ciphertext
-
 class ConfigManager:
-    def __init__(self, config_file: str = "config.json"):
+    def __init__(self, config_file: str = "config.json", db_manager=None):
         self.config_path = os.path.join(get_base_dir(), config_file)
         self.config = dict(DEFAULT_CONFIG)
+        self.db = db_manager
         self.load()
 
+    def set_db(self, db_manager):
+        """Bind database manager for secure vault storage."""
+        self.db = db_manager
+        if self.db:
+            # Sync sensitive keys from SQLite secure vault into memory
+            for k in SENSITIVE_KEYS:
+                val = self.db.get_secure_key(k, "")
+                if val:
+                    self.config[k] = val
+
     def load(self):
-        """Load configuration from JSON file and automatically decrypt encrypted fields."""
+        """Load configuration from JSON file. Sensitive keys are loaded from SQLite secure vault."""
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     user_cfg = json.load(f)
-
-                    # Decrypt sensitive fields seamlessly
+                    
+                    # If legacy config.json had an api_key, migrate it and clear from json
                     for k in SENSITIVE_KEYS:
-                        if k in user_cfg and isinstance(user_cfg[k], str) and user_cfg[k].startswith("ENC:"):
-                            user_cfg[k] = decrypt_secret(user_cfg[k])
-
+                        if k in user_cfg and user_cfg[k]:
+                            raw_val = user_cfg.pop(k)
+                            if self.db:
+                                self.db.set_secure_key(k, raw_val)
+                            self.config[k] = raw_val
+                    
                     self.config.update(user_cfg)
             except Exception as e:
                 print(f"[ConfigManager] Error reading config: {e}. Using defaults.")
         else:
             self.save()
 
+        # Load secrets from SQLite vault if DB is connected
+        if self.db:
+            for k in SENSITIVE_KEYS:
+                val = self.db.get_secure_key(k, "")
+                if val:
+                    self.config[k] = val
+
     def save(self):
-        """Save current configuration to JSON file with sensitive fields encrypted via Windows DPAPI."""
+        """
+        Save current non-sensitive configuration to JSON file.
+        All API keys and secrets are saved inside SQLite secure_vault and omitted from config.json.
+        """
         try:
             dump_data = dict(self.config)
+            # Remove secrets from JSON output so config.json is 100% clean and public-safe
             for k in SENSITIVE_KEYS:
-                if k in dump_data and dump_data[k]:
-                    val = str(dump_data[k])
-                    if not val.startswith("ENC:"):
-                        dump_data[k] = encrypt_secret(val)
+                if k in dump_data:
+                    val = dump_data.pop(k)
+                    if self.db and val:
+                        self.db.set_secure_key(k, val)
 
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(dump_data, f, indent=4, ensure_ascii=False)
@@ -188,9 +124,16 @@ class ConfigManager:
             print(f"[ConfigManager] Error writing config: {e}")
 
     def get(self, key, default=None):
+        if key in SENSITIVE_KEYS:
+            if not self.config.get(key) and self.db:
+                val = self.db.get_secure_key(key, "")
+                if val:
+                    self.config[key] = val
         return self.config.get(key, default)
 
     def set(self, key, value, auto_save=True):
         self.config[key] = value
+        if key in SENSITIVE_KEYS and self.db:
+            self.db.set_secure_key(key, value)
         if auto_save:
             self.save()

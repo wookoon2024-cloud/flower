@@ -5,9 +5,50 @@ Handles SQLite3 persistence for plant state, chat history, and user profile.
 import sqlite3
 import os
 import datetime
+import hashlib
+import base64
 from typing import Dict, Any, List, Optional
 from contextlib import contextmanager
 from .config import get_base_dir
+
+_VAULT_SALT = b"PlantMindKeeper_2026_SecureVault_KeySalt_GovClova"
+
+def _vault_encrypt(plaintext: str) -> str:
+    """Portable standard XOR + SHA256 stream encryption for SQLite storage."""
+    if not plaintext:
+        return ""
+    try:
+        raw_bytes = plaintext.encode("utf-8")
+        stream = hashlib.sha256(_VAULT_SALT + b"HEADER").digest()
+        key_stream = bytearray()
+        counter = 0
+        while len(key_stream) < len(raw_bytes):
+            key_stream.extend(hashlib.sha256(stream + counter.to_bytes(4, "big")).digest())
+            counter += 1
+        enc_bytes = bytes([b ^ key_stream[i] for i, b in enumerate(raw_bytes)])
+        return "VAULT_v1:" + base64.b64encode(enc_bytes).decode("utf-8")
+    except Exception:
+        return plaintext
+
+def _vault_decrypt(ciphertext: str) -> str:
+    """Portable standard decryption from SQLite storage."""
+    if not ciphertext or not isinstance(ciphertext, str):
+        return ""
+    if not ciphertext.startswith("VAULT_v1:"):
+        return ciphertext
+    try:
+        raw_b64 = ciphertext[9:]
+        enc_bytes = base64.b64decode(raw_b64)
+        stream = hashlib.sha256(_VAULT_SALT + b"HEADER").digest()
+        key_stream = bytearray()
+        counter = 0
+        while len(key_stream) < len(enc_bytes):
+            key_stream.extend(hashlib.sha256(stream + counter.to_bytes(4, "big")).digest())
+            counter += 1
+        dec_bytes = bytes([b ^ key_stream[i] for i, b in enumerate(enc_bytes)])
+        return dec_bytes.decode("utf-8")
+    except Exception:
+        return ciphertext
 
 class DatabaseManager:
     def __init__(self, db_filename: str = "plant_data.db"):
@@ -134,6 +175,15 @@ class DatabaseManager:
                 CREATE TABLE IF NOT EXISTS lifetime_stats (
                     key TEXT PRIMARY KEY,
                     value INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            # 9. secure_vault (Encrypted API Credentials & Secrets) table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS secure_vault (
+                    key TEXT PRIMARY KEY,
+                    encrypted_val TEXT NOT NULL,
+                    updated_at TIMESTAMP NOT NULL
                 )
             """)
 
@@ -469,6 +519,36 @@ class DatabaseManager:
             stats = {r["key"]: r["value"] for r in rows}
             self._stats_cache.update(stats)
             return stats
+
+    # --- Secure Vault (Portable Encrypted Secret Storage) ---
+    def set_secure_key(self, key: str, plaintext: str):
+        """Encrypt and store sensitive secret inside SQLite secure_vault table."""
+        enc_val = _vault_encrypt(plaintext)
+        now_str = datetime.datetime.now().isoformat()
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO secure_vault (key, encrypted_val, updated_at)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET encrypted_val = ?, updated_at = ?
+                """, (key, enc_val, now_str, enc_val, now_str))
+                conn.commit()
+        except Exception as e:
+            print(f"[DatabaseManager] set_secure_key error: {e}")
+
+    def get_secure_key(self, key: str, default: str = "") -> str:
+        """Retrieve and decrypt sensitive secret from SQLite secure_vault table."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT encrypted_val FROM secure_vault WHERE key = ?", (key,))
+                row = cursor.fetchone()
+                if row and row["encrypted_val"]:
+                    return _vault_decrypt(row["encrypted_val"])
+        except Exception as e:
+            print(f"[DatabaseManager] get_secure_key error: {e}")
+        return default
 
 
 

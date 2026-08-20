@@ -51,6 +51,7 @@ def main():
     # Initialize Core Managers
     config_mgr = ConfigManager()
     db_mgr = DatabaseManager()
+    config_mgr.set_db(db_mgr)
     plant_engine = PlantEngine(db_mgr, config_mgr)
 
     # Launch Floating Widget
