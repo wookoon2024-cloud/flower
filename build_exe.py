@@ -22,7 +22,7 @@ def build():
     icon_path = os.path.join(base_dir, "assets", "app_icon.ico")
     assets_src = os.path.join(base_dir, "assets")
 
-    # PyInstaller arguments
+    # PyInstaller arguments for Single Standalone Executable
     cmd = [
         sys.executable,
         "-m", "PyInstaller",
@@ -30,23 +30,24 @@ def build():
         "--clean",
         "--onefile",
         "--windowed",
-        f"--name=AICompanionPlant",
-        f"--icon={icon_path}",
+        "--name=마음지킴이",
         f"--add-data={assets_src};assets",
-        f"--add-data=config.json;.",
-        f"--hidden-import=PySide6",
-        f"--hidden-import=requests",
-        f"--hidden-import=sqlite3",
-        f"--hidden-import=urllib3",
+        "--hidden-import=PySide6",
+        "--hidden-import=requests",
+        "--hidden-import=sqlite3",
+        "--hidden-import=urllib3",
         "main.py"
     ]
+
+    if os.path.exists(icon_path):
+        cmd.insert(7, f"--icon={icon_path}")
 
     print("Running command:", " ".join(cmd))
     result = subprocess.run(cmd)
 
     if result.returncode == 0:
         print("\n=== [3/3] Build SUCCESS! ===")
-        exe_path = os.path.join(base_dir, "dist", "AICompanionPlant.exe")
+        exe_path = os.path.join(base_dir, "dist", "마음지킴이.exe")
         print(f"Standalone Executable created at: {exe_path}")
         
         # Copy config.json to dist directory for user convenience
