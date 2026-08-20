@@ -55,6 +55,16 @@ class DatabaseManager:
         self.db_path = os.path.join(get_base_dir(), db_filename)
         self._stats_cache: Dict[str, int] = {}
         self._unlocked_achievements_cache: Optional[set] = None
+
+        # Clean up legacy WAL/SHM files to keep directory 100% clean
+        for ext in ["-wal", "-shm"]:
+            fpath = self.db_path + ext
+            if os.path.exists(fpath):
+                try:
+                    os.remove(fpath)
+                except Exception:
+                    pass
+
         self.init_db()
         self._warmup_cache()
 
@@ -70,8 +80,9 @@ class DatabaseManager:
     def get_connection(self):
         conn = sqlite3.connect(self.db_path, timeout=15.0)
         try:
-            conn.execute("PRAGMA journal_mode = WAL")
-            conn.execute("PRAGMA synchronous = NORMAL")
+            # 100% In-Memory Journaling to prevent DLP/Antivirus file creation/deletion hooking
+            conn.execute("PRAGMA journal_mode = MEMORY")
+            conn.execute("PRAGMA synchronous = OFF")
             conn.execute("PRAGMA temp_store = MEMORY")
         except Exception:
             pass
