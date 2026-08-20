@@ -4,17 +4,18 @@ Provides structured metadata, categories, icons, and descriptions for long-term 
 """
 
 ACHIEVEMENT_CATEGORIES = {
-    "all": "전체 도감 (100개)",
+    "all": "전체 도감 (110개)",
     "first_steps": "🌱 첫걸음 & 시작 (10)",
     "watering": "💧 촉촉한 물주기 (10)",
     "sunlight": "☀️ 따스한 햇빛 (10)",
     "petting": "💕 다정한 손길 (10)",
-    "dialogue": "💬 AI 대화 & 우정 (10)",
+    "dialogue": "💬 AI 대화 & 고민상담 (10)",
     "mood_care": "📈 마음 날씨 케어 (10)",
     "fortune": "🥠 오늘의 포춘 쿠키 (10)",
     "growth": "🌸 6단계 성장·진화 (10)",
     "garden": "🪴 5종 품종 & 화원 (10)",
-    "office_life": "⏰ 공직자 일과 & 힐링 (10)"
+    "office_life": "⏰ 공직자 일과 & 힐링 (10)",
+    "eco_events": "🐝 생태계 탐험 & 이벤트 (10)"
 }
 
 ACHIEVEMENTS_100 = [
@@ -136,5 +137,17 @@ ACHIEVEMENTS_100 = [
     {"id": "routine_midnight", "cat": "office_life", "title": "심야의 데스크 지킴이 🌌", "icon": "🌌", "desc": "늦은 밤(23시 이후) 조용한 연구/업무 중 인사를 나눴습니다."},
     {"id": "routine_idle_rest", "cat": "office_life", "title": "달콤한 3분 휴식 🧘", "icon": "🧘", "desc": "PC 3분 유휴 감지 힐링 메시지로 심호흡을 했습니다."},
     {"id": "routine_desk_guardian", "cat": "office_life", "title": "데스크의 든든한 수호자 🛡️", "icon": "🛡️", "desc": "공직자님의 책상 위를 굳건히 지키며 하루를 함께했습니다."},
-    {"id": "routine_master", "cat": "office_life", "title": "공직 가드너 마스터 👑", "icon": "👑", "desc": "모든 시간대별 일과 루틴을 화분과 함께 완주했습니다."}
+    {"id": "routine_master", "cat": "office_life", "title": "공직 가드너 마스터 👑", "icon": "👑", "desc": "모든 시간대별 일과 루틴을 화분과 함께 완주했습니다."},
+
+    # 11. 🐝 생태계 탐험 & 이벤트 (10개)
+    {"id": "eco_first_meet", "cat": "eco_events", "title": "자연의 작은 손님", "icon": "🐝", "desc": "화분을 찾아온 생태계 방문객(벌, 나비, 새, 고양이 등)을 처음 맞이했습니다."},
+    {"id": "bug_clear_1", "cat": "eco_events", "title": "벌레야 훠이~ 🐛", "icon": "🐛", "desc": "나뭇잎을 갉아먹는 애벌레를 클릭하여 1회 퇴치했습니다."},
+    {"id": "bug_clear_5", "cat": "eco_events", "title": "명예 해충 방제사 🛡️", "icon": "🛡️", "desc": "화분에 나타난 벌레를 5회 퇴치하여 화분을 지켰습니다."},
+    {"id": "bee_water", "cat": "eco_events", "title": "꿀벌의 달콤한 꿀 🍯", "icon": "🍯", "desc": "꿀벌이 놀러왔을 때 시원한 물을 주어 꿀 보너스를 받았습니다."},
+    {"id": "ladybug_visit", "cat": "eco_events", "title": "행운의 무당벌레 🐞", "icon": "🐞", "desc": "화분을 기어오르는 귀여운 칠성무당벌레와 교감했습니다."},
+    {"id": "bluebird_feather", "cat": "eco_events", "title": "파랑새의 황금 깃털 🐦", "icon": "🐦", "desc": "날아온 아기 파랑새를 맞이하고 행운의 황금 깃털을 얻었습니다."},
+    {"id": "cat_highfive", "cat": "eco_events", "title": "냥젤리 하이파이브 🐾", "icon": "🐾", "desc": "화분에 장난치러 온 길고양이의 핑크 젤리 발과 하이파이브를 나눴습니다."},
+    {"id": "rain_rainbow", "cat": "eco_events", "title": "단비와 오색 무지개 🌈", "icon": "🌈", "desc": "화분 위로 지나가는 촉촉한 단비 구름과 무지개를 목격했습니다."},
+    {"id": "firefly_night", "cat": "eco_events", "title": "한여름 밤의 반딧불이 ✨", "icon": "✨", "desc": "어둠 속에서 반짝이며 화분을 밝히는 반딧불이 무리를 만났습니다."},
+    {"id": "eco_master", "cat": "eco_events", "title": "생태계 가디언 마스터 👑", "icon": "👑", "desc": "모든 생태계 방문객 및 환경 이벤트와 교감을 달성했습니다."}
 ]

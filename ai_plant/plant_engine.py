@@ -253,19 +253,38 @@ class PlantEngine(QObject):
         return True, msg
 
     def on_eco_visitor_interacted(self, v_type: str) -> Tuple[bool, str]:
-        """User greets or interacts with a visiting bee or butterfly."""
+        """User interacts with an eco visitor or environmental creature."""
         self.db.increment_stat(f"total_{v_type}_visits")
         self.state["affection"] = min(100, self.state["affection"] + 8)
         self.state["exp"] += 15
         self.state["total_interactions"] += 1
+
+        if v_type == "bee":
+            msg = "🐝 꿀벌 친구와 반갑게 인사했어요! (+15 EXP, 애정도 +8) 🍯✨"
+        elif v_type == "butterfly":
+            msg = "🦋 나비와 눈을 맞추며 힐링 타임을 가졌어요! (+15 EXP, 애정도 +8) 🌸"
+        elif v_type == "ladybug":
+            msg = "🐞 칠성무당벌레가 행운을 전해주고 날아갔어요! (+15 EXP, 애정도 +8) 🍀"
+        elif v_type == "bird":
+            self.state["exp"] += 10
+            self.state["affection"] = min(100, self.state["affection"] + 4)
+            msg = "🐦 아기 파랑새가 지저귀며 행운의 깃털을 선물했어요! (+25 EXP, 애정도 +12) ✨"
+        elif v_type == "cat_paw":
+            self.state["exp"] += 5
+            msg = "🐾 냥! 호기심 많은 길고양이와 젤리 하이파이브 성공! (+20 EXP, 애정도 +8) 🐱"
+        elif v_type == "rain_cloud":
+            self.state["water"] = min(100, self.state["water"] + 25)
+            self.state["exp"] += 5
+            msg = "🌈 시원한 단비 구름이 지나가며 무지개가 떠올랐어요! (수분 +25, +20 EXP) 🌧️"
+        elif v_type == "firefly":
+            msg = "✨ 반짝이는 반딧불이 무리가 화분을 은은하게 밝혔어요! (+15 EXP, 애정도 +8) 🌌"
+        else:
+            msg = f"🌿 자연의 친구 {v_type}와 교감했어요! (+15 EXP) ✨"
+
         self.check_evolution()
         self.check_achievements()
         self.save()
         self.state_changed.emit(self.state)
-        if v_type == "bee":
-            msg = "🐝 꿀벌 친구와 반갑게 인사했어요! (+15 EXP, 애정도 +8) 🍯✨"
-        else:
-            msg = "🦋 나비와 눈을 맞추며 힐링 타임을 가졌어요! (+15 EXP, 애정도 +8) 🌸"
         self.interaction_occurred.emit(f"{v_type}_greeted", msg)
         return True, msg
 
@@ -502,6 +521,43 @@ class PlantEngine(QObject):
             self._try_unlock("routine_idle_rest")
         if self.state.get("total_interactions", 0) >= 100:
             self._try_unlock("routine_master")
+
+        # 11. Eco Events & Environmental Visitors
+        bugs_cleared = self.db.get_stat("total_bugs_cleared") or 0
+        if bugs_cleared >= 1:
+            self._try_unlock("bug_clear_1")
+        if bugs_cleared >= 5:
+            self._try_unlock("bug_clear_5")
+
+        bee_visits = self.db.get_stat("total_bee_visits") or 0
+        if bee_visits >= 1:
+            self._try_unlock("bee_water")
+
+        ladybug_visits = self.db.get_stat("total_ladybug_visits") or 0
+        if ladybug_visits >= 1:
+            self._try_unlock("ladybug_visit")
+
+        bird_visits = self.db.get_stat("total_bird_visits") or 0
+        if bird_visits >= 1:
+            self._try_unlock("bluebird_feather")
+
+        cat_visits = self.db.get_stat("total_cat_paw_visits") or (self.db.get_stat("total_cat_visits") or 0)
+        if cat_visits >= 1:
+            self._try_unlock("cat_highfive")
+
+        rain_visits = self.db.get_stat("total_rain_cloud_visits") or (self.db.get_stat("total_rain_visits") or 0)
+        if rain_visits >= 1:
+            self._try_unlock("rain_rainbow")
+
+        firefly_visits = self.db.get_stat("total_firefly_visits") or 0
+        if firefly_visits >= 1:
+            self._try_unlock("firefly_night")
+
+        total_eco = bugs_cleared + bee_visits + ladybug_visits + bird_visits + cat_visits + rain_visits + firefly_visits
+        if total_eco >= 1:
+            self._try_unlock("eco_first_meet")
+        if total_eco >= 10:
+            self._try_unlock("eco_master")
 
     def _try_unlock(self, ach_id: str):
         if self.db.unlock_achievement(ach_id):

@@ -283,9 +283,9 @@ class GardenDialog(QDialog):
         self.tab_mood = self.create_mood_tab()
         self.tabs.addTab(self.tab_mood, "📈 마음 날씨")
 
-        # 4. Achievements Tab (100 Achievements)
+        # 4. Achievements Tab (110 Achievements)
         self.tab_achievements = self.create_achievements_tab()
-        self.tabs.addTab(self.tab_achievements, "🏆 100종 업적 도감")
+        self.tabs.addTab(self.tab_achievements, "🏆 110종 업적 도감")
 
         layout.addWidget(self.tabs, 1)
 

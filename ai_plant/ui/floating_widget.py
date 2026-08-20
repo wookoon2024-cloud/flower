@@ -358,8 +358,21 @@ class FloatingPlantWindow(QWidget):
                 self.bubble.show_message("🐝 윙윙~ 꿀벌 친구가 찾아왔어요! 꿀을 만드느라 목이 마르대요~ 💧", 5)
             elif v_type == "bug":
                 self.bubble.show_message("🐛 앗! 나뭇잎에 벌레가 나타났어요! 클릭해서 쫓아내주세요! 💦", 5)
+            elif v_type == "ladybug":
+                self.bubble.show_message("🐞 행운을 부르는 칠성무당벌레가 화분을 찾아왔어요! 🍀", 5)
+            elif v_type == "bird":
+                self.bubble.show_message("🐦 짹짹~ 귀여운 아기 파랑새가 가지에 살포시 앉았어요 ✨", 5)
+            elif v_type == "cat_paw":
+                self.bubble.show_message("🐾 앗! 장난꾸러기 고양이 발이 빼꼼 나타났어요! 냥~ 🐱", 5)
+            elif v_type == "rain_cloud":
+                self.bubble.show_message("🌧️ 촉촉한 단비 구름이 지나가며 잎사귀를 적셔주고 있어요 🌈", 5)
+                # Auto apply rain hydration bonus
+                self.engine.on_eco_visitor_interacted("rain_cloud")
+                self.character.spawn_particle("drop")
+            elif v_type == "firefly":
+                self.bubble.show_message("✨ 반짝반짝 반딧불이들이 춤추며 화분을 밝혀주고 있어요 🌌", 5)
             else:  # butterfly
-                self.bubble.show_message("🦋 예쁜 나비가 찾아와 살랑살랑 쉬어가고 있어요 ✨", 4)
+                self.bubble.show_message("🦋 예쁜 나비가 찾아와 살랑살랑 쉬어가고 있어요 🌸", 5)
         except Exception as e:
             print(f"[FloatingPlantWindow] on_eco_visitor_arrived error: {e}")
 

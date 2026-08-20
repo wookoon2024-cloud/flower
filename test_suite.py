@@ -189,8 +189,8 @@ class TestAIPlantWidget(unittest.TestCase):
 
     def test_100_achievements_structure(self):
         from ai_plant.achievements_data import ACHIEVEMENTS_100, ACHIEVEMENT_CATEGORIES
-        self.assertEqual(len(ACHIEVEMENTS_100), 100)
-        self.assertEqual(len(ACHIEVEMENT_CATEGORIES), 11) # all + 10 categories
+        self.assertEqual(len(ACHIEVEMENTS_100), 110)
+        self.assertEqual(len(ACHIEVEMENT_CATEGORIES), 12)  # all + 11 categories
         
         # Verify all achievements have unique IDs and required fields
         seen_ids = set()
@@ -282,18 +282,32 @@ class TestAIPlantWidget(unittest.TestCase):
         init_exp = engine.get_state()["exp"]
         init_aff = engine.get_state()["affection"]
 
-        # Test bug cleared
+        # 1. Test bug cleared & achievement
         ok, msg = engine.on_bug_cleared()
         self.assertTrue(ok)
         self.assertIn("벌레", msg)
         self.assertEqual(engine.get_state()["exp"], init_exp + 20)
         self.assertEqual(engine.get_state()["affection"], init_aff + 10)
 
-        # Test bee visitor greeted
-        ok, msg = engine.on_eco_visitor_interacted("bee")
-        self.assertTrue(ok)
-        self.assertIn("꿀벌", msg)
-        self.assertEqual(engine.get_state()["exp"], init_exp + 35)
+        # 2. Test bee, ladybug, bird, cat_paw, rain_cloud, firefly
+        for v in ["bee", "ladybug", "bird", "cat_paw", "rain_cloud", "firefly"]:
+            ok, msg = engine.on_eco_visitor_interacted(v)
+            self.assertTrue(ok)
+
+        # 3. Check eco achievements unlocked
+        unlocked = self.db.get_unlocked_achievements()
+        self.assertIn("bug_clear_1", unlocked)
+        self.assertIn("bee_water", unlocked)
+        self.assertIn("ladybug_visit", unlocked)
+        self.assertIn("bluebird_feather", unlocked)
+        self.assertIn("cat_highfive", unlocked)
+        self.assertIn("rain_rainbow", unlocked)
+        self.assertIn("firefly_night", unlocked)
+        self.assertIn("eco_first_meet", unlocked)
+
+        # 4. Check total achievements count is 110
+        from ai_plant.achievements_data import ACHIEVEMENTS_100
+        self.assertEqual(len(ACHIEVEMENTS_100), 110)
 
 if __name__ == "__main__":
     unittest.main()
