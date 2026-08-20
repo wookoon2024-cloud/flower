@@ -4,18 +4,71 @@ Main Entry Point for AI Companion Plant Widget
 """
 import sys
 import os
-from PySide6.QtWidgets import QApplication
+import datetime
+import traceback
+from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 
-from ai_plant.config import ConfigManager, get_resource_path
+from ai_plant.config import ConfigManager, get_resource_path, get_base_dir
 from ai_plant.database import DatabaseManager
 from ai_plant.plant_engine import PlantEngine
 from ai_plant.ui.floating_widget import FloatingPlantWindow
 from ai_plant.ui.welcome_dialog import WelcomeSetupDialog
 
+class DebugLogger:
+    def __init__(self, log_path):
+        self.log_path = log_path
+        self.terminal_out = sys.__stdout__
+        self.terminal_err = sys.__stderr__
+
+    def write(self, message):
+        if self.terminal_out:
+            try:
+                self.terminal_out.write(message)
+            except Exception:
+                pass
+        try:
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(message)
+        except Exception:
+            pass
+
+    def flush(self):
+        if self.terminal_out:
+            try:
+                self.terminal_out.flush()
+            except Exception:
+                pass
+
+def setup_global_logging():
+    base_dir = get_base_dir()
+    log_path = os.path.join(base_dir, "mindkeeper_debug.log")
+    logger = DebugLogger(log_path)
+    sys.stdout = logger
+    sys.stderr = logger
+
+    def handle_exception(exc_type, exc_val, exc_tb):
+        err_msg = "".join(traceback.format_exception(exc_type, exc_val, exc_tb))
+        print(f"\n[CRITICAL ERROR] {datetime.datetime.now()}\n{err_msg}\n")
+        try:
+            if QApplication.instance():
+                QMessageBox.critical(
+                    None,
+                    "마음지킴이 실행 오류",
+                    f"오류가 발생했습니다.\n\n{exc_val}\n\n상세 내용은 다음 로그 파일에 저장되었습니다:\n{log_path}"
+                )
+        except Exception:
+            pass
+
+    sys.excepthook = handle_exception
+    print(f"\n=== 마음지킴이 로그 세션 시작: {datetime.datetime.now()} (v1.8.1) ===")
+    print(f"Base Directory: {base_dir}")
+    print(f"Log File: {log_path}")
+
 def main():
+    setup_global_logging()
     # Enable High DPI scaling
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough

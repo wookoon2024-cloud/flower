@@ -329,7 +329,9 @@ class GardenDialog(QDialog):
 
         title_lbl = QLabel(f"{sp_info['emoji']} <b>현재 키우는 화분:</b> {plant_name} ({sp_info['name']})")
         title_lbl.setStyleSheet("color: #065F46; font-size: 13px;")
-        desc_lbl = QLabel(f"성장 단계: <b>{STAGE_NAMES.get(stage)}</b> | 경험치: <b>{state.get('exp', 0)} EXP</b> | 애정도: <b>{state.get('affection', 20)}💖</b>")
+        stage_int = int(stage) if str(stage).isdigit() else 1
+        stage_name = STAGE_NAMES.get(stage_int, f"{stage_int}단계")
+        desc_lbl = QLabel(f"성장 단계: <b>{stage_name}</b> | 경험치: <b>{state.get('exp', 0)} EXP</b> | 애정도: <b>{state.get('affection', 20)}💖</b>")
         desc_lbl.setStyleSheet("color: #047857; font-size: 11px;")
         
         card_layout.addWidget(title_lbl)
@@ -337,7 +339,7 @@ class GardenDialog(QDialog):
         layout.addWidget(summary_card)
 
         # Graduation Button Area (Active if Stage 6)
-        if stage >= 6:
+        if stage_int >= 6:
             grad_btn = QPushButton("🎓 6단계 만개 달성! 화원에 졸업 등록하고 새 씨앗 심기! ✨")
             grad_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             grad_btn.setStyleSheet("""

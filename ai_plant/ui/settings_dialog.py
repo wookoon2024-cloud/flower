@@ -349,6 +349,22 @@ class SettingsDialog(QDialog):
         btn_reset_plant.clicked.connect(self.on_reset_plant)
         layout_danger.addWidget(btn_reset_plant)
 
+        btn_open_log = QPushButton("📋 디버그 로그 파일 열기 (오류 확인)", group_danger)
+        btn_open_log.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_open_log.setStyleSheet("""
+            QPushButton {
+                background-color: #F8FAFC;
+                border: 1px solid #CBD5E1;
+                border-radius: 6px;
+                padding: 8px 12px;
+                color: #334155;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #E2E8F0; }
+        """)
+        btn_open_log.clicked.connect(self.on_open_log)
+        layout_danger.addWidget(btn_open_log)
+
         layout_data.addWidget(group_danger)
         layout_data.addStretch()
         tabs.addTab(tab_data, "💾 데이터 관리")
@@ -490,6 +506,24 @@ class SettingsDialog(QDialog):
         if ret == QMessageBox.StandardButton.Yes:
             self.reset_plant_requested.emit()
             QMessageBox.information(self, "완료", "화분이 새싹(1단계)으로 초기화되었습니다.")
+
+    def on_open_log(self):
+        import os
+        import sys
+        import subprocess
+        import datetime
+        from ..config import get_base_dir
+        log_path = os.path.join(get_base_dir(), "mindkeeper_debug.log")
+        if not os.path.exists(log_path):
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(f"=== 마음지킴이 로그 (생성됨: {datetime.datetime.now()}) ===\n")
+        try:
+            if sys.platform == "win32":
+                os.startfile(log_path)
+            else:
+                subprocess.Popen(["notepad", log_path])
+        except Exception as e:
+            QMessageBox.warning(self, "로그 열기 실패", f"로그 파일을 열 수 없습니다: {e}")
 
     def accept(self):
         """Save settings and close on accept."""

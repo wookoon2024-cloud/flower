@@ -454,12 +454,22 @@ class FloatingPlantWindow(QWidget):
             self.chat_dialog.show()
             self.chat_dialog.raise_()
             self.chat_dialog.activateWindow()
+            print("[FloatingPlantWindow] ChatDialog opened successfully.")
         except Exception as e:
-            print(f"[FloatingPlantWindow] open_chat_dialog error: {e}")
+            import traceback
+            tb = traceback.format_exc()
+            print(f"[FloatingPlantWindow] open_chat_dialog ERROR:\n{tb}")
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                "대화창 실행 오류",
+                f"대화창을 여는 도중 오류가 발생했습니다.\n\n오류 내용:\n{e}\n\n상세 정보는 mindkeeper_debug.log 파일을 확인해주세요."
+            )
 
     # --- Garden & Collection Dialog ---
     def open_garden_dialog(self):
         try:
+            print("[FloatingPlantWindow] Opening GardenDialog...")
             self.last_user_interaction_time = datetime.datetime.now()
             self.menu_auto_close_timer.stop()
             self.control_bar.hide()
@@ -481,8 +491,17 @@ class FloatingPlantWindow(QWidget):
             self.garden_dialog.show()
             self.garden_dialog.raise_()
             self.garden_dialog.activateWindow()
+            print("[FloatingPlantWindow] GardenDialog opened successfully.")
         except Exception as e:
-            print(f"[FloatingPlantWindow] open_garden_dialog error: {e}")
+            import traceback
+            tb = traceback.format_exc()
+            print(f"[FloatingPlantWindow] open_garden_dialog ERROR:\n{tb}")
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                "도감 실행 오류",
+                f"나의 화원 & 도감 창을 여는 도중 오류가 발생했습니다.\n\n오류 내용:\n{e}\n\n상세 정보는 mindkeeper_debug.log 파일을 확인해주세요."
+            )
 
     def on_plant_graduated(self, new_species: str, new_name: str):
         try:
@@ -861,12 +880,32 @@ class FloatingPlantWindow(QWidget):
         action_settings = menu.addAction("⚙️ 환경 설정")
         action_settings.triggered.connect(self.open_settings_dialog)
 
+        action_log = menu.addAction("📋 실행 로그 확인 (디버그)")
+        action_log.triggered.connect(self.open_log_file)
+
         menu.addSeparator()
 
         action_close = menu.addAction("❌ 위젯 종료")
         action_close.triggered.connect(QApplication.quit)
 
         menu.exec(global_pos)
+
+    def open_log_file(self):
+        import os
+        import sys
+        import subprocess
+        from ..config import get_base_dir
+        log_path = os.path.join(get_base_dir(), "mindkeeper_debug.log")
+        if not os.path.exists(log_path):
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(f"=== 마음지킴이 로그 (생성됨: {datetime.datetime.now()}) ===\n")
+        try:
+            if sys.platform == "win32":
+                os.startfile(log_path)
+            else:
+                subprocess.Popen(["notepad", log_path])
+        except Exception as e:
+            print(f"[FloatingPlantWindow] open_log_file error: {e}")
 
     def toggle_always_on_top(self):
         new_val = not self.config.get("always_on_top", True)
