@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.0.3-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.0.4-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.0.4`** | 2026-08-20 | • **자연스러운 유휴(Idle) 미세 모션 애니메이션 탑재**<br>• 업무에 거슬리지 않는 주기(4.5~7.5초 간격)로 1.5초간 은은하게 나뭇잎이 살랑이는 바람 흔들림(±2.0° Gentle Breeze Sway) 및 미세 숨쉬기(Breathing Rhythm) 애니메이션 적용<br>• 화분 하단 고정 피벗 변환 연산으로 작업표시줄 0px 접촉 안정성 유지 및 유휴 시 CPU 점유율 0% 보장 |
 | **`v1.0.3`** | 2026-08-20 | • **네이티브 QWidget 기반 카카오톡 말풍선 전면 재구축 및 크래시 원천 차단**<br>• HTML 렌더러 대신 100% 네이티브 Qt 위젯(`UserMessageBubble`, `BotMessageBubble`) 레이아웃 적용으로 사용자 메시지 우측 밀착(100% Right-Aligned) 완벽 보장<br>• 비동기 워커 스레드 인스턴스 생명주기 완벽 제어 및 SQLite Busy Timeout(15s) 방어로 대화 시 다운 현상 완전 해결 |
 | **`v1.0.2`** | 2026-08-20 | • **카카오톡 스타일 감성 메신저 말풍선 및 테마 적용**<br>• 카카오톡 스타일 좌/우 말풍선 UI(좌측: 프로필 아바타+화분 이름+흰색 말풍선+시간, 우측: 에메랄드 그린 말풍선+시간) 구현<br>• 카카오톡 기본 노란색과 차별화된 편안한 메신저 블루그레이 배경 및 힐링 그린/화이트 테마 적용<br>• 대화 내 중복 호칭(공직자님님) 방지 및 대사 풀 템플릿 정돈 |
 | **`v1.0.1`** | 2026-08-20 | • **UI/UX 개선 및 대화 안정화 패치**<br>• 온보딩 환영창 상단 배너 중첩 박스선 제거 및 품종 선택 2열(한 줄에 2개씩) 그리드 배치 적용<br>• 컨트롤 바 버튼 한글 텍스트 제거 및 깔끔한 아이콘 전용 캡슐 버튼(`[💧] [☀️] [💬] [🌿] [⚙️]`) 개편<br>• 대화 전송 시 비동기 스레드 수명 주기(QThread) 메모리 안전성 및 HTML 이스케이프 파싱 예외 완전 해결 |
