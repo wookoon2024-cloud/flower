@@ -12,11 +12,28 @@ from .config import get_base_dir
 class DatabaseManager:
     def __init__(self, db_filename: str = "plant_data.db"):
         self.db_path = os.path.join(get_base_dir(), db_filename)
+        self._stats_cache: Dict[str, int] = {}
+        self._unlocked_achievements_cache: Optional[set] = None
         self.init_db()
+        self._warmup_cache()
+
+    def _warmup_cache(self):
+        """Warmup in-memory cache to eliminate disk I/O lag on secure corporate/intranet machines."""
+        try:
+            self._stats_cache = self.get_all_stats()
+            self._unlocked_achievements_cache = set(self.get_unlocked_achievements())
+        except Exception:
+            pass
 
     @contextmanager
     def get_connection(self):
         conn = sqlite3.connect(self.db_path, timeout=15.0)
+        try:
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA synchronous = NORMAL")
+            conn.execute("PRAGMA temp_store = MEMORY")
+        except Exception:
+            pass
         conn.row_factory = sqlite3.Row
         try:
             yield conn
@@ -267,23 +284,33 @@ class DatabaseManager:
     # --- Achievements ---
     def unlock_achievement(self, ach_id: str) -> bool:
         """Unlock an achievement if not already unlocked. Returns True if newly unlocked."""
+        if self._unlocked_achievements_cache is not None and ach_id in self._unlocked_achievements_cache:
+            return False
         now_str = datetime.datetime.now().isoformat()
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM achievements WHERE id = ?", (ach_id,))
             if cursor.fetchone():
+                if self._unlocked_achievements_cache is not None:
+                    self._unlocked_achievements_cache.add(ach_id)
                 return False
             cursor.execute("INSERT INTO achievements (id, unlocked_at) VALUES (?, ?)", (ach_id, now_str))
             conn.commit()
+            if self._unlocked_achievements_cache is not None:
+                self._unlocked_achievements_cache.add(ach_id)
             return True
 
     def get_unlocked_achievements(self) -> List[str]:
         """Get list of unlocked achievement IDs."""
+        if self._unlocked_achievements_cache is not None:
+            return list(self._unlocked_achievements_cache)
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM achievements")
             rows = cursor.fetchall()
-            return [r["id"] for r in rows]
+            ids = [r["id"] for r in rows]
+            self._unlocked_achievements_cache = set(ids)
+            return ids
 
     # --- Daily Fortune ---
     def get_daily_fortune(self, date_str: str) -> Optional[str]:
@@ -405,26 +432,33 @@ class DatabaseManager:
 
     # --- Lifetime Action Counters ---
     def increment_stat(self, key: str, amount: int = 1) -> int:
-        """Increment a persistent lifetime stat counter."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO lifetime_stats (key, value)
-                VALUES (?, ?)
-                ON CONFLICT(key) DO UPDATE SET value = value + ?
-            """, (key, amount, amount))
-            conn.commit()
-            cursor.execute("SELECT value FROM lifetime_stats WHERE key = ?", (key,))
-            row = cursor.fetchone()
-            return row[0] if row else amount
+        """Increment a persistent lifetime stat counter with instant in-memory update."""
+        current_val = self._stats_cache.get(key, 0) + amount
+        self._stats_cache[key] = current_val
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO lifetime_stats (key, value)
+                    VALUES (?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = value + ?
+                """, (key, amount, amount))
+                conn.commit()
+        except Exception as e:
+            print(f"[DatabaseManager] increment_stat error: {e}")
+        return current_val
 
     def get_stat(self, key: str, default: int = 0) -> int:
-        """Get a persistent lifetime stat value."""
+        """Get a persistent lifetime stat value with instant in-memory lookup."""
+        if key in self._stats_cache:
+            return self._stats_cache[key]
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM lifetime_stats WHERE key = ?", (key,))
             row = cursor.fetchone()
-            return row[0] if row else default
+            val = row[0] if row else default
+            self._stats_cache[key] = val
+            return val
 
     def get_all_stats(self) -> Dict[str, int]:
         """Get all lifetime stats as a dictionary."""
@@ -432,7 +466,9 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute("SELECT key, value FROM lifetime_stats")
             rows = cursor.fetchall()
-            return {r["key"]: r["value"] for r in rows}
+            stats = {r["key"]: r["value"] for r in rows}
+            self._stats_cache.update(stats)
+            return stats
 
 
 
