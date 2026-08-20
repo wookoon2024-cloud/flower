@@ -22,6 +22,7 @@ from .chat_dialog import ChatDialog
 from .garden_dialog import GardenDialog
 from .settings_dialog import SettingsDialog
 from ..ai_client import AIChatWorker, analyze_user_sentiment
+from ..config import set_autostart_registry
 
 class FloatingPlantWindow(QWidget):
     def __init__(self, plant_engine, db_manager, config_manager):
@@ -81,6 +82,10 @@ class FloatingPlantWindow(QWidget):
             self.setWindowOpacity(0.45)
         else:
             self.setWindowOpacity(1.0)
+
+        # Sync Windows startup registry on boot
+        if self.config.get("auto_start", True):
+            set_autostart_registry(True)
 
     def init_ui(self):
         # 1. Top: Speech Bubble
@@ -841,6 +846,11 @@ class FloatingPlantWindow(QWidget):
         ontop_action.setChecked(self.config.get("always_on_top", True))
         ontop_action.triggered.connect(self.toggle_always_on_top)
 
+        autostart_action = menu.addAction("🚀 윈도우 시작 시 자동 실행")
+        autostart_action.setCheckable(True)
+        autostart_action.setChecked(self.config.get("auto_start", True))
+        autostart_action.triggered.connect(self.toggle_auto_start)
+
         action_settings = menu.addAction("⚙️ 환경 설정")
         action_settings.triggered.connect(self.open_settings_dialog)
 
@@ -855,3 +865,12 @@ class FloatingPlantWindow(QWidget):
         new_val = not self.config.get("always_on_top", True)
         self.config.set("always_on_top", new_val)
         self.apply_settings_changes()
+
+    def toggle_auto_start(self):
+        new_val = not self.config.get("auto_start", True)
+        self.config.set("auto_start", new_val)
+        set_autostart_registry(new_val)
+        if new_val:
+            self.bubble.show_message("🚀 윈도우 시작 시 자동 실행이 설정되었어요!", 4)
+        else:
+            self.bubble.show_message("윈도우 시작 시 자동 실행이 해제되었어요.", 3)

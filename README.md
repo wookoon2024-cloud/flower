@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.7.8-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.7.9-10B981?style=for-the-badge)
 ![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -22,11 +22,11 @@
 
 | 구분 | 버전 | 업데이트 | 배포 파일명 | 원클릭 다운로드 |
 | :---: | :---: | :---: | :---: | :---: |
-| 🚀 **단독 실행파일 (.exe)** | **`v1.7.8`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.8.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.8.zip) |
-| 💻 **순수 소스코드 (.py)** | **`v1.7.8`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.8.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.8.zip) |
+| 🚀 **단독 실행파일 (.exe)** | **`v1.7.9`** | **`2026-08-20`** | `마음지킴이_실행파일_v1.7.9.zip` | [**⚡ 마음지킴이.exe 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%8B%A4%ED%96%89%ED%8C%8C%EC%9D%BC_v1.7.9.zip) |
+| 💻 **순수 소스코드 (.py)** | **`v1.7.9`** | **`2026-08-20`** | `마음지킴이_소스_v1.7.9.zip` | [**📦 소스코드 패키지 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.7.9.zip) |
 
-> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.8.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
-> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.8.zip` 압축 해제 후 `python main.py`를 실행하세요.
+> 💡 **설치 없이 즉시 실행:** `마음지킴이_실행파일_v1.7.9.zip` 압축 해제 후 **`마음지킴이.exe`를 더블클릭**하면 파이썬 설치 없이 즉시 실행됩니다!  
+> 🔒 **보안망/개발자용:** 파이썬 소스로 직접 실행하시려면 `마음지킴이_소스_v1.7.9.zip` 압축 해제 후 `python main.py`를 실행하세요.
 
 ---
 
@@ -175,6 +175,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.7.9`** | 2026-08-20 | • **'🚀 윈도우 시작 시 자동 실행' (기본 체크 활성화) 기능 탑재 및 우클릭 메뉴/환경설정 연동**<br>• **우클릭 메뉴 연동:** 화분 우클릭 메뉴의 '📌 항상 위에 고정' 바로 아래에 **`🚀 윈도우 시작 시 자동 실행`** 토글 항목을 추가하여 원클릭으로 손쉽게 켜고 끌 수 있도록 지원<br>• **기본값 ON (자동 실행 활성화):** PC 부팅 시 사용자가 별도로 앱을 찾아서 켤 필요 없이 윈도우 부팅과 동시에 반려화분이 자동으로 실행되어 책상 위에 얌전히 상주하도록 기본 설정<br>• **환경설정창 연동:** 환경설정(`SettingsDialog`) 일반/프로필 탭 내에도 동일한 체크박스를 제공하여 완벽 연동<br>• **Windows Registry (`Run`) 완벽 동기화:** `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` 레지스트리를 즉시 안전하게 등록/해제 관리 |
 | **`v1.7.8`** | 2026-08-20 | • **마우스 클릭 이벤트 시 `force_topmost` AttributeError 및 누락 변수/모듈 100% 완전 수정**<br>• **원인 해결:** 마우스 클릭/드래그/릴리즈 및 쓰다듬기 이벤트 시 남아있던 `force_topmost` 잔재 호출 및 `random`, `last_pet_bubble_time` 초기화 누락으로 인해 발생하던 예외를 원천 제거<br>• **완전 검증:** 마우스 클릭/드래그/릴리즈/쓰다듬기 및 3대 창(`🌿`, `💬`, `⚙️`) 팝업 전 시나리오 테스트를 100% 무결점으로 통과 완료 |
 | **`v1.7.7`** | 2026-08-20 | • **`garden_dialog.py` 내 `QApplication` 임포트 누락으로 인한 도감 창 무반응 완벽 해결**<br>• **원인 해결:** `garden_dialog.py` 상단에서 화면 중앙 배치를 위한 `QApplication` 모듈 임포트가 누락되어 `open_garden_dialog` 호출 시 내부에서 `NameError: name 'QApplication' is not defined`가 발생하여 창이 뜨지 않던 문제를 완벽히 해결<br>• **완전 검증:** 위젯 상에서 `open_garden_dialog()`, `open_chat_dialog()`, `open_settings_dialog()` 3대 다이얼로그의 정상 인스턴스 생성 및 화면 노출(`isVisible: True`)을 100% 검증 완료 |
 | **`v1.7.6`** | 2026-08-20 | • **`floating_widget.py` 내 `QPainter` 임포트 누락 `NameError` 긴급 수정**<br>• **원인 해결:** `floating_widget.py` 상단에서 `QPainter` 모듈 임포트가 누락되어 `paintEvent` 호출 시 `NameError: name 'QPainter' is not defined` 에러가 발생하던 문제를 해결<br>• **검증 완료:** 모듈 단위 테스트 및 `paintEvent` 렌더링 호출 테스트를 통해 투명 배경 및 위젯 페인팅이 정상 동작함을 검증 완료 |

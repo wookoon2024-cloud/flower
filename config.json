@@ -23,5 +23,6 @@
     "hourly_peek": true,
     "idle_peek": true,
     "plant_scale": 100,
+    "auto_start": true,
     "initial_setup_done": true
 }

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QComboBox, QApplication
 )
 from PySide6.QtCore import Qt, Signal
+from ..config import set_autostart_registry
 
 class SettingsDialog(QDialog):
     settings_saved = Signal()
@@ -257,6 +258,10 @@ class SettingsDialog(QDialog):
         self.chk_ontop.setChecked(self.config.get("always_on_top", True))
         form_profile.addRow("", self.chk_ontop)
 
+        self.chk_autostart = QCheckBox("🚀 윈도우 시작 시 자동 실행 (PC 부팅 시 위젯 자동 시작)", group_profile)
+        self.chk_autostart.setChecked(self.config.get("auto_start", True))
+        form_profile.addRow("", self.chk_autostart)
+
         self.chk_compact = QCheckBox("✨ 클릭 시 메뉴 표시 모드 (화분 클릭 시 메뉴 토글)", group_profile)
         self.chk_compact.setChecked(self.config.get("compact_hover_mode", True))
         form_profile.addRow("", self.chk_compact)
@@ -400,6 +405,8 @@ class SettingsDialog(QDialog):
         self.config.set("user_nickname", self.edit_user_name.text().strip() or "공직자님", auto_save=False)
         self.config.set("proactive_speech", self.chk_proactive.isChecked(), auto_save=False)
         self.config.set("always_on_top", self.chk_ontop.isChecked(), auto_save=False)
+        self.config.set("auto_start", self.chk_autostart.isChecked(), auto_save=False)
+        set_autostart_registry(self.chk_autostart.isChecked())
         self.config.set("compact_hover_mode", self.chk_compact.isChecked(), auto_save=False)
         self.config.set("ghost_mode", self.chk_ghost.isChecked(), auto_save=False)
         self.config.set("bubble_duration_sec", self.spin_bubble_time.value(), auto_save=False)

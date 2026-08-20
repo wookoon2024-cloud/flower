@@ -34,6 +34,7 @@ DEFAULT_CONFIG = {
     "hourly_peek": True,
     "idle_peek": True,
     "plant_scale": 100,
+    "auto_start": True,
     "initial_setup_done": False
 }
 
@@ -137,3 +138,49 @@ class ConfigManager:
             self.db.set_secure_key(key, value)
         if auto_save:
             self.save()
+
+
+def set_autostart_registry(enable: bool):
+    """Register or unregister app in Windows CurrentVersion/Run startup registry."""
+    if sys.platform != "win32":
+        return
+    try:
+        import winreg
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        app_name = "MindKeeper_Flower"
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_ALL_ACCESS)
+        if enable:
+            if getattr(sys, 'frozen', False):
+                exe_path = f'"{sys.executable}"'
+            else:
+                base_dir = get_base_dir()
+                main_py = os.path.join(base_dir, "main.py")
+                python_exe = sys.executable
+                pythonw_exe = os.path.join(os.path.dirname(python_exe), "pythonw.exe")
+                runner = pythonw_exe if os.path.exists(pythonw_exe) else python_exe
+                exe_path = f'"{runner}" "{main_py}"'
+            winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, exe_path)
+        else:
+            try:
+                winreg.DeleteValue(key, app_name)
+            except FileNotFoundError:
+                pass
+        winreg.CloseKey(key)
+    except Exception as e:
+        print(f"[Autostart] Registry update error: {e}")
+
+
+def is_autostart_registry_enabled() -> bool:
+    """Check if app is registered in Windows CurrentVersion/Run registry."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import winreg
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        app_name = "MindKeeper_Flower"
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ)
+        val, _ = winreg.QueryValueEx(key, app_name)
+        winreg.CloseKey(key)
+        return bool(val)
+    except Exception:
+        return False
