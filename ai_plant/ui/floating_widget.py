@@ -84,9 +84,9 @@ class FloatingPlantWindow(QWidget):
 
         # Base size scaled
         scale_pct = self.config.get("plant_scale", 100)
-        s = max(70, min(160, scale_pct)) / 100.0
-        w = int(280 * s)
-        h = int(320 * s)
+        s = max(60, min(160, scale_pct)) / 100.0
+        w = max(240, int(240 * s))
+        h = int(280 * s)
         self.setFixedSize(w, h)
 
         # Restore saved position if available
@@ -124,24 +124,24 @@ class FloatingPlantWindow(QWidget):
         scale_pct = self.config.get("plant_scale", 100)
         s = max(60, min(160, scale_pct)) / 100.0
         w = max(240, int(240 * s))
-        h = int(260 * s)
+        h = int(280 * s)
 
         old_geo = self.geometry()
         old_bottom = old_geo.bottom() if old_geo.isValid() else -1
 
         self.setFixedSize(w, h)
 
-        # Center speech bubble horizontally with generous width & height (zero clipping!)
+        # Center speech bubble horizontally with top margin (Y=6s..78s)
         w_b = min(w - 12, int(224 * s))
         h_b = int(72 * s)
-        self.bubble.setGeometry((w - w_b) // 2, int(2 * s), w_b, h_b)
+        self.bubble.setGeometry((w - w_b) // 2, int(6 * s), w_b, h_b)
 
-        # Center control bar horizontally (never clipped!)
+        # Center control bar horizontally with clean separation below bubble (Y=82s..140s)
         w_c = min(w - 12, int(184 * s))
-        h_c = int(60 * s)
-        self.control_bar.setGeometry((w - w_c) // 2, int(64 * s), w_c, h_c)
+        h_c = int(58 * s)
+        self.control_bar.setGeometry((w - w_c) // 2, int(82 * s), w_c, h_c)
 
-        # Center character horizontally at bottom
+        # Center character horizontally at bottom (Y=160s..280s)
         char_sz = int(120 * s)
         char_x = (w - char_sz) // 2
         char_y = h - char_sz
@@ -677,8 +677,9 @@ class FloatingPlantWindow(QWidget):
     # --- Mouse Drag & Magnetic Snapping & Context Menu ---
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.is_dragging = True
-            self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            self.is_dragging = False
+            self.drag_start_pos = event.globalPosition().toPoint()
+            self.window_start_pos = self.pos()
             self.force_topmost()
             event.accept()
         elif event.button() == Qt.MouseButton.RightButton:
@@ -686,45 +687,52 @@ class FloatingPlantWindow(QWidget):
             event.accept()
 
     def mouseMoveEvent(self, event):
-        if self.is_dragging and (event.buttons() & Qt.MouseButton.LeftButton):
-            # Hide menu and bubble while dragging so only the clean pot is visible!
-            self.menu_auto_close_timer.stop()
-            if self.control_bar.isVisible():
-                self.control_bar.hide()
-            if self.bubble.isVisible():
-                self.bubble.hide()
-
+        if event.buttons() & Qt.MouseButton.LeftButton:
             curr_pos = event.globalPosition().toPoint()
-            target_x = curr_pos.x() - self.drag_position.x()
-            target_y = curr_pos.y() - self.drag_position.y()
+            # Only start dragging if mouse moved beyond threshold (6px)
+            if not self.is_dragging:
+                if (curr_pos - self.drag_start_pos).manhattanLength() > 6:
+                    self.is_dragging = True
+                    self.menu_auto_close_timer.stop()
+                    if self.control_bar.isVisible():
+                        self.control_bar.hide()
+                    if self.bubble.isVisible():
+                        self.bubble.hide()
 
-            # Magnetic Snapping to Taskbar, Quickbar and Screen Edges (자석 스냅)
-            screen = QApplication.screenAt(curr_pos) or QApplication.primaryScreen()
-            if screen:
-                avail = screen.availableGeometry()
-                snap_dist = 28 # Pixel distance to trigger magnetic snap
+            if self.is_dragging:
+                target_x = self.window_start_pos.x() + (curr_pos.x() - self.drag_start_pos.x())
+                target_y = self.window_start_pos.y() + (curr_pos.y() - self.drag_start_pos.y())
 
-                # 1. Bottom edge (Taskbar / Dock top surface): bottom of pot is at Y = height (0 gap!)
-                if abs((target_y + self.height()) - avail.bottom()) <= snap_dist:
-                    target_y = avail.bottom() - self.height()
-                
-                # 2. Right edge
-                if abs((target_x + self.width()) - avail.right()) <= snap_dist:
-                    target_x = avail.right() - self.width() + 1
+                # Magnetic Snapping to Taskbar, Quickbar and Screen Edges (자석 스냅)
+                screen = QApplication.screenAt(curr_pos) or QApplication.primaryScreen()
+                if screen:
+                    avail = screen.availableGeometry()
+                    snap_dist = 28 # Pixel distance to trigger magnetic snap
 
-                # 3. Left edge
-                if abs(target_x - avail.left()) <= snap_dist:
-                    target_x = avail.left()
+                    # 1. Bottom edge (Taskbar / Dock top surface): bottom of pot is at Y = height (0 gap!)
+                    if abs((target_y + self.height()) - avail.bottom()) <= snap_dist:
+                        target_y = avail.bottom() - self.height()
+                    
+                    # 2. Right edge
+                    if abs((target_x + self.width()) - avail.right()) <= snap_dist:
+                        target_x = avail.right() - self.width() + 1
 
-                # 4. Top edge
-                if abs(target_y - avail.top()) <= snap_dist:
-                    target_y = avail.top()
+                    # 3. Left edge
+                    if abs(target_x - avail.left()) <= snap_dist:
+                        target_x = avail.left()
 
-            self.move(target_x, target_y)
-            event.accept()
+                    # 4. Top edge
+                    if abs(target_y - avail.top()) <= snap_dist:
+                        target_y = avail.top()
+
+                self.move(target_x, target_y)
+                event.accept()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            if not self.is_dragging:
+                # Direct click on floating window -> trigger menu show!
+                self.on_character_clicked()
             self.is_dragging = False
             self.force_topmost()
             # Save position

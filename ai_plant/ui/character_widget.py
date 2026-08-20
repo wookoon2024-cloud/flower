@@ -469,6 +469,8 @@ class PlantCharacterWidget(QWidget):
             self.expr_frame = 0
             self.expr_total_frames = 25
             self.expr_timer.start(33)
+            event.accept()
+            return
         super().mousePressEvent(event)
 
     def paintEvent(self, event):

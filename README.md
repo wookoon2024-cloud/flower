@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.4.5-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.4.6-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.4.6`** | 2026-08-20 | • **화분 클릭 시 메뉴 팝업 신뢰성 100% 보장 & 말풍선·메뉴바 수직 여백 완전 분리**<br>• **클릭 즉각 반응 보장:** 마우스 클릭 시 미세 이동으로 인한 드래그 오인 현상을 방지(드래그 임계치 6px 판정)하고, 화분 바디 및 윈도우 배경 어디를 클릭하든 `ControlBarWidget` 메뉴가 즉시 팝업되도록 개선<br>• **말풍선·메뉴바 0px 간섭/미클리핑 수직 레이아웃 확립:** 윈도우 높이를 `280px`로 확장하고, 상단 말풍선(`Y = 6..78px`)과 컨트롤바 메뉴(`Y = 82..140px`) 사이에 4px 이상의 안전 여백을 확보하여 말풍선 하단과 메뉴 상단이 겹치거나 텍스트가 잘리는 현상 원천 해결 |
 | **`v1.4.5`** | 2026-08-20 | • **AI 스마트 추천 질문 칩 동적 셔플 & 25종 다채로운 상황별 프리셋 시스템 탑재**<br>• 대화창 내 질문 칩을 4가지 핵심 테마(직장 고민·멘토링, 공직/오피스 업무 비서, 반려식물 교감·재미, 마음 챙김·자기 돌봄) 총 25종 이상의 프리셋으로 확장<br>• **`🔄 다른 질문 보기`** 원클릭 새로고침 기능으로 클릭할 때마다 6개의 엄선된 다채로운 추천 질문이 동적으로 교체되어 상황에 맞게 풍성한 대화 지원 |
 | **`v1.4.4`** | 2026-08-20 | • **말풍선 상·하 텍스트 잘림 현상 완벽 해결 & 넉넉한 224x72px 가독성 렌더링**<br>• 말풍선 높이(`72px`) 및 너비(`224px`)를 대폭 확장하고 내부 레이아웃 패딩 마진을 최적화하여 3줄 이상의 장문 및 이모지가 포함된 안내 메시지도 위아래/좌우 잘림 없이 100% 온전하고 선명하게 표시되도록 개선 |
 | **`v1.4.3`** | 2026-08-20 | • **`PlantCharacterWidget` 성장 단계(Stage) 동기화 메서드(`set_stage`) 참조 누락 긴급 복구**<br>• 크기 조정 리팩토링 중 누락되었던 `set_stage` 메서드를 안전하게 복구하여 프로그램 실행 시 `AttributeError` 예외 완전 해결 |
