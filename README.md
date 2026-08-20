@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.4.9-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.5.0-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.5.0`** | 2026-08-20 | • **생태계 방문객(꿀벌/지렁이) 렌더링 시 `QPointF` 참조 누락 예외 긴급 복구**<br>• `character_widget.py` 상단 import문에 `QPointF`를 추가하여, 꿀벌 꽃가루/지렁이 잎 갉아먹기 애니메이션 렌더링 시 발생하던 `NameError: name 'QPointF' is not defined` 예외 원천 해결 |
 | **`v1.4.9`** | 2026-08-20 | • **SQLite DB 내 `secure_vault` 테이블 기반 이동식(Portable) 암호화 금고 탑재**<br>• **`config.json` 평문 노출 100% 원천 제거:** `config.json` 파일에는 더 이상 API 키나 비밀키가 저장되지 않으며 일반 UI 설정만 보관<br>• **SQLite 내 암호화 금고(`secure_vault`) 저장:** API 키는 `plant_data.db` 내부의 `secure_vault` 테이블에 표준 스트림 암호화(`"VAULT_v1:..."`)되어 보관되므로 DB 파일을 직접 열람해도 암호문으로만 안전하게 표시<br>• **기기/계정 이동 호환성 완비:** 특정 PC 하드웨어 종속성을 배제하여 다른 PC, VDI 가상 데스크톱, 다른 사용자 계정으로 DB 및 소스를 이동해도 손상이나 오류 없이 안정적으로 복호화 및 실행 가능 |
 | **`v1.4.8`** | 2026-08-20 | • **Windows Enterprise DPAPI 기반 API Key 보안 암호화 저장 시스템 탑재**<br>• **API 키 평문 노출 완전 차단:** `config.json` 내 저장되는 CLOVA Studio 및 각종 AI API Key를 Windows 네이티브 엔터프라이즈 암호화 규격(DPAPI `CryptProtectData`)으로 자동 암호화(`"ENC:AQAAANCMnd8..."`) 처리하여 디스크 저장<br>• **기기/계정 바인딩 보안:** 설정 파일을 타인이 열람하거나 복사해가더라도 해당 윈도우 사용자 계정/기기 외에서는 절대 복호화할 수 없도록 철저히 보호<br>• **투명 복호화:** 프로그램 구동 시 메모리(RAM)로 로드될 때만 자동으로 복호화되어 동작하므로 사용자는 번거로운 암호 입력 없이 완벽한 보안 환경에서 사용 가능 |
 | **`v1.4.7`** | 2026-08-20 | • **업무망(내부망) PC 보안 에이전트(DLP/백신) 디스크 I/O 렉 및 클릭 버벅임 완전 해소**<br>• **원인 해결:** 보안 프로그램이 실시간 디스크 I/O를 검사하여 화분 클릭 시마다 발생하던 20여 회의 동기식 SQLite/업적 조회가 수백 ms의 GUI 프리징을 유발하던 문제를 원천 해결<br>• **인메모리 캐싱 & WAL 모드 탑재:** SQLite WAL 모드, `PRAGMA synchronous = NORMAL`, 통계 및 업적 데이터 100% 인메모리 캐싱(`_stats_cache`, `_unlocked_cache`)을 적용하여 클릭 시 디스크 I/O를 0회로 줄이고 메모리 즉시 처리(0.001ms)로 전환하여 업무망에서도 매끄럽고 빠른 반응 속도 보장 |

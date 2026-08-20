@@ -1,6 +1,5 @@
 {
     "api_endpoint": "https://api.clovastudio.go.kr/api/v1/chat/completions",
-    "api_key": "",
     "model": "HCX-GOV-THINK-V1-32B",
     "stream_enabled": true,
     "ssl_verify": false,

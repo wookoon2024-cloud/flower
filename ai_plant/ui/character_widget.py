@@ -11,7 +11,7 @@ import os
 import math
 import random
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, Signal, QTimer, QPoint, QRectF
+from PySide6.QtCore import Qt, Signal, QTimer, QPoint, QPointF, QRectF
 from PySide6.QtGui import QPixmap, QPainter, QColor, QFont, QPen, QBrush, QPainterPath, QLinearGradient, QRadialGradient, QPolygonF
 from ..config import get_resource_path
 
