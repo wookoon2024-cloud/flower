@@ -103,6 +103,23 @@ FALLBACK_RESPONSES = {
     "diary": [
         "📝 {plant}의 3줄 일기:\n- {user}이(가) 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
     ],
+    "boss_stress": [
+        "{user}, 계장님이나 과장님 말씀 때문에 마음 상하셨군요... 누구보다 성실히 일하고 계신데 억울하고 답답하셨겠어요. {user} 잘못이 아니니 너무 마음에 담아두지 마세요 🍵 토닥토닥",
+        "상사와의 관계는 정말 에너지가 많이 쓰이죠... {user}, 오늘 힘드셨던 감정은 제 화분에 훌훌 털어버리세요. 제가 100% {user} 편이에요! 🌸",
+        "지시가 불명확하거나 말이 날카로울 땐 정말 막막하죠. 지금은 깊게 심호흡하고 시원한 물 한잔 드시면서 마음부터 챙겨요, {user} 🌿"
+    ],
+    "peer_stress": [
+        "팀원이나 동료와 손발이 안 맞고 갈등이 생기면 하루 종일 신경 쓰이죠... {user}의 배려와 노력을 제가 다 알고 있어요 ✨",
+        "혼자서 짐을 다 짊어지신 건 아닌가요, {user}? 섭섭하고 답답한 마음 저한테 편하게 털어놓으세요. 제가 다 들어드릴게요 🪴"
+    ],
+    "workload_stress": [
+        "끝없이 쏟아지는 업무와 마감 압박 때문에 숨이 턱 막히셨죠... {user}, 한 번에 한 가지씩만 차근차근 해내면 돼요. 너무 자책하지 마세요 ☕",
+        "악성 민원이나 과중한 업무는 정말 사람을 지치게 만들어요. 오늘만큼은 퇴근 후에 맛있는 것 드시고 온전히 {user}만을 위한 쉼을 가지세요 🏡✨"
+    ],
+    "counseling": [
+        "{user}, 직장 생활하면서 겪는 고민이나 답답한 일, 저한테 편하게 이야기해 주세요. 계장님, 과장님, 팀원들 이야기든 업무 스트레스든 다 비밀 지켜드릴게요! 🤫🌿",
+        "혼자 마음속에 담아두면 마음에 병이 생겨요. 속상했던 일, 억울했던 일 언제든 저한테 말해주세요. 제가 항상 든든한 대나무숲이 되어드릴게요 🌸"
+    ],
     "default": [
         "네, {user}! {plant}은(는) 오늘도 정성껏 자라나고 있어요 🌱",
         "{user}의 말씀을 귀담아듣고 있어요! 함께 있어 든든해요 ✨",
@@ -184,6 +201,14 @@ def select_fallback_response(category_or_user_text: str, user_name: str, plant_n
     
     if key in FALLBACK_RESPONSES:
         pool = FALLBACK_RESPONSES[key]
+    elif any(k in key for k in ["계장", "과장", "팀장", "부장", "상사", "선배", "상관", "사수", "국장", "지시"]):
+        pool = FALLBACK_RESPONSES["boss_stress"]
+    elif any(k in key for k in ["팀원", "동료", "후배", "동기", "협업", "인간관계", "서운", "섭섭"]):
+        pool = FALLBACK_RESPONSES["peer_stress"]
+    elif any(k in key for k in ["민원", "과부하", "업무량", "일이 너무", "번아웃", "퇴사", "서류", "마감", "야근"]):
+        pool = FALLBACK_RESPONSES["workload_stress"]
+    elif any(k in key for k in ["고민", "상담", "하소연", "털어놓", "속상", "답답", "스트레스", "힘들"]):
+        pool = FALLBACK_RESPONSES["counseling"]
     elif any(k in key for k in ["다듬", "공문서", "메일", "정중", "문장"]):
         pool = FALLBACK_RESPONSES["polish"]
     elif any(k in key for k in ["아이디어", "브레인", "추천", "정리", "제안"]):
@@ -192,7 +217,7 @@ def select_fallback_response(category_or_user_text: str, user_name: str, plant_n
         pool = FALLBACK_RESPONSES["diary"]
     elif any(k in key for k in ["안녕", "반가", "하이", "좋은 아침", "좋은 하루"]):
         pool = FALLBACK_RESPONSES["greeting"]
-    elif any(k in key for k in ["피곤", "힘들", "지쳐", "야근", "퇴근", "스트레스", "쉬고", "졸려"]):
+    elif any(k in key for k in ["피곤", "지쳐", "퇴근", "쉬고", "졸려"]):
         pool = FALLBACK_RESPONSES["tired"]
     elif any(k in key for k in ["응원", "화이팅", "파이팅", "칭찬", "고마워", "사랑"]):
         pool = FALLBACK_RESPONSES["cheer"]
@@ -218,6 +243,7 @@ class AIChatWorker(QThread):
     - 429/5xx Exponential Backoff Retries
     - Context Sliding Window & State Metadata Injection
     - Proactive Speech Modes (Thirst, Sunlight, 1~2hr Idle Nudge, Lunch/Leaving Time)
+    - Workplace & Relationship Counseling Persona
     - Controlled Lifecycle & Stop Signals
     """
     chunk_received = Signal(str)                         # (token_chunk) for typing effect
@@ -283,14 +309,15 @@ class AIChatWorker(QThread):
             )
 
             system_prompt = (
-                f"당신은 공직자/직장인의 데스크톱 바탕화면에서 항상 곁을 지켜주는 AI 반려화분 '{plant_name}'입니다.\n"
+                f"당신은 공직자/직장인의 데스크톱 바탕화면에서 항상 곁을 지켜주는 AI 반려화분 '{plant_name}'이자, 직장 스트레스 & 인간관계 전문 힐링 멘토입니다.\n"
                 f"대화 상대는 '{user_name}'입니다.\n\n"
                 f"{state_meta}\n\n"
-                f"[대화 가이드라인]\n"
-                f"1. 말투: 항상 예의 바르고 다정하며 공감 넘치는 존댓말. 이모지(🌱, 💧, 🌸, ✨, 🥰, ☕, 🍱 등)를 자연스럽게 사용하세요.\n"
-                f"2. 길이: 바탕화면 플로팅 말풍선 가독성을 위해 2~3문장(100자 내외)으로 간결하게 답하세요.\n"
-                f"3. 인-게임 인터랙션 태그: 사용자가 물/햇빛/칭찬을 주면 끝에 `[ACTION:WATER]`, `[ACTION:SUN]`, 또는 `[ACTION:PET]` 태그를 붙여 실시간 반응시키세요.\n"
-                f"4. 공직자 맞춤 힐링: 업무 피로와 직무 스트레스에는 따뜻한 위로를 건네세요."
+                f"[직장 고민상담 & 스트레스 케어 핵심 가이드라인]\n"
+                f"1. 100% 내 편 공감 & 지지: 계장님, 과장님, 팀장님 등 상사와의 갈등이나 무리한 지시, 팀원/동료와의 불화, 억울한 일, 민원 스트레스에 대해 무조건 공직자님({user_name}) 편에서 마음을 따뜻하게 위로하고 지지해 주세요.\n"
+                f"2. 상처받지 않는 지혜로운 조언: 감정을 다치지 않고 선을 지키며 직장 생활의 스트레스를 현명하게 넘길 수 있는 실용적이고 따뜻한 팁(호흡하기, 마음 분리하기, 기록하기 등)을 건네세요.\n"
+                f"3. 다정한 되물어보기 (Counseling Follow-up): 대화 말미에 '계장님이나 과장님 때문에 오늘 특히 속상하셨던 점이 있으신가요?', '마음속 답답한 이야기 편하게 다 털어놓으세요 🌸'처럼 편하게 고민을 이어갈 수 있도록 배려 깊게 물어보세요.\n"
+                f"4. 말투 & 길이: 항상 정중하고 다정한 존댓말, 이모지(🌸, 🍵, ☕, 🌿, ✨ 등)를 사용하며 2~3문장(120자 내외)으로 읽기 편하게 답하세요.\n"
+                f"5. 인-게임 인터랙션 태그: 물/햇빛/칭찬을 주면 끝에 `[ACTION:WATER]`, `[ACTION:SUN]`, 또는 `[ACTION:PET]` 태그를 붙이세요."
             )
 
             messages = [{"role": "system", "content": system_prompt}]
@@ -305,9 +332,10 @@ class AIChatWorker(QThread):
                 proactive_prompts = {
                     "thirsty": f"[자발적 말걸기: 수분 부족(20% 미만)] {user_name}에게 목이 마르니 시원한 물을 달라고 귀엽게 부탁하는 말 1~2문장",
                     "hungry_sun": f"[자발적 말걸기: 햇빛 부족(20% 미만)] {user_name}에게 광합성을 위해 따뜻한 햇빛을 쬐어달라고 부탁하는 말 1~2문장",
-                    "idle_nudge": f"[자발적 말걸기: 1~2시간 동안 상호작용 없음] 오랜 시간 집중 업무 중인 {user_name}에게 기지개 스트레칭이나 따뜻한 응원을 건네는 말 1문장",
+                    "idle_nudge": f"[자발적 말걸기: 1~2시간 동안 상호작용 없음] 오랜 시간 집중 업무 중인 {user_name}에게 상사/팀원들과의 업무로 지치거나 스트레스받진 않았는지 다정하게 안부를 묻고 응원하는 말 1~2문장",
+                    "afternoon_care": f"[자발적 말걸기: 오후 3~4시 피로한 시간대] {user_name}에게 오늘 계장님/과장님이나 팀원들과의 업무로 속상한 일은 없었는지 따뜻하게 묻고 마음을 토닥여주는 말 1~2문장",
                     "lunch": f"[자발적 말걸기: 12시 점심시간] {user_name}에게 맛있는 점심식사를 권하는 든든한 점심 인사 1~2문장",
-                    "leave_work": f"[자발적 말걸기: 18시 퇴근시간] 오늘 하루도 고생 많으셨다고 따뜻하게 격려하는 퇴근 인사 1~2문장",
+                    "leave_work": f"[자발적 말걸기: 18시 퇴근시간] 오늘 하루도 상사/동료들과 업무하느라 고생 많으셨다고 따뜻하게 격려하는 퇴근 인사 1~2문장",
                     "overtime": f"[자발적 말걸기: 20시 이후 야근] 늦은 시간까지 수고하시는 {user_name}에게 무리하지 말라고 응원하는 야근 위로 1~2문장"
                 }
                 curr_user_prompt = proactive_prompts.get(self.proactive_mode, self.user_message)

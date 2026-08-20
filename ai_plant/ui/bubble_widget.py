@@ -11,7 +11,7 @@ class SpeechBubbleWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(244, 72)
+        self.setMinimumSize(180, 55)
 
         self.hide_timer = QTimer(self)
         self.hide_timer.setSingleShot(True)
@@ -23,11 +23,11 @@ class SpeechBubbleWidget(QWidget):
 
     def init_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(6, 4, 6, 12) # Bottom margin for tail
+        main_layout.setContentsMargins(6, 4, 6, 12)  # Bottom margin for tail
         
         self.content_widget = QWidget(self)
         self.content_layout = QHBoxLayout(self.content_widget)
-        self.content_layout.setContentsMargins(6, 4, 6, 4)
+        self.content_layout.setContentsMargins(8, 4, 6, 4)
         self.content_layout.setSpacing(4)
 
         self.label = QLabel("", self.content_widget)
@@ -35,7 +35,7 @@ class SpeechBubbleWidget(QWidget):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont("Malgun Gothic", 9, QFont.Weight.Medium)
         self.label.setFont(font)
-        self.label.setStyleSheet("color: #1E293B; background: transparent;")
+        self.label.setStyleSheet("color: #1E293B; background: transparent; line-height: 1.3;")
 
         self.close_btn = QPushButton("✕", self.content_widget)
         self.close_btn.setFixedSize(16, 16)

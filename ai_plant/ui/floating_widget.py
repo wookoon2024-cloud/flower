@@ -123,7 +123,7 @@ class FloatingPlantWindow(QWidget):
         """Dynamically resize window and scale components cleanly with perfect horizontal centering."""
         scale_pct = self.config.get("plant_scale", 100)
         s = max(70, min(160, scale_pct)) / 100.0
-        w = int(280 * s)
+        w = max(290, int(290 * s))
         h = int(320 * s)
 
         old_geo = self.geometry()
@@ -131,12 +131,13 @@ class FloatingPlantWindow(QWidget):
 
         self.setFixedSize(w, h)
 
-        # Center speech bubble horizontally
-        w_b = min(w - 16, int(244 * s))
-        self.bubble.setGeometry((w - w_b) // 2, int(4 * s), w_b, int(72 * s))
+        # Center speech bubble horizontally with safe margins
+        w_b = min(w - 24, int(252 * s))
+        h_b = int(76 * s)
+        self.bubble.setGeometry((w - w_b) // 2, int(4 * s), w_b, h_b)
 
         # Center control bar horizontally (never clipped!)
-        w_c = min(w - 20, int(232 * s))
+        w_c = min(w - 20, int(236 * s))
         self.control_bar.setGeometry((w - w_c) // 2, int(80 * s), w_c, int(72 * s))
 
         # Center character horizontally at bottom
@@ -272,11 +273,16 @@ class FloatingPlantWindow(QWidget):
             elif state.get("sunlight", 80) >= 35 and "sun_low" in self.notified_proactive_events:
                 self.notified_proactive_events.remove("sun_low")
 
-            # 2. Specific Time Triggers (12:00 Lunch, 18:00 Leaving, 21:00 Overtime)
+            # 2. Specific Time Triggers (12:00 Lunch, 15:30 Afternoon Care, 18:00 Leaving, 21:00 Overtime)
             if now.hour == 12 and now.minute <= 15:
                 if f"lunch_{today}" not in self.notified_proactive_events:
                     self.notified_proactive_events.add(f"lunch_{today}")
                     self.trigger_proactive_speech("lunch")
+
+            elif now.hour == 15 and 25 <= now.minute <= 45:
+                if f"afternoon_{today}" not in self.notified_proactive_events:
+                    self.notified_proactive_events.add(f"afternoon_{today}")
+                    self.trigger_proactive_speech("afternoon_care")
 
             elif now.hour == 18 and now.minute <= 15:
                 if f"leave_{today}" not in self.notified_proactive_events:

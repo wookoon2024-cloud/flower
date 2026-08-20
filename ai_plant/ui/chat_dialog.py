@@ -311,16 +311,16 @@ class ChatDialog(QDialog):
         chips_vbox.setContentsMargins(6, 6, 6, 6)
         chips_vbox.setSpacing(5)
 
-        # Chip Row 1: Emotional Healing & Empathy
+        # Chip Row 1: Workplace Stress & Counseling (상사/팀원/업무 고민상담)
         row1 = QHBoxLayout()
         row1.setSpacing(5)
         r1_chips = [
-            ("🌿 오늘 하루 위로해줘", "오늘 하루 너무 수고 많았다고 따뜻하게 위로해줘 🌸"),
-            ("✨ 비타민 응원", "기운 팍팍 나는 비타민 같은 응원 한마디 부탁해! ☀️"),
-            ("☕ 피로회복 스트레칭", "나른한데 3분 스트레칭 방법 추천해줘 💧")
+            ("🍵 직장 고민 상담소", f"{plant_name}아, 오늘 회사에서 스트레스 받는 일이 있었는데 내 이야기 좀 들어줘...", True),
+            ("👔 상사·동료 갈등 털어놓기", f"{plant_name}아, 오늘 계장님/과장님/팀원 때문에 답답하고 속상한 일이 있어: ", False),
+            ("📑 업무 과부하 토닥토닥", f"{plant_name}아, 일이 너무 몰리고 지쳐서 번아웃 올 것 같아... 힐링 위로 부탁해 🌸", True)
         ]
-        for label, full_prompt in r1_chips:
-            btn = self.create_chip_btn(label, full_prompt, direct_send=True)
+        for label, prompt_or_prefix, is_direct in r1_chips:
+            btn = self.create_chip_btn(label, prompt_or_prefix, direct_send=is_direct)
             row1.addWidget(btn)
         chips_vbox.addLayout(row1)
 
