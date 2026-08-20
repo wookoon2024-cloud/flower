@@ -1195,104 +1195,191 @@ class PlantCharacterWidget(QWidget):
         painter.restore()
 
     def _draw_pet_companion(self, painter: QPainter):
-        """Draw cute animated pet companion (고양이/강아지/토끼) on the floor beside the pot."""
+        """Draw ultra-cute, detailed, animated pet companion (아기냥이/토끼/강아지) on the floor."""
         if self.equipped_pet == "none":
             return
 
         p_id = self.equipped_pet
         x = self.pet_x
-        # Ground floor level: feet touch the bottom!
         floor_y = self.height() - 2
         state = self.pet_state
         frame = self.pet_frame
 
         painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.translate(x, floor_y)
         if self.pet_dir < 0 and state != "sleeping":
             painter.scale(-1, 1)
 
-        # 1. Cats (Calico & Black Tuxedo)
+        # -------------------------------------------------------------
+        # 1. 🐱 Baby Kitten (삼색 아기냥이 & 턱시도냥이)
+        # -------------------------------------------------------------
         if p_id in ["cat_calico", "cat_black"]:
             is_black = (p_id == "cat_black")
-            body_color = QColor("#1E293B") if is_black else QColor("#FFFDF5")
-            belly_color = QColor("#F8FAFC")
+            coat_main = QColor("#1E293B") if is_black else QColor("#FFFFFF")
+            outline_pen = QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.1)
             ear_inner = QColor("#FDA4AF")
-            tail_angle = math.sin(frame * 0.18) * 20.0
+            blush_color = QColor(251, 113, 133, 140)
 
             if state == "sleeping":
-                # Donut sleeping cat on the floor
-                breath = math.sin(frame * 0.08) * 1.0
-                painter.setBrush(body_color)
-                painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-12, -12 - breath, 24, 12 + breath))
+                # Donut sleeping baby kitten
+                breath = math.sin(frame * 0.08) * 0.8
+                # Body shadow
+                painter.setBrush(QColor(0, 0, 0, 30))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QRectF(-14, -4, 28, 6))
+
+                # Curled body
+                painter.setBrush(coat_main)
+                painter.setPen(outline_pen)
+                painter.drawEllipse(QRectF(-13, -13 - breath, 26, 13 + breath))
+
                 if not is_black:
+                    # Calico patches
                     painter.setBrush(QColor("#EA580C"))
-                    painter.drawEllipse(QRectF(-8, -10, 8, 6))
-                painter.setPen(QPen(QColor("#475569") if is_black else QColor("#78350F"), 1.2))
-                painter.drawArc(QRectF(2, -8, 6, 4), 0, 180 * 16)
-                painter.setPen(QPen(body_color, 2.5))
-                painter.drawArc(QRectF(-14, -7, 12, 8), 90 * 16, 180 * 16)
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawEllipse(QRectF(-9, -11 - breath, 8, 7))
+                    painter.setBrush(QColor("#334155"))
+                    painter.drawEllipse(QRectF(3, -12 - breath, 6, 5))
+
+                # Sleeping eyes (u u)
+                painter.setPen(QPen(QColor("#475569") if is_black else QColor("#78350F"), 1.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawArc(QRectF(2, -8 - breath, 5, 4), 0, 180 * 16)
+
+                # Curled tail over body
+                tail_curl = math.sin(frame * 0.12) * 1.5
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.setPen(QPen(coat_main, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawArc(QRectF(-16, -10 + tail_curl, 14, 10), 90 * 16, 180 * 16)
+
+                # zZZ floating text
                 if (frame // 25) % 2 == 0:
                     painter.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
-                    painter.setPen(QColor("#9333EA"))
-                    painter.drawText(QPointF(4, -15 - (frame % 25) * 0.3), "zZZ")
+                    painter.setPen(QColor("#A855F7"))
+                    painter.drawText(QPointF(6, -16 - (frame % 25) * 0.3), "zZZ")
+
             else:
-                step_y = math.sin(frame * 0.3) * 1.5 if state == "walking" else 0.0
-                # Tail
+                step_y = math.sin(frame * 0.35) * 2.0 if state == "walking" else 0.0
+                tail_sway = math.sin(frame * 0.2) * 22.0
+
+                # Floor shadow
+                painter.setBrush(QColor(0, 0, 0, 35))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QRectF(-10, -3, 20, 5))
+
+                # Fluffy Tail with sway
                 painter.save()
-                painter.translate(-7, -4)
-                painter.rotate(tail_angle)
-                painter.setPen(QPen(body_color, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-                painter.drawLine(0, 0, -7, -9)
+                painter.translate(-7, -6 - step_y)
+                painter.rotate(tail_sway)
+                painter.setPen(QPen(coat_main, 3.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawLine(0, 0, -6, -10)
+                if not is_black:
+                    # White tip on tail
+                    painter.setPen(QPen(QColor("#EA580C"), 3.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                    painter.drawLine(-3, -5, -6, -10)
                 painter.restore()
 
-                # Paws on floor
-                painter.setBrush(belly_color if is_black else body_color)
+                # Little Paws on floor
+                paw_color = QColor("#FFFFFF") if is_black else QColor("#FFFBEB")
+                painter.setBrush(paw_color)
                 painter.setPen(QPen(QColor("#CBD5E1") if not is_black else QColor("#0F172A"), 0.8))
-                painter.drawEllipse(QRectF(-7, -3 - step_y, 4, 3))
-                painter.drawEllipse(QRectF(3, -3 - step_y, 4, 3))
+                painter.drawEllipse(QRectF(-7, -3.5 - step_y, 4.5, 3.5))
+                painter.drawEllipse(QRectF(3, -3.5 - step_y, 4.5, 3.5))
 
-                # Body
-                painter.setBrush(body_color)
-                painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-8, -14 - step_y, 16, 13))
+                # Chubby Kitten Body
+                painter.setBrush(coat_main)
+                painter.setPen(outline_pen)
+                painter.drawEllipse(QRectF(-9, -16 - step_y, 18, 14))
 
-                # Bib
-                painter.setBrush(belly_color)
+                # White bib/chest fluff
+                painter.setBrush(QColor("#FFFFFF"))
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawEllipse(QRectF(-4, -11 - step_y, 8, 8))
+                painter.drawEllipse(QRectF(-4, -13 - step_y, 8, 9))
 
                 if not is_black:
+                    # Calico body spots
                     painter.setBrush(QColor("#EA580C"))
-                    painter.drawEllipse(QRectF(-6, -13 - step_y, 5, 5))
+                    painter.drawEllipse(QRectF(-8, -14 - step_y, 6, 6))
+                    painter.setBrush(QColor("#334155"))
+                    painter.drawEllipse(QRectF(3, -15 - step_y, 5, 5))
 
-                # Head
-                painter.setBrush(body_color)
-                painter.setPen(QPen(QColor("#0F172A") if is_black else QColor("#D97706"), 1.0))
-                painter.drawEllipse(QRectF(-7, -23 - step_y, 14, 12))
+                # Cute Collar with tiny Gold Bell
+                painter.setPen(QPen(QColor("#EF4444"), 2.0))
+                painter.drawLine(int(-5), int(-14 - step_y), int(5), int(-14 - step_y))
+                painter.setBrush(QColor("#FACC15")) # Gold bell
+                painter.setPen(QPen(QColor("#B45309"), 0.6))
+                painter.drawEllipse(QPointF(0, -13.5 - step_y), 1.8, 1.8)
 
-                # Ears
-                painter.setBrush(body_color)
-                painter.drawPolygon([QPointF(-6, -22 - step_y), QPointF(-8, -28 - step_y), QPointF(-2, -23 - step_y)])
-                painter.drawPolygon([QPointF(2, -23 - step_y), QPointF(8, -28 - step_y), QPointF(6, -22 - step_y)])
+                # Chubby Kitten Head (Big round cheeks)
+                painter.setBrush(coat_main)
+                painter.setPen(outline_pen)
+                painter.drawEllipse(QRectF(-9, -26 - step_y, 18, 14))
+
+                if not is_black:
+                    # Calico patch over left eye/ear
+                    painter.setBrush(QColor("#EA580C"))
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawEllipse(QRectF(-8, -26 - step_y, 7, 7))
+
+                # Kitten Ears
+                painter.setBrush(coat_main)
+                painter.setPen(outline_pen)
+                painter.drawPolygon([QPointF(-7, -24 - step_y), QPointF(-9, -31 - step_y), QPointF(-2, -26 - step_y)])
+                painter.drawPolygon([QPointF(2, -26 - step_y), QPointF(9, -31 - step_y), QPointF(7, -24 - step_y)])
+                # Inner ears (Pink)
                 painter.setBrush(ear_inner)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawPolygon([QPointF(-5, -22 - step_y), QPointF(-7, -26 - step_y), QPointF(-3, -23 - step_y)])
-                painter.drawPolygon([QPointF(3, -23 - step_y), QPointF(7, -26 - step_y), QPointF(5, -22 - step_y)])
+                painter.drawPolygon([QPointF(-6, -24 - step_y), QPointF(-8, -29 - step_y), QPointF(-3, -25 - step_y)])
+                painter.drawPolygon([QPointF(3, -25 - step_y), QPointF(8, -29 - step_y), QPointF(6, -24 - step_y)])
 
-                # Eyes & nose
-                painter.setBrush(QColor("#0F172A") if not is_black else QColor("#FEF08A"))
-                painter.drawEllipse(QRectF(-4, -19 - step_y, 2.5, 2.5))
-                painter.drawEllipse(QRectF(1.5, -19 - step_y, 2.5, 2.5))
+                # Pink Cheeks (Blush)
+                painter.setBrush(blush_color)
+                painter.drawEllipse(QPointF(-6, -19 - step_y), 2.2, 1.5)
+                painter.drawEllipse(QPointF(6, -19 - step_y), 2.2, 1.5)
+
+                # Eyes: Big glossy anime kitten eyes
+                if state == "greeting":
+                    # Happy eyes (^ ^)
+                    painter.setPen(QPen(QColor("#0F172A"), 1.3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                    painter.drawArc(QRectF(-5.5, -22 - step_y, 4, 3), 0, 180 * 16)
+                    painter.drawArc(QRectF(1.5, -22 - step_y, 4, 3), 0, 180 * 16)
+                else:
+                    eye_color = QColor("#10B981") if is_black else QColor("#0284C7")
+                    # Eye base
+                    painter.setBrush(eye_color)
+                    painter.setPen(QPen(QColor("#0F172A"), 0.8))
+                    painter.drawEllipse(QRectF(-5.5, -22 - step_y, 3.8, 4.2))
+                    painter.drawEllipse(QRectF(1.7, -22 - step_y, 3.8, 4.2))
+                    # Pupil
+                    painter.setBrush(QColor("#0F172A"))
+                    painter.drawEllipse(QRectF(-4.5, -21 - step_y, 2.2, 2.8))
+                    painter.drawEllipse(QRectF(2.7, -21 - step_y, 2.2, 2.8))
+                    # Dual Sparkle Highlights (Gleam)
+                    painter.setBrush(QColor("#FFFFFF"))
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawEllipse(QPointF(-4.5, -21.2 - step_y), 0.9, 0.9)
+                    painter.drawEllipse(QPointF(2.7, -21.2 - step_y), 0.9, 0.9)
+                    painter.drawEllipse(QPointF(-3.2, -19.5 - step_y), 0.5, 0.5)
+                    painter.drawEllipse(QPointF(4.0, -19.5 - step_y), 0.5, 0.5)
+
+                # Cute Pink Nose & 'ω' Mouth
                 painter.setBrush(QColor("#FDA4AF"))
-                painter.drawPolygon([QPointF(-1, -16 - step_y), QPointF(1, -16 - step_y), QPointF(0, -15 - step_y)])
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawPolygon([QPointF(-1, -17.5 - step_y), QPointF(1, -17.5 - step_y), QPointF(0, -16.5 - step_y)])
+                painter.setPen(QPen(QColor("#64748B"), 0.8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawArc(QRectF(-2.2, -16.5 - step_y, 2.2, 2.0), 0, -180 * 16)
+                painter.drawArc(QRectF(0.0, -16.5 - step_y, 2.2, 2.0), 0, -180 * 16)
 
                 # Whiskers
                 painter.setPen(QPen(QColor("#CBD5E1") if is_black else QColor("#94A3B8"), 0.8))
-                painter.drawLine(QPointF(-5, -16 - step_y), QPointF(-9, -17 - step_y))
-                painter.drawLine(QPointF(5, -16 - step_y), QPointF(9, -17 - step_y))
+                painter.drawLine(QPointF(-6, -17.5 - step_y), QPointF(-11, -18.5 - step_y))
+                painter.drawLine(QPointF(-6, -16.5 - step_y), QPointF(-10, -16.0 - step_y))
+                painter.drawLine(QPointF(6, -17.5 - step_y), QPointF(11, -18.5 - step_y))
+                painter.drawLine(QPointF(6, -16.5 - step_y), QPointF(10, -16.0 - step_y))
 
-        # 2. Dogs (Shiba & Golden Retriever)
+        # -------------------------------------------------------------
+        # 2. 🐶 Dogs (Shiba & Golden Retriever)
+        # -------------------------------------------------------------
         elif p_id in ["dog_shiba", "dog_retriever"]:
             is_retriever = (p_id == "dog_retriever")
             coat_color = QColor("#FDE047") if is_retriever else QColor("#D97706")
@@ -1301,6 +1388,10 @@ class PlantCharacterWidget(QWidget):
 
             if state == "sleeping":
                 breath = math.sin(frame * 0.08) * 1.0
+                painter.setBrush(QColor(0, 0, 0, 30))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QRectF(-14, -4, 28, 6))
+
                 painter.setBrush(coat_color)
                 painter.setPen(QPen(QColor("#92400E"), 1.0))
                 painter.drawEllipse(QRectF(-13, -12 - breath, 26, 12 + breath))
@@ -1319,7 +1410,7 @@ class PlantCharacterWidget(QWidget):
                 painter.save()
                 painter.translate(-8, -5)
                 painter.rotate(tail_angle)
-                painter.setPen(QPen(coat_color, 3.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.setPen(QPen(coat_color, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
                 painter.drawLine(0, 0, -8, -10 if not is_retriever else -6)
                 painter.restore()
 
@@ -1359,39 +1450,128 @@ class PlantCharacterWidget(QWidget):
                 painter.drawEllipse(QRectF(-4, -20 - step_y, 2.5, 2.5))
                 painter.drawEllipse(QRectF(2, -20 - step_y, 2.5, 2.5))
 
-        # 3. Bunny (White Fluffy Bunny)
+        # -------------------------------------------------------------
+        # 3. 🐰 Fluffy Mochiko White Bunny (복토끼)
+        # -------------------------------------------------------------
         elif p_id == "bunny_white":
-            hop_y = abs(math.sin(frame * 0.35)) * 4.0 if state == "walking" else 0.0
+            hop_y = abs(math.sin(frame * 0.4)) * 5.0 if state == "walking" else 0.0
+            ear_twitch = math.sin(frame * 0.25) * 2.5
+
             if state == "sleeping":
+                # Loafing Sleeping Bunny
+                breath = math.sin(frame * 0.08) * 0.8
+                painter.setBrush(QColor(0, 0, 0, 30))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QRectF(-12, -4, 24, 6))
+
+                painter.setBrush(QColor("#FFFFFF"))
+                painter.setPen(QPen(QColor("#CBD5E1"), 1.1))
+                painter.drawEllipse(QRectF(-11, -11 - breath, 22, 12 + breath))
+
+                # Fluffy round tail
+                painter.drawEllipse(QRectF(-14, -7 - breath, 6, 6))
+
+                # Soft closed smile eye
+                painter.setPen(QPen(QColor("#EC4899"), 1.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawArc(QRectF(2, -7 - breath, 5, 4), 0, 180 * 16)
+
+                # Folded ears on back
                 painter.setBrush(QColor("#FFFFFF"))
                 painter.setPen(QPen(QColor("#CBD5E1"), 1.0))
-                painter.drawEllipse(QRectF(-10, -9, 20, 12))
-                painter.setPen(QPen(QColor("#FDA4AF"), 1.2))
-                painter.drawArc(QRectF(2, -6, 5, 3), 0, 180 * 16)
+                painter.drawEllipse(QRectF(-8, -13 - breath, 12, 4.5))
+
                 if (frame // 25) % 2 == 0:
                     painter.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
                     painter.setPen(QColor("#EC4899"))
-                    painter.drawText(QPointF(3, -12 - (frame % 25) * 0.3), "zZZ")
+                    painter.drawText(QPointF(4, -14 - (frame % 25) * 0.3), "zZZ")
+
             else:
+                # Shadow that shrinks when hopping
+                shadow_scale = max(0.5, 1.0 - (hop_y / 8.0))
+                painter.setBrush(QColor(0, 0, 0, int(35 * shadow_scale)))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QRectF(-11 * shadow_scale, -3, 22 * shadow_scale, 5))
+
+                # Fluffy Tail (Cotton ball)
                 painter.setBrush(QColor("#FFFFFF"))
                 painter.setPen(QPen(QColor("#CBD5E1"), 1.0))
-                painter.drawEllipse(QRectF(-11, -3 - hop_y, 5, 5))
-                painter.drawEllipse(QRectF(-8, -13 - hop_y, 16, 14))
+                painter.drawEllipse(QRectF(-12, -8 - hop_y, 6.5, 6.5))
 
-                painter.drawEllipse(QRectF(-5, -21 - hop_y, 13, 11))
+                # Chubby Pear Body
+                painter.setBrush(QColor("#FFFFFF"))
+                painter.setPen(QPen(QColor("#CBD5E1"), 1.1))
+                painter.drawEllipse(QRectF(-9, -16 - hop_y, 18, 15))
 
-                ear_twitch = math.sin(frame * 0.2) * 2.0
-                painter.drawEllipse(QRectF(-4 + ear_twitch, -31 - hop_y, 4.5, 12))
-                painter.drawEllipse(QRectF(2 - ear_twitch, -31 - hop_y, 4.5, 12))
+                # Front Paws (Tucked cutely)
+                painter.drawEllipse(QRectF(-4, -4.5 - hop_y, 4.5, 4.0))
+                painter.drawEllipse(QRectF(1.5, -4.5 - hop_y, 4.5, 4.0))
+
+                # Round Fluffy Head
+                painter.drawEllipse(QRectF(-8, -25 - hop_y, 16, 13))
+
+                # Long Bunny Ears (with Twitch animation)
+                painter.save()
+                # Left Ear
+                painter.translate(-4, -24 - hop_y)
+                painter.rotate(-8 + ear_twitch)
+                painter.setBrush(QColor("#FFFFFF"))
+                painter.setPen(QPen(QColor("#CBD5E1"), 1.0))
+                painter.drawRoundedRect(QRectF(-2.5, -13, 5.0, 14), 2.5, 2.5)
+                painter.setBrush(QColor("#FCE7F3")) # Soft pink inside
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawRoundedRect(QRectF(-1.5, -11, 3.0, 10), 1.5, 1.5)
+                painter.restore()
+
+                # Right Ear
+                painter.save()
+                painter.translate(4, -24 - hop_y)
+                painter.rotate(8 - ear_twitch)
+                painter.setBrush(QColor("#FFFFFF"))
+                painter.setPen(QPen(QColor("#CBD5E1"), 1.0))
+                painter.drawRoundedRect(QRectF(-2.5, -13, 5.0, 14), 2.5, 2.5)
                 painter.setBrush(QColor("#FCE7F3"))
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawEllipse(QRectF(-3 + ear_twitch, -29 - hop_y, 2.5, 9))
-                painter.drawEllipse(QRectF(3 - ear_twitch, -29 - hop_y, 2.5, 9))
+                painter.drawRoundedRect(QRectF(-1.5, -11, 3.0, 10), 1.5, 1.5)
+                painter.restore()
 
-                painter.setBrush(QColor("#EC4899"))
-                painter.drawEllipse(QRectF(-2, -17 - hop_y, 2.2, 2.2))
-                painter.drawEllipse(QRectF(3, -17 - hop_y, 2.2, 2.2))
+                # Pink Blush Cheeks
+                painter.setBrush(QColor(244, 114, 182, 130))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QPointF(-5.5, -19 - hop_y), 2.5, 1.8)
+                painter.drawEllipse(QPointF(5.5, -19 - hop_y), 2.5, 1.8)
+
+                # Ruby Sparkle Eyes
+                if state == "greeting":
+                    painter.setPen(QPen(QColor("#BE185D"), 1.3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                    painter.drawArc(QRectF(-5, -21 - hop_y, 4, 3), 0, 180 * 16)
+                    painter.drawArc(QRectF(1, -21 - hop_y, 4, 3), 0, 180 * 16)
+                else:
+                    painter.setBrush(QColor("#DB2777")) # Ruby Pink
+                    painter.setPen(QPen(QColor("#9D174D"), 0.8))
+                    painter.drawEllipse(QRectF(-5.2, -22 - hop_y, 3.6, 4.0))
+                    painter.drawEllipse(QRectF(1.6, -22 - hop_y, 3.6, 4.0))
+                    # Eye Gleam Highlights
+                    painter.setBrush(QColor("#FFFFFF"))
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawEllipse(QPointF(-4.2, -21.2 - hop_y), 0.9, 0.9)
+                    painter.drawEllipse(QPointF(2.6, -21.2 - hop_y), 0.9, 0.9)
+                    painter.drawEllipse(QPointF(-3.2, -19.5 - hop_y), 0.5, 0.5)
+                    painter.drawEllipse(QPointF(3.6, -19.5 - hop_y), 0.5, 0.5)
+
+                # Y-shaped Twitching Nose & ω Mouth
+                nose_y = -17.5 - hop_y + math.sin(frame * 0.3) * 0.5
                 painter.setBrush(QColor("#FDA4AF"))
-                painter.drawEllipse(QRectF(1, -14 - hop_y, 2.0, 1.5))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(QPointF(0, nose_y), 1.3, 1.0)
+                painter.setPen(QPen(QColor("#94A3B8"), 0.8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                painter.drawArc(QRectF(-2.0, nose_y, 2.0, 1.8), 0, -180 * 16)
+                painter.drawArc(QRectF(0.0, nose_y, 2.0, 1.8), 0, -180 * 16)
+
+                # Cute Whiskers
+                painter.setPen(QPen(QColor("#CBD5E1"), 0.8))
+                painter.drawLine(QPointF(-5, nose_y), QPointF(-9, nose_y - 1.0))
+                painter.drawLine(QPointF(-5, nose_y + 1.0), QPointF(-8.5, nose_y + 2.0))
+                painter.drawLine(QPointF(5, nose_y), QPointF(9, nose_y - 1.0))
+                painter.drawLine(QPointF(5, nose_y + 1.0), QPointF(8.5, nose_y + 2.0))
 
         painter.restore()
