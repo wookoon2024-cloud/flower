@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.5.9-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.6.0-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.6.0`** | 2026-08-20 | • **말풍선 페이징 표시 시간 1초 연장(4.5초) & 대화창 오픈 시 위젯 말풍선 출력 100% 원천 차단**<br>• **대화창 오픈 시 위젯 말풍선 중복 노출 완전 박멸:** `start_ai_chat`, `on_ai_response_received`, `trigger_proactive_speech`, `on_proactive_response_received` 전 구간에서 대화창(`ChatDialog`)이 열려 있을 경우 위젯 바탕화면 말풍선 스트리밍 및 최종 답변 팝업을 100% 차단하고 대화창 내에만 표시<br>• **장문 페이징 표시 시간 1초 연장 (3.5초 ➡️ 4.5초):** 1/3, 2/3 등 여러 페이지로 나뉘어 순차 흐름되는 장문 말풍선이 너무 빨리 지나가지 않도록 각 페이지당 노출 시간을 4.5초(마지막 페이지 5.5초)로 1초 더 여유롭게 늘려 편안한 독서 보장 |
 | **`v1.5.9`** | 2026-08-20 | • **환경설정창 타이틀바 닫기(X) 버튼 및 상단 전용 닫기 버튼 완벽 활성화**<br>• **원인 해결:** 기존 환경설정창(`SettingsDialog`)이 일반 다이얼로그 모드로 생성되면서 Windows 타이틀바 닫기(`X`) 버튼 플래그가 누락되어 닫기가 안 되던 문제를 해결<br>• **네이티브 닫기 플래그 & 상단 닫기 ✕ 버튼 탑재:** `WindowCloseButtonHint` 및 `WindowMinimizeButtonHint`를 명시적으로 등록하고, 대화창과 동일하게 상단 헤더에 깔끔한 **`닫기 ✕` 버튼**을 추가하여 타이틀바 X 버튼, 상단 닫기 버튼, 하단 취소 버튼, ESC 키 어디로든 즉시 창을 닫을 수 있도록 개선 |
 | **`v1.5.8`** | 2026-08-20 | • **온라인 AI API 서비스 종료 대비 영구 자체 힐링 마음지킴이 모드 & 만료 인지 시스템 탑재**<br>• **API 만료/종료 자동 인지 및 친절한 전환 안내:** 올해 말 또는 향후 CLOVA Studio API 연동이 만료되거나 중단되더라도 프로그램이 멈추거나 에러를 뿜지 않고, *"온라인 AI API 서비스가 종료되어, 이제부터는 초록이의 [자체 힐링 마음지킴이 모드]로 대화가 진행돼요! 언제나 곁에서 응원할게요 🌸"*라고 따뜻하게 안내하며 매끄럽게 전환<br>• **100여 종 이상의 자체 감성 힐링 대사 풀 대폭 확장:** 상사/팀원과의 직장 스트레스, 인사/평가, 월요병, 칼퇴/주말, 민원 과부하, 위로와 칭찬 등 15개 이상의 핵심 상황별로 정교한 휴리스틱 감성 대사 풀을 구축하여 인터넷망/폐쇄망/API 종료 후에도 영구적으로 살아 숨 쉬는 반려화분 대화 지원<br>• **대화창 실시간 연결 상태 배지 표시:** 대화창 상단에 `🟢 AI 온라인` / `🌿 자체 힐링 모드` 배지를 실시간으로 표시하여 사용자가 현재 대화 모드를 직관적으로 확인 가능 |
 | **`v1.5.7`** | 2026-08-20 | • **주기적 윈도우 최상위 API 호출 타이머 제거로 마우스 커서 로딩 깜빡임 완전 박멸**<br>• **원인 해결:** 2.5초마다 실행되던 윈도우 최상위 유지 타이머(`topmost_timer` ➡️ Win32 `SetWindowPos`)가 Windows 셸에 지속적으로 Z-Order 재배치를 통보하여, 업무망/VDI 마우스 커서가 2~3초 주기로 모래시계/빙빙 도는 로딩 커서로 깜빡이던 현상을 원천 차단<br>• **네이티브 최상위 유지 전환:** PySide6의 `WindowStaysOnTopHint` 네이티브 플래그와 클릭/생성 시 이벤트로만 최상위를 유지하도록 전환하여, 백그라운드 주기적 API 호출을 0회로 만들고 마우스 커서 깜빡임과 CPU 부하를 완벽히 제거 |

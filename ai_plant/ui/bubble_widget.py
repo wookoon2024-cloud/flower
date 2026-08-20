@@ -83,7 +83,7 @@ class SpeechBubbleWidget(QWidget):
         self.streamed_text = ""
         self.pages: List[str] = []
         self.current_page_idx = 0
-        self.page_duration_ms = 3500
+        self.page_duration_ms = 4500  # 4.5 seconds per page (1 second longer for comfortable reading)
 
         self.init_ui()
 

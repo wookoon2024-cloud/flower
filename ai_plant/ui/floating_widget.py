@@ -562,9 +562,11 @@ class FloatingPlantWindow(QWidget):
         """Triggers autonomous speech by the plant (Thirst, Sunlight, 1~2hr Idle Nudge, Lunch, Leaving)."""
         if not self.config.get("proactive_speech", True):
             return
+        is_chat_open = bool(self.chat_dialog and self.chat_dialog.isVisible())
         try:
             self._stop_existing_workers()
-            self.bubble.start_streaming()
+            if not is_chat_open:
+                self.bubble.start_streaming()
             history = self.db.get_recent_chat_history(limit=6)
             worker = AIChatWorker(
                 config=dict(self.config.config),
@@ -575,7 +577,8 @@ class FloatingPlantWindow(QWidget):
                 parent=self
             )
             self._active_workers.append(worker)
-            worker.chunk_received.connect(self.bubble.append_chunk)
+            if not is_chat_open:
+                worker.chunk_received.connect(self.bubble.append_chunk)
             worker.response_received.connect(self.on_proactive_response_received)
             worker.finished.connect(lambda w=worker: self._on_worker_finished(w))
             worker.start()
@@ -585,7 +588,12 @@ class FloatingPlantWindow(QWidget):
     def on_proactive_response_received(self, reply_text: str, is_fallback: bool, action_tags: list):
         try:
             self.db.add_chat_message("assistant", reply_text)
-            self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
+            is_chat_open = bool(self.chat_dialog and self.chat_dialog.isVisible())
+            if not is_chat_open:
+                self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
+            else:
+                self.bubble.hide_bubble()
+
             self.character.spawn_particle("heart")
             if self.chat_dialog:
                 self.chat_dialog.load_history()
@@ -628,7 +636,12 @@ class FloatingPlantWindow(QWidget):
                 self.engine.pet()
                 self.character.spawn_particle("heart")
 
-            self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
+            # Only show speech bubble on the widget if the chat dialog is NOT open!
+            is_chat_open = bool(self.chat_dialog and self.chat_dialog.isVisible())
+            if not is_chat_open:
+                self.bubble.finish_streaming(reply_text, self.config.get("bubble_duration_sec", 5))
+            else:
+                self.bubble.hide_bubble()
         except Exception as e:
             print(f"[FloatingPlantWindow] on_ai_response_received error: {e}")
 
