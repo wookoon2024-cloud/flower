@@ -5,6 +5,7 @@ Supports dynamic size scaling (70% ~ 150%) via settings dialog, right-click menu
 Bottom-aligned flowerpot design for 0-gap pixel-perfect taskbar & dock contact.
 """
 import os
+import random
 import datetime
 from typing import Dict, Any, Optional
 
@@ -38,6 +39,7 @@ class FloatingPlantWindow(QWidget):
         self.garden_dialog = None
         self.settings_dialog = None
         self.last_hourly_peek_hour = -1
+        self.last_pet_bubble_time = None
 
         self.init_window()
         self.init_ui()
@@ -174,7 +176,7 @@ class FloatingPlantWindow(QWidget):
         """Show menu on click above pot and keep open for 6 seconds."""
         self.control_bar.show()
         self.control_bar.raise_()
-        self.force_topmost()
+        self.raise_()
         self.menu_auto_close_timer.start(6000) # 6 seconds auto-close
         self.engine.pet()
 
@@ -686,7 +688,6 @@ class FloatingPlantWindow(QWidget):
         if always_on_top:
             self.raise_()
             self.activateWindow()
-            self.force_topmost()
 
         if self.chat_dialog:
             self.chat_dialog.refresh_header()
@@ -708,7 +709,7 @@ class FloatingPlantWindow(QWidget):
             self.is_dragging = False
             self.drag_start_pos = event.globalPosition().toPoint()
             self.window_start_pos = self.pos()
-            self.force_topmost()
+            self.raise_()
             event.accept()
         elif event.button() == Qt.MouseButton.RightButton:
             self.show_context_menu(event.globalPosition().toPoint())
@@ -766,7 +767,7 @@ class FloatingPlantWindow(QWidget):
                 # Direct click on floating window -> trigger menu show!
                 self.on_character_clicked()
             self.is_dragging = False
-            self.force_topmost()
+            self.raise_()
             # Save position
             pos = self.pos()
             self.config.set("window_pos_x", pos.x(), auto_save=False)
