@@ -36,7 +36,7 @@ class EcoVisitor:
     """
     Animated Environmental Creature & Magical Eco-Events:
     - 🐝 Bee (꿀벌)
-    - 🐛 Bug / Caterpillar (애벌레)
+    - 🐛 Bug / Earthworm / Caterpillar (바닥에서 기어서 화분을 타고 올라가는 지렁이/애벌레)
     - 🦋 Butterfly (나비)
     - 🐞 Ladybug (칠성무당벌레)
     - 🐦 Bluebird (아기 파랑새)
@@ -50,36 +50,46 @@ class EcoVisitor:
         self.canvas_h = canvas_h
         self.alive = True
         self.frame = 0
-        self.total_frames = random.randint(220, 300)  # ~7~10 seconds
+        self.total_frames = random.randint(230, 310)  # ~7~10 seconds
         self.wing_phase = 0.0
+        self.crawl_angle = 0.0
         self.state = "fly_in"  # "fly_in", "landed", "fly_out", "fleeing"
         self.is_fleeing = False
 
         if self.v_type == "bug":
+            # Crawls in from bottom floor, climbs up pot wall, nibbles leaf, climbs down
             self.side = random.choice([-1, 1])
-            self.start_x = float(canvas_w // 2 + self.side * 42)
-            self.start_y = float(canvas_h - 22)
-            self.target_x = float(canvas_w // 2 + self.side * 36)
-            self.target_y = float(canvas_h - 68)
+            self.start_x = -15.0 if self.side < 0 else float(canvas_w + 15)
+            self.start_y = float(canvas_h - 6)
+            self.pot_base_x = float(canvas_w // 2 + self.side * 22)
+            self.pot_base_y = float(canvas_h - 6)
+            self.pot_rim_x = float(canvas_w // 2 + self.side * 28)
+            self.pot_rim_y = float(canvas_h - 44)
+            self.pot_leaf_x = float(canvas_w // 2 + self.side * 16)
+            self.pot_leaf_y = float(canvas_h - 56)
+            self.target_x = self.pot_leaf_x
+            self.target_y = self.pot_leaf_y
             self.x, self.y = self.start_x, self.start_y
+            self.crawl_angle = 0.0
         elif self.v_type == "ladybug":
             self.side = random.choice([-1, 1])
-            self.start_x = float(canvas_w // 2 - self.side * 45)
-            self.start_y = float(canvas_h - 40)
-            self.target_x = float(canvas_w // 2 + self.side * 30)
-            self.target_y = float(canvas_h - 52)
+            self.start_x = float(canvas_w // 2 - self.side * 40)
+            self.start_y = float(canvas_h - 38)
+            self.target_x = float(canvas_w // 2 + self.side * 28)
+            self.target_y = float(canvas_h - 48)
             self.x, self.y = self.start_x, self.start_y
+            self.crawl_angle = 0.0
         elif self.v_type == "bird":
             self.from_left = random.choice([True, False])
             self.start_x = -25.0 if self.from_left else float(canvas_w + 25)
             self.start_y = float(random.randint(5, 25))
-            self.target_x = float(canvas_w // 2 + (-32 if self.from_left else 32))
-            self.target_y = float(canvas_h - 52)
+            self.target_x = float(canvas_w // 2 + (-30 if self.from_left else 30))
+            self.target_y = float(canvas_h - 50)
             self.x, self.y = self.start_x, self.start_y
         elif self.v_type == "cat_paw":
             self.start_x = float(canvas_w + 20)
             self.start_y = -15.0
-            self.target_x = float(canvas_w // 2 + 30)
+            self.target_x = float(canvas_w // 2 + 28)
             self.target_y = float(canvas_h // 2 - 12)
             self.x, self.y = self.start_x, self.start_y
         elif self.v_type == "rain_cloud":
@@ -98,33 +108,90 @@ class EcoVisitor:
             self.from_left = random.choice([True, False])
             self.start_x = -20.0 if self.from_left else float(canvas_w + 20)
             self.start_y = float(random.randint(8, 35))
-            self.target_x = float(canvas_w // 2 + random.randint(-22, 22))
-            self.target_y = float(canvas_h // 2 - random.randint(18, 38))
+            self.target_x = float(canvas_w // 2 + random.randint(-20, 20))
+            self.target_y = float(canvas_h // 2 - random.randint(18, 36))
             self.x, self.y = self.start_x, self.start_y
         else:  # butterfly
             self.from_left = random.choice([True, False])
             self.start_x = -25.0 if self.from_left else float(canvas_w + 25)
             self.start_y = float(random.randint(15, 45))
-            self.target_x = float(canvas_w // 2 + random.randint(-28, 28))
-            self.target_y = float(canvas_h // 2 - random.randint(8, 28))
+            self.target_x = float(canvas_w // 2 + random.randint(-24, 24))
+            self.target_y = float(canvas_h // 2 - random.randint(8, 26))
             self.x, self.y = self.start_x, self.start_y
 
     def update(self):
         self.frame += 1
         self.wing_phase += 0.45
 
+        # 1. Fleeing / Scared Behavior
         if self.is_fleeing:
-            self.y -= 4.5
-            self.x += (3.5 if self.x > self.canvas_w // 2 else -3.5)
-            if self.y < -40 or self.x < -50 or self.x > self.canvas_w + 50:
-                self.alive = False
+            if self.v_type == "bug":
+                # Drops to floor and scurries rapidly along the bottom taskbar floor!
+                self.y = min(float(self.canvas_h - 6), self.y + 4.0)
+                self.x += (-5.0 if self.side < 0 else 5.0)
+                self.crawl_angle = 0.0
+                if self.x < -30 or self.x > self.canvas_w + 30:
+                    self.alive = False
+                return
+            else:
+                self.y -= 4.5
+                self.x += (3.5 if self.x > self.canvas_w // 2 else -3.5)
+                if self.y < -40 or self.x < -50 or self.x > self.canvas_w + 50:
+                    self.alive = False
+                return
+
+        # 2. Bug (Earthworm / Caterpillar) Ground & Pot-climbing State Machine
+        if self.v_type == "bug":
+            p1 = 45                               # Crawl along floor to pot base
+            p2 = 85                               # Climb up pot wall to rim
+            p3 = 110                              # Reach leaf
+            p4 = self.total_frames - 75           # Nibble on leaf
+            p5 = self.total_frames - 40           # Climb down pot wall to floor
+            p6 = self.total_frames                # Crawl away along floor
+
+            if self.frame < p1:
+                self.state = "fly_in"
+                t = self.frame / float(p1)
+                self.x = self.start_x + (self.pot_base_x - self.start_x) * t
+                self.y = float(self.canvas_h - 6)
+                self.crawl_angle = 0.0
+            elif self.frame < p2:
+                self.state = "fly_in"
+                t = (self.frame - p1) / float(p2 - p1)
+                self.x = self.pot_base_x + (self.pot_rim_x - self.pot_base_x) * t
+                self.y = self.pot_base_y + (self.pot_rim_y - self.pot_base_y) * t
+                # Tilted along pot wall
+                self.crawl_angle = -62.0 if self.side < 0 else 62.0
+            elif self.frame < p3:
+                self.state = "fly_in"
+                t = (self.frame - p2) / float(p3 - p2)
+                self.x = self.pot_rim_x + (self.pot_leaf_x - self.pot_rim_x) * t
+                self.y = self.pot_rim_y + (self.pot_leaf_y - self.pot_rim_y) * t
+                self.crawl_angle = -25.0 if self.side < 0 else 25.0
+            elif self.frame < p4:
+                self.state = "landed"
+                self.x = self.pot_leaf_x + math.sin(self.wing_phase * 0.4) * 1.2
+                self.y = self.pot_leaf_y + math.cos(self.wing_phase * 0.3) * 0.6
+                self.crawl_angle = math.sin(self.wing_phase * 0.3) * 8.0
+            elif self.frame < p5:
+                self.state = "fly_out"
+                t = (self.frame - p4) / float(p5 - p4)
+                self.x = self.pot_leaf_x + (self.pot_base_x - self.pot_leaf_x) * t
+                self.y = self.pot_leaf_y + (self.pot_base_y - self.pot_leaf_y) * t
+                self.crawl_angle = 62.0 if self.side < 0 else -62.0
+            else:
+                self.state = "fly_out"
+                t = (self.frame - p5) / float(p6 - p5)
+                dest_x = -30.0 if self.side < 0 else float(self.canvas_w + 30)
+                self.x = self.pot_base_x + (dest_x - self.pot_base_x) * t
+                self.y = float(self.canvas_h - 6)
+                self.crawl_angle = 0.0
+                if self.frame >= self.total_frames:
+                    self.alive = False
             return
 
-        in_frames = 55
-        out_start = self.total_frames - 55
-
+        # 3. Rain Cloud Drifting
         if self.v_type == "rain_cloud":
-            # Cloud drifts slowly across from left to right
             t = self.frame / float(self.total_frames)
             self.x = -35.0 + t * (self.canvas_w + 70.0)
             self.y = 18.0 + math.sin(t * math.pi * 2) * 2.0
@@ -132,22 +199,26 @@ class EcoVisitor:
                 self.alive = False
             return
 
+        # 4. Fireflies Swarming
         if self.v_type == "firefly":
-            # Fireflies orbit smoothly in the center
             if self.frame >= self.total_frames:
                 self.alive = False
             return
+
+        # 5. Flying Visitors (Bee, Bird, Butterfly, Ladybug, Cat Paw)
+        in_frames = 55
+        out_start = self.total_frames - 55
 
         if self.frame < in_frames:
             self.state = "fly_in"
             t = self.frame / float(in_frames)
             t_ease = math.sin(t * math.pi / 2.0)
             self.x = self.start_x + (self.target_x - self.start_x) * t_ease
-            sine_wave = math.sin(t * math.pi * 3) * (8.0 if self.v_type not in ["bug", "ladybug", "cat_paw"] else 1.5)
+            sine_wave = math.sin(t * math.pi * 3) * (7.0 if self.v_type not in ["ladybug", "cat_paw"] else 1.2)
             self.y = self.start_y + (self.target_y - self.start_y) * t_ease + sine_wave
         elif self.frame < out_start:
             self.state = "landed"
-            hover_amp = 1.5 if self.v_type not in ["bug", "ladybug", "bird", "cat_paw"] else 0.3
+            hover_amp = 1.4 if self.v_type not in ["ladybug", "bird", "cat_paw"] else 0.3
             self.x = self.target_x + math.sin(self.wing_phase * 0.3) * hover_amp
             self.y = self.target_y + math.cos(self.wing_phase * 0.4) * hover_amp
         elif self.frame < self.total_frames:
@@ -481,32 +552,39 @@ class PlantCharacterWidget(QWidget):
                 painter.drawEllipse(QPointF(0, 9), 2.5, 2.5)
 
         elif v.v_type == "bug":
-            # 🐛 Cute Caterpillar / Bug
-            wiggle = math.sin(v.wing_phase * 0.7) * 2.2
-            colors = ["#84CC16", "#65A30D", "#4D7C0F", "#3F6212"]
+            # 🐛 Floor-Crawling & Pot-Climbing Inchworm / Caterpillar (바닥에서 기어서 화분을 오르는 지렁이/애벌레)
+            facing_dir = 1 if ((v.side < 0 and v.state != "fly_out") or (v.side > 0 and v.state == "fly_out")) else -1
+            painter.scale(facing_dir, 1)
+            painter.rotate(v.crawl_angle * facing_dir)
+
+            # Inchworm arching & crawling accordion animation (자벌레 U자 등 굽힘과 신축)
+            wiggle = math.sin(v.wing_phase * 0.9) * 2.2
+            colors = ["#4D7C0F", "#65A30D", "#84CC16", "#A3E635"]
             
             for idx in range(4):
-                seg_x = -idx * 5.2 + (wiggle if idx % 2 == 0 else -wiggle)
-                seg_y = math.sin(v.wing_phase + idx) * 1.5
+                # Arching back effect as it moves along the surface
+                seg_x = -idx * 4.2 + (wiggle * 0.35 if idx in [1, 2] else 0)
+                seg_y = (abs(wiggle) * -1.6) if idx in [1, 2] else 0.0
                 painter.setPen(QPen(QColor("#365314"), 1))
                 painter.setBrush(QColor(colors[idx]))
-                painter.drawEllipse(QRectF(seg_x - 4, seg_y - 4, 8, 8))
+                painter.drawEllipse(QRectF(seg_x - 3.5, seg_y - 3.5, 7, 7))
 
-            # Head
+            # Cute Head with feelers
             painter.setPen(QPen(QColor("#365314"), 1.2))
-            painter.setBrush(QColor("#A3E635"))
-            painter.drawEllipse(QRectF(3, -5, 10, 10))
+            painter.setBrush(QColor("#BEF264"))
+            painter.drawEllipse(QRectF(2.5, -4.5, 8, 8))
+            
             # Eye & Blush
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor("#1F2937"))
-            painter.drawEllipse(QRectF(8, -3, 2.5, 2.5))
+            painter.drawEllipse(QRectF(6.5, -3, 2, 2))
             painter.setBrush(QColor("#F472B6"))
-            painter.drawEllipse(QRectF(6, 1, 2.5, 2))
+            painter.drawEllipse(QRectF(5, 0.5, 2, 1.5))
 
-            # Bite crumbs when nibbling
+            # Nibbling crumbs when landed on leaf
             if v.state == "landed" and int(v.frame) % 16 < 8:
                 painter.setBrush(QColor("#65A30D"))
-                painter.drawEllipse(QPointF(14, 0), 2, 2)
+                painter.drawEllipse(QPointF(11, 0), 1.8, 1.8)
 
         elif v.v_type == "ladybug":
             # 🐞 Cute Ladybug (칠성무당벌레)
