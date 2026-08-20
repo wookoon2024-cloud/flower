@@ -689,9 +689,13 @@ class FloatingPlantWindow(QWidget):
     def mouseMoveEvent(self, event):
         if event.buttons() & Qt.MouseButton.LeftButton:
             curr_pos = event.globalPosition().toPoint()
-            # Only start dragging if mouse moved beyond threshold (6px)
+            if not hasattr(self, 'drag_start_pos') or self.drag_start_pos is None:
+                self.drag_start_pos = curr_pos
+                self.window_start_pos = self.pos()
+
+            # Only start dragging if mouse moved beyond threshold (5px)
             if not self.is_dragging:
-                if (curr_pos - self.drag_start_pos).manhattanLength() > 6:
+                if (curr_pos - self.drag_start_pos).manhattanLength() > 5:
                     self.is_dragging = True
                     self.menu_auto_close_timer.stop()
                     if self.control_bar.isVisible():

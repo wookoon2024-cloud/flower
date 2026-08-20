@@ -462,16 +462,45 @@ class PlantCharacterWidget(QWidget):
                 event.accept()
                 return
 
-            # 2. Regular Plant Pet / Touch
-            self.clicked.emit()
-            self.spawn_particle("heart")
-            self.expr_type = "happy"
-            self.expr_frame = 0
-            self.expr_total_frames = 25
-            self.expr_timer.start(33)
+            # 2. Start potential drag or click on plant
+            self.drag_start_pos = event.globalPosition().toPoint()
+            self.is_dragging = False
+            if self.parent():
+                self.parent().mousePressEvent(event)
             event.accept()
             return
         super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() & Qt.MouseButton.LeftButton:
+            curr_pos = event.globalPosition().toPoint()
+            if not getattr(self, 'is_dragging', False) and hasattr(self, 'drag_start_pos'):
+                if (curr_pos - self.drag_start_pos).manhattanLength() > 5:
+                    self.is_dragging = True
+            if getattr(self, 'is_dragging', False) and self.parent():
+                self.parent().mouseMoveEvent(event)
+                event.accept()
+                return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if not getattr(self, 'is_dragging', False):
+                # Clean Click on Plant!
+                self.clicked.emit()
+                self.spawn_particle("heart")
+                self.expr_type = "happy"
+                self.expr_frame = 0
+                self.expr_total_frames = 25
+                self.expr_timer.start(33)
+            else:
+                # Drag completed
+                if self.parent():
+                    self.parent().mouseReleaseEvent(event)
+            self.is_dragging = False
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
     def paintEvent(self, event):
         painter = QPainter(self)
