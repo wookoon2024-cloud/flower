@@ -6,12 +6,28 @@
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![Release](https://img.shields.io/badge/Release-v1.6.0-10B981?style=for-the-badge)
+![Updated](https://img.shields.io/badge/Updated-2026--08--20-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
 
 **공직자·직장인의 책상 위를 따뜻하게 밝혀주는 데스크톱 투명 플로팅 AI 반려식물 다마고치 위젯**<br>
 *업무 피로와 스트레스 케어, 5종 품종 육성, 100종 업적 도감, 범정부 AI 및 OpenAI/로컬 LLM 완벽 연동*
+
+<br>
+
+---
+
+### 📥 최신 버전 원클릭 다운로드 (Direct Download)
+
+| 릴리즈 버전 | 최종 업데이트 | 배포 패키지 파일명 | 바로가기 링크 |
+| :---: | :---: | :---: | :---: |
+| **`v1.6.0` (최신 정식 버전)** | **`2026-08-20`** | `마음지킴이_소스_v1.6.0.zip` | [**📥 소스코드 패키지 즉시 다운로드 (ZIP)**](https://github.com/wookoon2024-cloud/flower/raw/main/%EB%A7%88%EC%9D%8C%EC%A7%80%ED%82%B4%EC%9D%B4_%EC%86%8C%EC%8A%A4_v1.6.0.zip) |
+
+> 🔒 **업무망/폐쇄망 보안 적합:** 사내 보안망 전송 규격에 맞추어 `.exe` 등 실행 파일이 제외된 **순수 파이썬 소스(`.py` 22개) + 고화질 그래픽 에셋(`.png` 40개)**으로만 구성되어 있습니다.  
+> 🚀 **실행 방법:** 압축 해제 후 `python main.py` 실행 (또는 `python build_exe.py` 실행 시 단독 `마음지킴이.exe` 생성 가능)
+
+---
 
 <br>
 
