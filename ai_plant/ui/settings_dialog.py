@@ -22,8 +22,12 @@ class SettingsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("⚙️ 반려화분 환경 설정")
-        self.resize(480, 440)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
+        self.resize(500, 480)
+        self.setWindowFlags(
+            Qt.WindowType.Window |
+            Qt.WindowType.WindowCloseButtonHint |
+            Qt.WindowType.WindowMinimizeButtonHint
+        )
         self.setStyleSheet("""
             QDialog {
                 background-color: #F8FAFC;
@@ -56,8 +60,41 @@ class SettingsDialog(QDialog):
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(10)
+
+        # Header Row (Title + Close Button)
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 4)
+
+        title_lbl = QLabel("⚙️ <b>환경 설정</b>", self)
+        title_lbl.setStyleSheet("color: #334155; font-size: 14px;")
+
+        self.btn_header_close = QPushButton("닫기 ✕", self)
+        self.btn_header_close.setAutoDefault(False)
+        self.btn_header_close.setDefault(False)
+        self.btn_header_close.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_header_close.setStyleSheet("""
+            QPushButton {
+                background-color: #F1F5F9;
+                border: 1px solid #CBD5E1;
+                border-radius: 6px;
+                padding: 3px 8px;
+                font-size: 11px;
+                color: #64748B;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #FEE2E2;
+                border-color: #FCA5A5;
+                color: #DC2626;
+            }
+        """)
+        self.btn_header_close.clicked.connect(self.close)
+
+        header_row.addWidget(title_lbl, 1)
+        header_row.addWidget(self.btn_header_close, 0)
+        layout.addLayout(header_row)
 
         # Tabs
         tabs = QTabWidget(self)
@@ -394,11 +431,11 @@ class SettingsDialog(QDialog):
             QMessageBox.information(self, "완료", "화분이 새싹(1단계)으로 초기화되었습니다.")
 
     def accept(self):
-        """Prevent default QDialog closing on Enter key."""
-        pass
+        """Save settings and close on accept."""
+        self.save_settings()
 
     def reject(self):
-        self.hide()
+        self.close()
 
     def closeEvent(self, event):
         self.hide()
