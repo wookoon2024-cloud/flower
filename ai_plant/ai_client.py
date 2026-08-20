@@ -7,6 +7,7 @@ Supports:
 4. Dynamic Context & Metadata Injection (State, Stage, Time, Sliding Window).
 5. Proactive Speech Engine (Thirst/Sunlight alert, 1~2hr idle nudge, Lunch/Leaving time triggers).
 6. Rich Offline Fallback System for intranet/closed-network environments.
+7. 100% Rock-Solid QThread Lifecycle Protection (No 'Destroyed while thread is running').
 """
 import os
 import re
@@ -184,6 +185,7 @@ class AIChatWorker(QThread):
     - 429/5xx Exponential Backoff Retries
     - Context Sliding Window & State Metadata Injection
     - Proactive Speech Modes (Thirst, Sunlight, 1~2hr Idle Nudge, Lunch/Leaving Time)
+    - Controlled Lifecycle & Stop Signals
     """
     chunk_received = Signal(str)                         # (token_chunk) for typing effect
     response_received = Signal(str, bool, list)          # (full_reply, is_fallback, action_tags)
@@ -195,7 +197,7 @@ class AIChatWorker(QThread):
         plant_state: dict,
         chat_history: List[Dict[str, Any]],
         user_message: str,
-        proactive_mode: Optional[str] = None,  # "thirsty", "hungry_sun", "idle_nudge", "lunch", "leave_work", "overtime"
+        proactive_mode: Optional[str] = None,
         parent=None
     ):
         super().__init__(parent)
@@ -204,6 +206,11 @@ class AIChatWorker(QThread):
         self.chat_history = chat_history
         self.user_message = user_message
         self.proactive_mode = proactive_mode
+        self._is_running = True
+
+    def stop(self):
+        """Signals the worker to terminate gracefully."""
+        self._is_running = False
 
     def run(self):
         try:
@@ -292,6 +299,9 @@ class AIChatWorker(QThread):
             # 3. Request with Exponential Backoff (429 Rate-Limit / 5xx Server Errors)
             full_reply = ""
             for attempt in range(max_retries):
+                if not self._is_running:
+                    return
+
                 try:
                     response = requests.post(
                         endpoint,
@@ -319,7 +329,7 @@ class AIChatWorker(QThread):
                             elif "content" in data:
                                 full_reply = str(data["content"])
 
-                        if full_reply.strip():
+                        if full_reply.strip() and self._is_running:
                             cleaned, actions = parse_action_tags(full_reply)
                             self.response_received.emit(cleaned, False, actions)
                             return
@@ -330,29 +340,33 @@ class AIChatWorker(QThread):
                         break
                 except requests.exceptions.RequestException as req_err:
                     print(f"[AIChatWorker] Attempt {attempt+1} failed: {req_err}")
-                    if attempt < max_retries - 1:
+                    if attempt < max_retries - 1 and self._is_running:
                         time.sleep(2 ** attempt)
                     else:
                         break
 
             # If all retries failed, switch seamlessly to offline fallback
-            fallback_key = self.proactive_mode if self.proactive_mode else self.user_message
-            raw_reply = select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
-            cleaned, actions = parse_action_tags(raw_reply)
-            self._stream_fallback_simulation(cleaned, actions)
+            if self._is_running:
+                fallback_key = self.proactive_mode if self.proactive_mode else self.user_message
+                raw_reply = select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
+                cleaned, actions = parse_action_tags(raw_reply)
+                self._stream_fallback_simulation(cleaned, actions)
 
         except Exception as e:
             print(f"[AIChatWorker] Unhandled exception: {e}")
-            user_name = format_clean_user_name(self.config.get("user_nickname", "공직자님"))
-            plant_name = str(self.config.get("plant_name", "초록이"))
-            raw_reply = select_fallback_response("default", user_name, plant_name, self.plant_state)
-            cleaned, actions = parse_action_tags(raw_reply)
-            self.response_received.emit(cleaned, True, actions)
+            if self._is_running:
+                user_name = format_clean_user_name(self.config.get("user_nickname", "공직자님"))
+                plant_name = str(self.config.get("plant_name", "초록이"))
+                raw_reply = select_fallback_response("default", user_name, plant_name, self.plant_state)
+                cleaned, actions = parse_action_tags(raw_reply)
+                self.response_received.emit(cleaned, True, actions)
 
     def _parse_sse_stream(self, response: requests.Response) -> str:
         """Parses Server-Sent Events (SSE) stream chunks and emits real-time tokens."""
         collected = []
         for line in response.iter_lines():
+            if not self._is_running:
+                break
             if not line:
                 continue
             line_str = line.decode("utf-8", errors="ignore").strip()
@@ -365,7 +379,7 @@ class AIChatWorker(QThread):
                     if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                         choice = chunk_json["choices"][0]
                         delta = choice.get("delta", {}).get("content", "") or choice.get("text", "")
-                        if delta:
+                        if delta and self._is_running:
                             collected.append(delta)
                             self.chunk_received.emit(delta)
                 except Exception:
@@ -376,6 +390,9 @@ class AIChatWorker(QThread):
         """Simulates smooth typing streaming for offline fallback dialogue."""
         if self.config.get("stream_enabled", True):
             for ch in text:
+                if not self._is_running:
+                    return
                 self.chunk_received.emit(ch)
                 time.sleep(0.015)
-        self.response_received.emit(text, True, actions)
+        if self._is_running:
+            self.response_received.emit(text, True, actions)

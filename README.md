@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.1.1-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.1.2-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.1.2`** | 2026-08-20 | • **QThread 비동기 작업 스레드 수명 주기(Lifecycle) 및 종료 안전성 완벽 패치**<br>• 비동기 워커(`AIChatWorker`)에 `stop()` 제어 플래그 및 부모 위젯 계층(`parent=self`) 바인딩 적용<br>• 이전 작업 스레드 안전 대기(`_stop_existing_workers`) 및 앱 종료(`aboutToQuit`) 시 스레드 리소스 정상 회수(Graceful Join) 보장으로 `QThread: Destroyed while thread is still running` 예외 원천 해결 |
 | **`v1.1.1`** | 2026-08-20 | • **대화창 자동 스크롤 하단 추적(Auto-Scroll Range Tracking) 완벽 적용**<br>• 메시지 전송 및 답변 수신 시 캔버스 높이 변화(`rangeChanged`)를 즉각 감지하여 항상 최신 말풍선이 위치한 맨 아래로 스크롤 이동 보장<br>• **이중 AI 엔진 (Dual Engine) 안내**: API Key 미입력 시 내장 대사 풀로 100% 자동 응답, API Key/엔드포인트 입력 시 실제 CLOVA Studio GOV / OpenAI LLM 스트리밍 대화 완벽 동작 |
 | **`v1.1.0`** | 2026-08-20 | • **CLOVA Studio GOV API 연동 & 대화 고도화 (대화 기억 + 자발적 말걸기 + 실시간 스트리밍)**<br>• 공공 전용 LLM **CLOVA Studio GOV (`HCX-GOV-THINK-V1-32B`)** 및 SSE 실시간 스트리밍(`stream: true`) 연동으로 말풍선 실시간 타이핑 효과 구현<br>• 최근 6턴 슬라이딩 윈도우 대화 기억 및 화분 상태 메타데이터(`[품종, 단계, 수분, 햇빛, 애정도]`) 자동 주입<br>• **화분의 자발적 말걸기(Proactive Speech)** 시스템 탑재: 상태 이상(수분/햇빛 < 20%), 1~2시간 랜덤 넛지(장시간 집중 시 스트레칭 권유), 시간대별 알림(점심 12:00, 퇴근 18:00, 야근 21:00)<br>• 429(Rate Limit)/5xx 오류 대응 `Retry-After` 기반 지수 백오프(Exponential Backoff) 재시도 및 오프라인 폴백 방어 구축 |
 | **`v1.0.6`** | 2026-08-20 | • **모든 인터랙션 버튼 및 다이얼로그 전수 안전성 보강**<br>• 물주기·햇빛·화분 터치·대화·화원·설정 등 모든 버튼 클릭 핸들러에 예외 차단 가드 및 비차단 창 호출(Non-blocking Window Activation) 적용<br>• 표정 렌더링 시 QPainter 경계값 및 0-크기 예외 원천 방어로 버튼 조작 시 다운 현상 완전 해결 |

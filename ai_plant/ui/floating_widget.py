@@ -427,9 +427,23 @@ class FloatingPlantWindow(QWidget):
         except Exception as e:
             print(f"[FloatingPlantWindow] on_fortune_drawn error: {e}")
 
+    def _stop_existing_workers(self):
+        """Safely stops and joins any ongoing background AI worker threads."""
+        for w in list(self._active_workers):
+            try:
+                w.stop()
+                w.quit()
+                w.wait(400)
+            except Exception:
+                pass
+        self._active_workers.clear()
+
     def start_ai_chat(self, user_text: str):
         try:
             self.last_user_interaction_time = datetime.datetime.now()
+            # Stop previous worker if still running
+            self._stop_existing_workers()
+
             # 1. Extract recent history BEFORE saving current message
             history = self.db.get_recent_chat_history(limit=6)
 
@@ -445,12 +459,13 @@ class FloatingPlantWindow(QWidget):
             # 4. Start real-time streaming on speech bubble
             self.bubble.start_streaming()
 
-            # 5. Start async AI worker thread safely with lifetime tracking
+            # 5. Start async AI worker thread safely with parent=self
             worker = AIChatWorker(
                 config=dict(self.config.config),
                 plant_state=dict(self.engine.get_state()),
                 chat_history=list(history),
-                user_message=user_text
+                user_message=user_text,
+                parent=self
             )
             self._active_workers.append(worker)
             worker.chunk_received.connect(self.bubble.append_chunk)
@@ -467,6 +482,7 @@ class FloatingPlantWindow(QWidget):
         if not self.config.get("proactive_speech", True):
             return
         try:
+            self._stop_existing_workers()
             self.bubble.start_streaming()
             history = self.db.get_recent_chat_history(limit=6)
             worker = AIChatWorker(
@@ -474,7 +490,8 @@ class FloatingPlantWindow(QWidget):
                 plant_state=dict(self.engine.get_state()),
                 chat_history=list(history),
                 user_message="",
-                proactive_mode=mode
+                proactive_mode=mode,
+                parent=self
             )
             self._active_workers.append(worker)
             worker.chunk_received.connect(self.bubble.append_chunk)
@@ -495,9 +512,20 @@ class FloatingPlantWindow(QWidget):
             print(f"[FloatingPlantWindow] on_proactive_response_received error: {e}")
 
     def _on_worker_finished(self, worker):
-        if worker in self._active_workers:
-            self._active_workers.remove(worker)
-        worker.deleteLater()
+        try:
+            worker.wait(300)
+            if worker in self._active_workers:
+                self._active_workers.remove(worker)
+        except Exception:
+            pass
+
+    def cleanup_threads(self):
+        """Gracefully wait for all background worker threads before shutdown."""
+        self._stop_existing_workers()
+
+    def closeEvent(self, event):
+        self.cleanup_threads()
+        super().closeEvent(event)
 
     def on_ai_response_received(self, reply_text: str, is_fallback: bool, action_tags: list):
         try:

@@ -75,6 +75,7 @@ def main():
         window.apply_settings_changes()
         plant_engine.check_achievements()
 
+    app.aboutToQuit.connect(window.cleanup_threads)
     window.show()
 
     exit_code = app.exec()
