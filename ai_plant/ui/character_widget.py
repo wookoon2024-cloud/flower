@@ -459,7 +459,7 @@ class PlantCharacterWidget(QWidget):
                     self.expr_type = "happy"
                     self.expr_frame = 0
                     self.expr_total_frames = 30
-                    self.expr_timer.start(33)
+                    self._ensure_master_anim_running()
                 else:
                     self.visitor_greeted.emit(v_type)
                     if v_type in ["bird", "rain_cloud"]:
@@ -469,7 +469,7 @@ class PlantCharacterWidget(QWidget):
                     self.expr_type = "wink" if v_type != "cat_paw" else "tongue"
                     self.expr_frame = 0
                     self.expr_total_frames = 30
-                    self.expr_timer.start(33)
+                    self._ensure_master_anim_running()
                 event.accept()
                 return
 
@@ -503,7 +503,7 @@ class PlantCharacterWidget(QWidget):
                 self.expr_type = "happy"
                 self.expr_frame = 0
                 self.expr_total_frames = 25
-                self.expr_timer.start(33)
+                self._ensure_master_anim_running()
             else:
                 # Drag completed
                 if self.parent():
