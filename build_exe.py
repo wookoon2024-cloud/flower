@@ -24,15 +24,17 @@ def build():
         sys.executable,
         "-m", "PyInstaller",
         "--noconfirm",
-        "--onedir", # We will build onedir and/or onefile; onedir starts faster, onefile is convenient. Let's do onefile as requested
+        "--clean",
         "--onefile",
         "--windowed",
         f"--name=AICompanionPlant",
         f"--icon={icon_path}",
         f"--add-data={assets_src};assets",
+        f"--add-data=config.json;.",
         f"--hidden-import=PySide6",
         f"--hidden-import=requests",
         f"--hidden-import=sqlite3",
+        f"--hidden-import=urllib3",
         "main.py"
     ]
 

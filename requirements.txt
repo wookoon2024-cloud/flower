@@ -1,0 +1,6 @@
+# AI Companion Plant Widget (마음지킴이) Dependencies
+PySide6>=6.5.0
+requests>=2.28.0
+urllib3>=1.26.0
+Pillow>=9.0.0
+pyinstaller>=5.10.0
