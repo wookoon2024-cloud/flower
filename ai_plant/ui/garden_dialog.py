@@ -6,7 +6,8 @@ and visual image card selector for planting new seeds on graduation.
 import os
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QTabWidget, QWidget, QLabel,
-    QPushButton, QScrollArea, QFrame, QLineEdit, QComboBox, QProgressBar, QApplication
+    QPushButton, QScrollArea, QFrame, QLineEdit, QComboBox, QProgressBar, QApplication,
+    QMessageBox
 )
 from PySide6.QtCore import Qt, Signal, QPointF, QRectF
 from PySide6.QtGui import QFont, QColor, QPainter, QPainterPath, QPen, QBrush, QLinearGradient, QPixmap
@@ -730,23 +731,23 @@ class GardenDialog(QDialog):
 
                 if is_eq:
                     card.setStyleSheet("QFrame { background-color: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; } QLabel { border: none; background: transparent; }")
-                    btn.setText("✨ 장착 중")
-                    btn.setStyleSheet("QPushButton { background-color: #10B981; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                    btn.setText("장착 중")
+                    btn.setStyleSheet("QPushButton { background-color: #10B981; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
                     btn.setEnabled(False)
                 elif is_owned:
                     card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
                     btn.setText("장착하기")
-                    btn.setStyleSheet("QPushButton { background-color: #EFF6FF; color: #2563EB; font-weight: bold; border: 1px solid #BFDBFE; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #DBEAFE; }")
+                    btn.setStyleSheet("QPushButton { background-color: #EFF6FF; color: #2563EB; font-weight: bold; border: 1px solid #BFDBFE; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #DBEAFE; }")
                     btn.setEnabled(True)
                 else:
                     card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
                     can_buy = (curr_coins >= cost)
                     btn.setText(f"구매 (🪙{cost})")
                     if can_buy:
-                        btn.setStyleSheet("QPushButton { background-color: #F59E0B; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #D97706; }")
+                        btn.setStyleSheet("QPushButton { background-color: #F59E0B; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #D97706; }")
                         btn.setEnabled(True)
                     else:
-                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
                         btn.setEnabled(True)
 
             # Update Pets
@@ -758,23 +759,23 @@ class GardenDialog(QDialog):
 
                 if is_eq:
                     card.setStyleSheet("QFrame { background-color: #FDF4FF; border: 1.5px solid #A855F7; border-radius: 8px; } QLabel { border: none; background: transparent; }")
-                    btn.setText("✨ 함께하는 중" if p_id != "none" else "✨ 기본 선택")
-                    btn.setStyleSheet("QPushButton { background-color: #A855F7; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                    btn.setText("동행 중" if p_id != "none" else "기본 선택")
+                    btn.setStyleSheet("QPushButton { background-color: #A855F7; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 6px; font-size: 11px; }")
                     btn.setEnabled(False)
                 elif is_owned:
                     card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; } QFrame:hover { border-color: #94A3B8; } QLabel { border: none; background: transparent; }")
                     btn.setText("데려오기")
-                    btn.setStyleSheet("QPushButton { background-color: #FAF5FF; color: #7E22CE; font-weight: bold; border: 1px solid #E9D5FF; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #F3E8FF; }")
+                    btn.setStyleSheet("QPushButton { background-color: #FAF5FF; color: #7E22CE; font-weight: bold; border: 1px solid #E9D5FF; border-radius: 6px; padding: 5px 6px; font-size: 11px; } QPushButton:hover { background-color: #F3E8FF; }")
                     btn.setEnabled(True)
                 else:
                     card.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QFrame:hover { border-color: #CBD5E1; } QLabel { border: none; background: transparent; }")
                     can_buy = (curr_coins >= cost)
                     btn.setText(f"입양 (🪙{cost})")
                     if can_buy:
-                        btn.setStyleSheet("QPushButton { background-color: #8B5CF6; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; } QPushButton:hover { background-color: #7C3AED; }")
+                        btn.setStyleSheet("QPushButton { background-color: #8B5CF6; color: white; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; } QPushButton:hover { background-color: #7C3AED; }")
                         btn.setEnabled(True)
                     else:
-                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; }")
+                        btn.setStyleSheet("QPushButton { background-color: #E2E8F0; color: #94A3B8; font-weight: bold; border: none; border-radius: 6px; padding: 5px 4px; font-size: 10.5px; }")
                         btn.setEnabled(True)
 
         # Build Saucer Cards (2 Columns)
@@ -807,21 +808,38 @@ class GardenDialog(QDialog):
 
             btn = QPushButton("구매")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setFixedWidth(72)
+            btn.setFixedWidth(78)
 
-            def make_saucer_cb(sid=s_id, cost=s_info["cost"]):
+            def make_saucer_cb(sid=s_id, sname=s_info["name"], cost=s_info["cost"]):
                 def action():
                     if self.db.is_item_purchased("saucer", sid):
                         self.engine.equip_item("saucer", sid)
-                    else:
-                        if self.engine.get_coins() < cost:
-                            return
+                        refresh_shop_ui()
+                        return
+
+                    curr_coins = self.engine.get_coins()
+                    if curr_coins < cost:
+                        QMessageBox.information(
+                            self,
+                            "🪙 씨앗 주화 부족",
+                            f"씨앗 주화가 부족합니다!\n\n• 필요 주화: {cost:,} 주화\n• 현재 보유: {curr_coins:,} 주화\n\n업적을 달성하거나 매일 포춘을 뽑아 주화를 모아보세요 🌸"
+                        )
+                        return
+
+                    reply = QMessageBox.question(
+                        self,
+                        "🛒 화분 받침대 구매 확인",
+                        f"'{sname}'을(를) 정말 구매하시겠습니까?\n\n• 차감 씨앗 주화: {cost:,} 🪙\n• 구매 후 잔여 주화: {(curr_coins - cost):,} 🪙",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.Yes
+                    )
+                    if reply == QMessageBox.StandardButton.Yes:
                         self.engine.purchase_item("saucer", sid, cost)
                         self.engine.equip_item("saucer", sid)
-                    refresh_shop_ui()
+                        refresh_shop_ui()
                 return action
 
-            btn.clicked.connect(make_saucer_cb(s_id, s_info["cost"]))
+            btn.clicked.connect(make_saucer_cb(s_id, s_info["name"], s_info["cost"]))
 
             c_l.addWidget(icon_lbl, 0)
             c_l.addLayout(info_l, 1)
@@ -862,21 +880,38 @@ class GardenDialog(QDialog):
 
             btn = QPushButton("입양")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setFixedWidth(72)
+            btn.setFixedWidth(78)
 
-            def make_pet_cb(pid=p_id, cost=p_info["cost"]):
+            def make_pet_cb(pid=p_id, pname=p_info["name"], cost=p_info["cost"]):
                 def action():
                     if self.db.is_item_purchased("pet", pid):
                         self.engine.equip_item("pet", pid)
-                    else:
-                        if self.engine.get_coins() < cost:
-                            return
+                        refresh_shop_ui()
+                        return
+
+                    curr_coins = self.engine.get_coins()
+                    if curr_coins < cost:
+                        QMessageBox.information(
+                            self,
+                            "🪙 씨앗 주화 부족",
+                            f"씨앗 주화가 부족합니다!\n\n• 필요 주화: {cost:,} 주화\n• 현재 보유: {curr_coins:,} 주화\n\n업적을 달성하거나 매일 포춘을 뽑아 주화를 모아보세요 🌸"
+                        )
+                        return
+
+                    reply = QMessageBox.question(
+                        self,
+                        "🐾 반려동물 입양 확인",
+                        f"귀여운 '{pname}' 친구를 정말 입양하시겠습니까?\n\n• 차감 씨앗 주화: {cost:,} 🪙\n• 입양 후 잔여 주화: {(curr_coins - cost):,} 🪙",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.Yes
+                    )
+                    if reply == QMessageBox.StandardButton.Yes:
                         self.engine.purchase_item("pet", pid, cost)
                         self.engine.equip_item("pet", pid)
-                    refresh_shop_ui()
+                        refresh_shop_ui()
                 return action
 
-            btn.clicked.connect(make_pet_cb(p_id, p_info["cost"]))
+            btn.clicked.connect(make_pet_cb(p_id, p_info["name"], p_info["cost"]))
 
             c_l.addWidget(icon_lbl, 0)
             c_l.addLayout(info_l, 1)
