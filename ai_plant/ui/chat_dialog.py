@@ -1,16 +1,33 @@
 """
 Chat Dialog Widget
-A friendly, modern chat window for conversing with the AI companion plant,
-equipped with smart micro-assistant chips (emotional care, business text polisher, brainstorming, mini-diary),
-in-browser thinking indicator (no layout jitter), and smooth message bubbles.
+A friendly, modern chat window with KakaoTalk-style floating speech bubbles,
+custom plant-inspired color themes (distinct from Kakao's yellow),
+micro-assistant chips, in-dialogue typing status, and smooth scrolling.
 """
 import html
+import datetime
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextBrowser, QLineEdit,
     QPushButton, QLabel, QWidget, QScrollArea, QFrame
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
+
+def format_chat_time(timestamp_str: str) -> str:
+    """Format ISO timestamp into clean AM/PM hour:minute."""
+    if not timestamp_str:
+        return ""
+    try:
+        dt = datetime.datetime.fromisoformat(timestamp_str)
+        hour = dt.hour
+        minute = dt.minute
+        ampm = "오전" if hour < 12 else "오후"
+        display_hour = hour if hour <= 12 else hour - 12
+        if display_hour == 0:
+            display_hour = 12
+        return f"{ampm} {display_hour}:{minute:02d}"
+    except Exception:
+        return ""
 
 class ChatDialog(QDialog):
     message_sent = Signal(str)
@@ -25,7 +42,7 @@ class ChatDialog(QDialog):
     def init_ui(self):
         plant_name = self.config.get("plant_name", "초록이")
         self.setWindowTitle(f"🌱 {plant_name}와(과) 대화하기")
-        self.resize(440, 560)
+        self.resize(440, 580)
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowCloseButtonHint |
@@ -74,17 +91,15 @@ class ChatDialog(QDialog):
         header_row.addWidget(self.btn_header_close, 0)
         layout.addLayout(header_row)
 
-        # Message History Browser
+        # Message History Browser (KakaoTalk style chatroom canvas)
         self.browser = QTextBrowser(self)
         self.browser.setOpenExternalLinks(False)
         self.browser.setStyleSheet("""
             QTextBrowser {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
+                background-color: #EBF1F6;
+                border: 1px solid #CBD5E1;
                 border-radius: 12px;
-                padding: 10px;
-                font-size: 12px;
-                line-height: 1.5;
+                padding: 4px;
             }
         """)
         layout.addWidget(self.browser, 1)
@@ -218,51 +233,153 @@ class ChatDialog(QDialog):
         self.header_lbl.setText(f"💬 <b>{user_name}</b> 님과 <b>{plant_name}</b>의 힐링 대화방")
 
     def load_history(self):
-        """Load and safely render chat logs into the browser with HTML escaping."""
+        """KakaoTalk-style messenger bubble view with clean custom emerald theme."""
         self.browser.clear()
-        chats = self.db.get_recent_chat_history(limit=25)
-        user_name = self.config.get("user_nickname", "나")
+        chats = self.db.get_recent_chat_history(limit=30)
         plant_name = self.config.get("plant_name", "초록이")
 
-        esc_user = html.escape(str(user_name))
         esc_plant = html.escape(str(plant_name))
 
-        html_parts = []
+        html_body = []
+        html_body.append("""
+        <html>
+        <head>
+        <style>
+            body {
+                background-color: #EBF1F6;
+                font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+                margin: 0;
+                padding: 8px 4px;
+            }
+            .msg-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 12px;
+            }
+            .user-bubble {
+                background-color: #059669;
+                color: #FFFFFF;
+                padding: 8px 12px;
+                border-radius: 14px;
+                border-top-right-radius: 2px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                max-width: 250px;
+                word-wrap: break-word;
+            }
+            .bot-bubble {
+                background-color: #FFFFFF;
+                color: #1E293B;
+                border: 1px solid #CBD5E1;
+                padding: 8px 12px;
+                border-radius: 14px;
+                border-top-left-radius: 2px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                max-width: 250px;
+                word-wrap: break-word;
+            }
+            .bot-name {
+                font-size: 11px;
+                font-weight: bold;
+                color: #475569;
+                margin-bottom: 3px;
+            }
+            .avatar {
+                width: 32px;
+                height: 32px;
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 16px;
+                text-align: center;
+                line-height: 28px;
+                font-size: 16px;
+            }
+            .time-str {
+                font-size: 10px;
+                color: #8C9CAE;
+                white-space: nowrap;
+            }
+        </style>
+        </head>
+        <body>
+        """)
+
         for chat in chats:
             role = chat.get("role")
             content = chat.get("content", "")
+            time_str = format_chat_time(chat.get("timestamp", ""))
             esc_content = html.escape(str(content)).replace("\n", "<br>")
+
             if role == "user":
-                html_parts.append(f"""
-                <div style="text-align: right; margin-bottom: 8px;">
-                    <span style="display: inline-block; background-color: #DCF8C6; color: #1F2937; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%; text-align: left;">
-                        <b>{esc_user}</b>: {esc_content}
-                    </span>
-                </div>
+                html_body.append(f"""
+                <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="right">
+                      <table border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td valign="bottom" style="padding-right: 5px; padding-bottom: 2px;">
+                            <span class="time-str">{time_str}</span>
+                          </td>
+                          <td class="user-bubble">
+                            {esc_content}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
                 """)
             else:
-                html_parts.append(f"""
-                <div style="text-align: left; margin-bottom: 8px;">
-                    <span style="display: inline-block; background-color: #F1F5F9; color: #1F2937; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%;">
-                        <b>{esc_plant}</b>: {esc_content}
-                    </span>
-                </div>
+                html_body.append(f"""
+                <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td valign="top" width="36" style="padding-right: 8px;">
+                      <div class="avatar">🌱</div>
+                    </td>
+                    <td align="left">
+                      <div class="bot-name">{esc_plant}</div>
+                      <table border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td class="bot-bubble">
+                            {esc_content}
+                          </td>
+                          <td valign="bottom" style="padding-left: 5px; padding-bottom: 2px;">
+                            <span class="time-str">{time_str}</span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
                 """)
         
         if self.is_thinking:
-            html_parts.append(f"""
-            <div style="text-align: left; margin-bottom: 8px;">
-                <span style="display: inline-block; background-color: #F1F5F9; color: #059669; padding: 6px 10px; border-radius: 10px; font-size: 12px; max-width: 80%; font-style: italic;">
-                    🌱 <b>{esc_plant}</b>이(가) 생각을 가다듬고 있어요... 💭
-                </span>
-            </div>
+            html_body.append(f"""
+            <table class="msg-table" border="0" cellpadding="0" cellspacing="0">
+              <tr>
+                <td valign="top" width="36" style="padding-right: 8px;">
+                  <div class="avatar">🌱</div>
+                </td>
+                <td align="left">
+                  <div class="bot-name">{esc_plant}</div>
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="background-color: #FFFFFF; color: #059669; border: 1px solid #A7F3D0; padding: 8px 12px; border-radius: 14px; border-top-left-radius: 2px; font-size: 12px; font-style: italic;">
+                        답변을 작성하고 있어요... 💭
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
             """)
 
-        self.browser.setHtml("".join(html_parts))
+        html_body.append("</body></html>")
+        self.browser.setHtml("".join(html_body))
         self.scroll_to_bottom()
 
     def append_message(self, role: str, content: str):
-        """Appends a new message in real-time."""
         self.load_history()
 
     def scroll_to_bottom(self):

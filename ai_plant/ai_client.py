@@ -49,23 +49,23 @@ SPECIES_PERSONAS = {
 # Rich local fallback dialogue pool for offline / timeout / closed network scenarios
 FALLBACK_RESPONSES = {
     "greeting": [
-        "안녕하세요, {user}님! 오늘도 파릇파릇하게 함께해요 🌱",
-        "반가워요, {user}님! 책상 위에서 언제나 응원하고 있어요 ✨",
-        "좋은 하루예요, {user}님! 오늘 업무도 기분 좋게 시작해봐요 🌸"
+        "안녕하세요, {user}! 오늘도 파릇파릇하게 함께해요 🌱",
+        "반가워요, {user}! 책상 위에서 언제나 응원하고 있어요 ✨",
+        "좋은 하루예요, {user}! 오늘 업무도 기분 좋게 시작해봐요 🌸"
     ],
     "tired": [
-        "{user}님, 오늘 많이 바쁘셨죠? 기지개 한 번 켜고 시원한 물 한잔 드세요 💧",
-        "{user}님, 업무 피로가 쌓이셨을 땐 먼 곳을 바라보며 1분만 눈을 쉬어주세요! 힘내세요 🥰",
-        "항상 열심히 일하시는 {user}님, 잠시 심호흡하고 쉬어가요 🌿"
+        "{user}, 오늘 많이 바쁘셨죠? 기지개 한 번 켜고 시원한 물 한잔 드세요 💧",
+        "{user}, 업무 피로가 쌓이셨을 땐 먼 곳을 바라보며 1분만 눈을 쉬어주세요! 힘내세요 🥰",
+        "항상 열심히 일하시는 {user}, 잠시 심호흡하고 쉬어가요 🌿"
     ],
     "hungry_thirsty": [
-        "{user}님, 저도 시원한 물 한 모금 마시고 싶어요~ 촉촉해지고 싶답니다 💧 [ACTION:WATER]",
-        "{user}님, 햇빛을 쬐면 더 쑥쑥 자랄 수 있을 것 같아요! ☀️ [ACTION:SUN]"
+        "{user}, 저도 시원한 물 한 모금 마시고 싶어요~ 촉촉해지고 싶답니다 💧 [ACTION:WATER]",
+        "{user}, 햇빛을 쬐면 더 쑥쑥 자랄 수 있을 것 같아요! ☀️ [ACTION:SUN]"
     ],
     "cheer": [
-        "{user}님은 최고예요! 어려운 업무도 척척 해내실 수 있어요 🍀 [ACTION:PET]",
-        "{user}님이 곁에 계셔서 {plant}은(는) 매일매일 행복하게 자라요! 🪴 [ACTION:PET]",
-        "{user}님, 오늘 하루도 정말 고생 많으셨어요. 제가 항상 든든하게 지켜볼게요 🌸"
+        "{user}은(는) 최고예요! 어려운 업무도 척척 해내실 수 있어요 🍀 [ACTION:PET]",
+        "{user}이(가) 곁에 계셔서 {plant}은(는) 매일매일 행복하게 자라요! 🪴 [ACTION:PET]",
+        "{user}, 오늘 하루도 정말 고생 많으셨어요. 제가 항상 든든하게 지켜볼게요 🌸"
     ],
     "polish": [
         "공직자용 다듬기: '요청하신 사항을 검토하여 정중히 안내드립니다. 확인 부탁드립니다.' ✉️",
@@ -76,13 +76,13 @@ FALLBACK_RESPONSES = {
         "💡 리프레시 아이디어:\n1. 10분간 책상 위 서류 정리\n2. 가벼운 목·어깨 스트레칭\n3. 시원한 냉수 한 잔 마시기"
     ],
     "diary": [
-        "📝 {plant}의 3줄 일기:\n- {user}님이 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
+        "📝 {plant}의 3줄 일기:\n- {user}이(가) 오늘도 성실하게 하루를 완주하셨다.\n- 조금 지쳐 보이셨지만 여전히 멋지셨다.\n- 내일은 더 큰 행운이 찾아오길 기도해야지! 🌸"
     ],
     "default": [
-        "네, {user}님! {plant}은(는) 오늘도 정성껏 자라나고 있어요 🌱",
-        "{user}님의 말씀을 귀담아듣고 있어요! 함께 있어 든든해요 ✨",
-        "헤헤, {user}님의 따뜻한 관심 덕분에 잎사귀가 더 파릇해졌어요 🌿",
-        "{user}님, 초록초록한 기운을 듬뿍 보내드릴게요! 오늘도 파이팅이에요! 🌸"
+        "네, {user}! {plant}은(는) 오늘도 정성껏 자라나고 있어요 🌱",
+        "{user}의 말씀을 귀담아듣고 있어요! 함께 있어 든든해요 ✨",
+        "헤헤, {user}의 따뜻한 관심 덕분에 잎사귀가 더 파릇해졌어요 🌿",
+        "{user}, 초록초록한 기운을 듬뿍 보내드릴게요! 오늘도 파이팅이에요! 🌸"
     ]
 }
 
@@ -121,7 +121,13 @@ def select_fallback_response(user_text: str, user_name: str, plant_name: str, pl
         pool = FALLBACK_RESPONSES["default"]
         
     choice = random.choice(pool)
-    safe_user = str(user_name).replace("{", "").replace("}", "")
+    name_str = str(user_name).strip()
+    if not name_str.endswith("님"):
+        display_user = f"{name_str}님"
+    else:
+        display_user = name_str
+
+    safe_user = display_user.replace("{", "").replace("}", "")
     safe_plant = str(plant_name).replace("{", "").replace("}", "")
     return choice.format(user=safe_user, plant=safe_plant)
 

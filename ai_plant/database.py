@@ -196,16 +196,23 @@ class DatabaseManager:
             """, (role, content, now_str))
             conn.commit()
 
-    def get_recent_chat_history(self, limit: int = 6) -> List[Dict[str, str]]:
+    def get_recent_chat_history(self, limit: int = 6) -> List[Dict[str, Any]]:
         """Sliding Window: Fetch recent messages."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT role, content FROM chat_history
+                SELECT role, content, timestamp FROM chat_history
                 ORDER BY id DESC LIMIT ?
             """, (limit,))
             rows = cursor.fetchall()
-            history = [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
+            history = [
+                {
+                    "role": row["role"],
+                    "content": row["content"],
+                    "timestamp": row["timestamp"] if "timestamp" in row.keys() else ""
+                }
+                for row in reversed(rows)
+            ]
             return history
 
     def clear_chat_history(self):
