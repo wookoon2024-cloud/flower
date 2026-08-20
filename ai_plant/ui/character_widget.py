@@ -225,24 +225,26 @@ class PlantCharacterWidget(QWidget):
             scale = max(0.1, sprite_w / 200.0)
             progress = max(0.0, min(1.0, self.expr_frame / float(self.expr_total_frames)))
 
-            # Face anchor coordinates
-            lx = px + int(89 * scale)   # Left eye center
-            rx = px + int(111 * scale)  # Right eye center
-            ey = py + int(162 * scale)  # Eye vertical center
+            # Precise Face anchor coordinates (derived from sprite pixel map)
+            lx = px + int(89 * scale)   # Left eye center X
+            rx = px + int(111 * scale)  # Right eye center X
+            ey = py + int(162 * scale)  # Eye vertical center Y
             mx = px + int(100 * scale)  # Mouth center X
-            my = py + int(166 * scale)  # Mouth center Y
+            my = py + int(171 * scale)  # Mouth center Y (Actual PNG smile center is y=171.5)
 
             eye_radius = max(2, int(5 * scale))
             pen_dark = QPen(QColor("#3E2723"), max(2.0, 2.4 * scale), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
             brush_dark = QBrush(QColor("#3E2723"))
-            brush_pot = QBrush(QColor("#D27D46"))  # Pot surface color to mask default face
+            brush_pot = QBrush(QColor("#D27D46"))  # Exact Pot surface color to 100% mask default face
 
-            # Mask default eye & mouth positions
+            # 1. Mask default eyes & red smiling mouth so no ghost/duplicate mouth is visible
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(brush_pot)
-            painter.drawEllipse(QPoint(lx, ey), eye_radius + 2, eye_radius + 2)
-            painter.drawEllipse(QPoint(rx, ey), eye_radius + 2, eye_radius + 2)
-            painter.drawEllipse(QPoint(mx, my + int(2*scale)), max(4, int(11 * scale)), max(3, int(8 * scale)))
+            painter.drawEllipse(QPointF(lx, ey), 8.0 * scale, 8.0 * scale)
+            painter.drawEllipse(QPointF(rx, ey), 8.0 * scale, 8.0 * scale)
+            # Generous mouth mask covering full red smile area (x: 87..113, y: 164..179)
+            mouth_mask_rect = QRectF(mx - 13.5 * scale, my - 7.5 * scale, 27.0 * scale, 15.0 * scale)
+            painter.drawRoundedRect(mouth_mask_rect, 6.0 * scale, 6.0 * scale)
 
             # --- A. BLINK (눈 깜빡임) ---
             if self.expr_type == "blink":
@@ -268,7 +270,7 @@ class PlantCharacterWidget(QWidget):
 
                 # Sweet smile mouth
                 painter.setPen(pen_dark)
-                painter.drawArc(mx - int(6*scale), my - int(4*scale), max(6, int(12*scale)), max(4, int(8*scale)), 0, -180*16)
+                painter.drawArc(mx - int(7*scale), my - int(4*scale), max(8, int(14*scale)), max(5, int(8*scale)), 0, -180*16)
 
             # --- B. YAWN (하품 & 졸림) ---
             elif self.expr_type == "yawn":
@@ -286,13 +288,13 @@ class PlantCharacterWidget(QWidget):
 
                 painter.setPen(QPen(QColor("#2C1810"), max(1.5, 2.0 * scale)))
                 painter.setBrush(QBrush(QColor("#3E2723")))
-                painter.drawEllipse(QPoint(mx, my + int(3*scale)), mouth_w // 2, mouth_h // 2)
+                painter.drawEllipse(QPointF(mx, my), mouth_w / 2.0, mouth_h / 2.0)
 
                 # Little pink tongue inside yawn mouth
                 if sine_open > 0.4:
                     painter.setPen(Qt.PenStyle.NoPen)
                     painter.setBrush(QBrush(QColor("#FF8A80")))
-                    painter.drawEllipse(QPoint(mx, my + int((3 + mouth_h*0.25)*scale)), max(2, int(mouth_w*0.35)), max(2, int(mouth_h*0.25)))
+                    painter.drawEllipse(QPointF(mx, my + (mouth_h * 0.2)), max(2, int(mouth_w * 0.35)), max(2, int(mouth_h * 0.25)))
 
                 # Floating sleepy "zZZ" indicator
                 if progress > 0.25:
@@ -318,12 +320,12 @@ class PlantCharacterWidget(QWidget):
 
                 # Cute wide smile mouth
                 painter.setPen(pen_dark)
-                painter.drawArc(mx - int(8*scale), my - int(4*scale), max(6, int(16*scale)), max(4, int(9*scale)), 0, -180*16)
+                painter.drawArc(mx - int(9*scale), my - int(4*scale), max(10, int(18*scale)), max(5, int(9*scale)), 0, -180*16)
 
                 # Cute pink tongue sticking out downwards (메롱)
-                tongue_len = max(2.0, 7.0 * scale * min(1.0, progress * 3.0))
-                tongue_w = max(3.0, 7.0 * scale)
-                tongue_rect = QRectF(mx - tongue_w / 2.0, my + 1.0 * scale, tongue_w, tongue_len)
+                tongue_len = max(2.0, 7.5 * scale * min(1.0, progress * 3.0))
+                tongue_w = max(3.0, 7.5 * scale)
+                tongue_rect = QRectF(mx - tongue_w / 2.0, my - 1.0 * scale, tongue_w, tongue_len)
                 painter.setPen(QPen(QColor("#D32F2F"), max(1.0, 1.2 * scale)))
                 painter.setBrush(QBrush(QColor("#FF5252")))
                 painter.drawRoundedRect(tongue_rect, tongue_w / 2.0, tongue_w / 2.0)
@@ -350,7 +352,7 @@ class PlantCharacterWidget(QWidget):
 
                 # Happy open smile
                 painter.setPen(pen_dark)
-                painter.drawArc(mx - int(7*scale), my - int(4*scale), max(6, int(14*scale)), max(4, int(8*scale)), 0, -180*16)
+                painter.drawArc(mx - int(8*scale), my - int(4*scale), max(8, int(16*scale)), max(5, int(9*scale)), 0, -180*16)
 
                 # Blushing rosy glow
                 painter.setPen(Qt.PenStyle.NoPen)
@@ -368,7 +370,7 @@ class PlantCharacterWidget(QWidget):
                 painter.drawArc(rx - arc_w//2, ey - arc_h//2, arc_w, arc_h, 20 * 16, 140 * 16)
 
                 # Wide joyful smile
-                painter.drawArc(mx - int(8*scale), my - int(4*scale), max(6, int(16*scale)), max(4, int(10*scale)), 0, -180*16)
+                painter.drawArc(mx - int(9*scale), my - int(4*scale), max(10, int(18*scale)), max(6, int(11*scale)), 0, -180*16)
 
                 # Rosy cheeks
                 painter.setPen(Qt.PenStyle.NoPen)
