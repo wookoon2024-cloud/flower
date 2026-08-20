@@ -330,6 +330,79 @@ class DatabaseManager:
             rows = cursor.fetchall()
             return [dict(r) for r in reversed(rows)]
 
+    def get_daily_mood_summary(self, num_days: int = 7) -> List[Dict[str, Any]]:
+        """
+        Groups mood entries by calendar day (YYYY-MM-DD), calculates daily averages,
+        and constructs a fixed 7-day timeline window with upcoming/future dates pre-populated.
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT timestamp, date, score, mood_type
+                FROM mood_history
+                ORDER BY id ASC
+            """)
+            rows = cursor.fetchall()
+
+        daily_map = {}
+        for r in rows:
+            ts = str(r["timestamp"])
+            day_str = ts.split("T")[0] if "T" in ts else ts.split(" ")[0]
+            if day_str not in daily_map:
+                daily_map[day_str] = {"scores": [], "moods": []}
+            daily_map[day_str]["scores"].append(float(r["score"]))
+            daily_map[day_str]["moods"].append(str(r["mood_type"]))
+
+        today = datetime.date.today()
+        if daily_map:
+            sorted_days = sorted(daily_map.keys())
+            try:
+                earliest_dt = datetime.datetime.strptime(sorted_days[0], "%Y-%m-%d").date()
+                start_date = max(earliest_dt, today - datetime.timedelta(days=num_days - 1))
+            except Exception:
+                start_date = today
+        else:
+            start_date = today
+
+        result = []
+        for i in range(num_days):
+            curr_d = start_date + datetime.timedelta(days=i)
+            curr_str = curr_d.strftime("%Y-%m-%d")
+            m_d_str = curr_d.strftime("%m/%d")
+            weekdays = ["월", "화", "수", "목", "금", "토", "일"]
+            w_str = weekdays[curr_d.weekday()]
+
+            if curr_str in daily_map:
+                sc_list = daily_map[curr_str]["scores"]
+                avg_sc = sum(sc_list) / len(sc_list)
+                mood_list = daily_map[curr_str]["moods"]
+                dom_mood = max(set(mood_list), key=mood_list.count)
+                result.append({
+                    "date": m_d_str,
+                    "full_date": curr_str,
+                    "weekday": w_str,
+                    "is_today": (curr_d == today),
+                    "is_future": (curr_d > today),
+                    "has_data": True,
+                    "avg_score": round(avg_sc, 1),
+                    "count": len(sc_list),
+                    "mood_type": dom_mood
+                })
+            else:
+                result.append({
+                    "date": m_d_str,
+                    "full_date": curr_str,
+                    "weekday": w_str,
+                    "is_today": (curr_d == today),
+                    "is_future": (curr_d > today),
+                    "has_data": False,
+                    "avg_score": None,
+                    "count": 0,
+                    "mood_type": "calm"
+                })
+
+        return result
+
     # --- Lifetime Action Counters ---
     def increment_stat(self, key: str, amount: int = 1) -> int:
         """Increment a persistent lifetime stat counter."""

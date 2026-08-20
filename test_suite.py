@@ -261,6 +261,22 @@ class TestAIPlantWidget(unittest.TestCase):
         app = QApplication.instance() or QApplication([])
         engine = PlantEngine(self.db, self.config)
         self.db.add_mood_entry("happy", 5, "오늘 기분 좋아")
+        self.db.add_mood_entry("calm", 3, "평온한 하루")
+        
+        # Test daily mood summary calculation
+        daily_summary = self.db.get_daily_mood_summary(num_days=7)
+        self.assertEqual(len(daily_summary), 7)
+        today_data = next((d for d in daily_summary if d["is_today"]), None)
+        self.assertIsNotNone(today_data)
+        self.assertTrue(today_data["has_data"])
+        self.assertEqual(today_data["avg_score"], 4.0) # (5+3)/2 = 4.0
+        self.assertEqual(today_data["count"], 2)
+
+        # Test future slots pre-population
+        future_slots = [d for d in daily_summary if d["is_future"]]
+        self.assertEqual(len(future_slots), 6)
+        self.assertFalse(future_slots[0]["has_data"])
+
         dialog = GardenDialog(engine, self.db, self.config)
         self.assertIsNotNone(dialog)
         self.assertEqual(dialog.tabs.count(), 4)

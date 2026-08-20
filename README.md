@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PySide6](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.1.6-10B981?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v1.2.0-10B981?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <br>
@@ -157,6 +157,7 @@ flower/
 
 | 버전 | 출시일 | 주요 변경 및 신규 기능 |
 | :---: | :---: | :--- |
+| **`v1.2.0`** | 2026-08-20 | • **마음 날씨 그래프 7일 일별(Daily) 캘린더 트래커 전면 개편**<br>• 같은 날 나눈 여러 번의 대화를 '일별 평균 감정 점수(1.0~5.0)'로 자동 집계하여 깔끔한 일별 추이선으로 시각화<br>• 오늘 처음 시작한 경우에도 향후 6일간의 미래 날짜(`08/21`, `08/22`, `08/23`...)를 X축에 미리 일정 슬롯으로 표시하여 7일간의 감정 케어 흐름을 직관적으로 확인 가능<br>• 오늘 날짜 강조(`(오늘)` 뱃지 + 녹색 하이라이트) 및 각 날짜별 점수 툴팁 상시 표기 |
 | **`v1.1.6`** | 2026-08-20 | • **화분 표정 애니메이션 시 기본 붉은 입술 잔상/중복 노출 완벽 해결**<br>• 화분 원본 스프라이트의 붉은 입술 영역(`x: 90..110, y: 167..177`)을 정밀 계측하여 화분 바디 색상(`#D27D46`)으로 100% 완전 마스킹 처리<br>• 눈 깜빡임, 하품, 메롱, 윙크, 방긋 웃음 등 모든 표정의 입/눈 위치를 통일하여 두 개의 입술이 겹쳐 보이는 현상 원천 해결 |
 | **`v1.1.5`** | 2026-08-20 | • **마음업적창(나의 화원 & 도감) 열기 시 변수 참조 누락 예외 긴급 수정**<br>• 마음 날씨 탭 상단 요약 카드 레이아웃(`s_layout`, `s_left`) 변수 참조 안전성 복구 및 UI 단위 테스트 전수 검증 통과 |
 | **`v1.1.4`** | 2026-08-20 | • **사용자 메시지 우측 말풍선 텍스트 잘림 현상 완벽 개선**<br>• `UserMessageBubble` 우측 마진(`10px`) 및 말풍선 내부 패딩(`padding: 9px 15px`, `line-height: 1.4`) 최적화로 스크롤바나 창 테두리에 텍스트가 가려지는 현상 완전 해결<br>• `ChatDialog` 기본 폭을 `460px`로 확장하여 장문 메시지도 편안하게 가독성 확보 |

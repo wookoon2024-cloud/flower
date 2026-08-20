@@ -24,11 +24,15 @@ MOOD_METADATA = {
 }
 
 class MoodChartWidget(QWidget):
-    """Custom Vector Line Chart for 7~14 day mood trend visualization."""
-    def __init__(self, mood_records, parent=None):
+    """
+    7-Day Calendar-based Daily Mood Trend Vector Chart.
+    Aggregates conversation moods per day into daily average scores.
+    Pre-populates upcoming/future dates in advance on the X-axis.
+    """
+    def __init__(self, daily_records, parent=None):
         super().__init__(parent)
-        self.records = mood_records
-        self.setMinimumHeight(200)
+        self.daily_records = daily_records or []
+        self.setMinimumHeight(215)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -38,8 +42,8 @@ class MoodChartWidget(QWidget):
         h = self.height()
         padding_left = 60
         padding_right = 30
-        padding_top = 25
-        padding_bottom = 35
+        padding_top = 28
+        padding_bottom = 44
 
         chart_w = w - padding_left - padding_right
         chart_h = h - padding_top - padding_bottom
@@ -64,79 +68,120 @@ class MoodChartWidget(QWidget):
             painter.setPen(QColor(100, 116, 139))
             painter.drawText(QRectF(0, y - 10, padding_left - 10, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label)
 
-        if not self.records or len(self.records) == 0:
+        if not self.daily_records:
             painter.setPen(QColor(148, 163, 184))
             painter.setFont(QFont("Malgun Gothic", 10))
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "대화를 나누면 공직자님의 마음 날씨 추이가 기록됩니다 🌱")
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "대화를 나누면 공직자님의 마음 날씨 추이가 일별로 기록됩니다 🌱")
             return
 
-        # Calculate point coordinates
-        n = len(self.records)
-        points = []
-        for i, rec in enumerate(self.records):
-            x = padding_left + (i / max(1, n - 1)) * chart_w if n > 1 else padding_left + chart_w / 2.0
-            score = max(1, min(5, rec.get("score", 3)))
-            y = padding_top + (5 - score) * (chart_h / 4.0)
-            points.append((x, y, rec))
+        num_slots = len(self.daily_records)
+        slot_step = chart_w / max(1, num_slots - 1) if num_slots > 1 else chart_w / 2.0
 
-        # 2. Gradient Area fill under curve
-        if len(points) >= 2:
+        points_with_data = []
+        all_points = []
+
+        for i, day in enumerate(self.daily_records):
+            x = padding_left + i * slot_step
+            if day.get("has_data") and day.get("avg_score") is not None:
+                sc = max(1.0, min(5.0, day["avg_score"]))
+                y = padding_top + (5.0 - sc) * (chart_h / 4.0)
+                points_with_data.append((x, y, day))
+            else:
+                y = padding_top + 2.0 * (chart_h / 4.0) # Neutral score 3.0 baseline
+            all_points.append((x, y, day))
+
+        # 2. Gradient Area fill under curve (for recorded days)
+        if len(points_with_data) >= 2:
             path = QPainterPath()
-            path.moveTo(points[0][0], padding_top + chart_h)
-            for x, y, _ in points:
+            path.moveTo(points_with_data[0][0], padding_top + chart_h)
+            for x, y, _ in points_with_data:
                 path.lineTo(x, y)
-            path.lineTo(points[-1][0], padding_top + chart_h)
+            path.lineTo(points_with_data[-1][0], padding_top + chart_h)
             path.closeSubpath()
 
             grad = QLinearGradient(0, padding_top, 0, padding_top + chart_h)
-            grad.setColorAt(0.0, QColor(16, 185, 129, 80))
+            grad.setColorAt(0.0, QColor(16, 185, 129, 85))
             grad.setColorAt(1.0, QColor(16, 185, 129, 0))
             painter.fillPath(path, QBrush(grad))
 
-            # 3. Main Trend Line
+            # 3. Main Trend Line (solid emerald for recorded trajectory)
             line_path = QPainterPath()
-            line_path.moveTo(points[0][0], points[0][1])
-            for x, y, _ in points[1:]:
+            line_path.moveTo(points_with_data[0][0], points_with_data[0][1])
+            for x, y, _ in points_with_data[1:]:
                 line_path.lineTo(x, y)
 
-            painter.setPen(QPen(QColor(16, 185, 129), 2.5))
+            painter.setPen(QPen(QColor(16, 185, 129), 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
             painter.drawPath(line_path)
 
-        # 4. Draw Points & Smart Date/Time Labels
-        unique_dates = {r.get("date", "") for r in self.records if r.get("date")}
-        is_single_day = len(unique_dates) <= 1
-        prev_date = ""
+        # 4. If future slots exist, draw subtle dashed guide line from last recorded point
+        if points_with_data and len(all_points) > len(points_with_data):
+            last_recorded_idx = -1
+            for idx, p in enumerate(all_points):
+                if p[2].get("has_data"):
+                    last_recorded_idx = idx
+            
+            if last_recorded_idx != -1 and last_recorded_idx < len(all_points) - 1:
+                dash_pen = QPen(QColor(203, 213, 225), 1.5, Qt.PenStyle.DashLine)
+                painter.setPen(dash_pen)
+                guide_path = QPainterPath()
+                guide_path.moveTo(all_points[last_recorded_idx][0], all_points[last_recorded_idx][1])
+                for idx in range(last_recorded_idx + 1, len(all_points)):
+                    guide_path.lineTo(all_points[idx][0], all_points[idx][1])
+                painter.drawPath(guide_path)
 
-        for i, (x, y, rec) in enumerate(points):
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(16, 185, 129, 60))
-            painter.drawEllipse(QPointF(x, y), 7, 7)
+        # 5. Draw Point Nodes and Labels
+        for x, y, day in all_points:
+            has_data = day.get("has_data", False)
+            is_today = day.get("is_today", False)
+            is_future = day.get("is_future", False)
 
-            m_info = MOOD_METADATA.get(rec.get("mood_type"), MOOD_METADATA["calm"])
-            painter.setBrush(QColor(m_info["color"]))
-            painter.drawEllipse(QPointF(x, y), 4, 4)
+            if has_data:
+                # Outer glow ring
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(16, 185, 129, 60))
+                painter.drawEllipse(QPointF(x, y), 8, 8)
 
-            # Smart Label: If all entries are today, show Time (HH:MM); else show Date/Time
-            ts = rec.get("timestamp", "")
-            time_part = ""
-            if "T" in ts:
-                time_part = ts.split("T")[1][:5]
-            elif " " in ts:
-                time_part = ts.split(" ")[1][:5]
+                # Inner mood colored node
+                m_info = MOOD_METADATA.get(day.get("mood_type"), MOOD_METADATA["calm"])
+                painter.setBrush(QColor(m_info["color"]))
+                painter.drawEllipse(QPointF(x, y), 4.5, 4.5)
 
-            d_str = rec.get("date", "")
-            if is_single_day:
-                lbl_text = time_part if time_part else d_str
+                # Score text pill above node
+                sc_val = day.get("avg_score", 3.0)
+                painter.setPen(QColor(15, 118, 110))
+                painter.setFont(QFont("Malgun Gothic", 8, QFont.Weight.Bold))
+                painter.drawText(QRectF(x - 20, y - 18, 40, 16), Qt.AlignmentFlag.AlignCenter, f"{sc_val:.1f}")
             else:
-                if d_str != prev_date:
-                    lbl_text = d_str
-                    prev_date = d_str
-                else:
-                    lbl_text = time_part if time_part else d_str
+                # Future / Unrecorded placeholder slot
+                painter.setPen(QPen(QColor(203, 213, 225), 1.5, Qt.PenStyle.DotLine))
+                painter.setBrush(QColor(248, 250, 252))
+                painter.drawEllipse(QPointF(x, y), 3.5, 3.5)
 
-            painter.setPen(QColor(100, 116, 139))
-            painter.setFont(QFont("Malgun Gothic", 8))
-            painter.drawText(QRectF(x - 28, padding_top + chart_h + 6, 56, 22), Qt.AlignmentFlag.AlignCenter, lbl_text)
+            # 6. X-Axis Date & Weekday Labels at bottom
+            d_str = day.get("date", "")
+            w_str = day.get("weekday", "")
+
+            if is_today:
+                # Highlight TODAY with bold emerald
+                painter.setFont(QFont("Malgun Gothic", 8, QFont.Weight.Bold))
+                painter.setPen(QColor(5, 150, 105)) # #059669
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 6, 56, 14), Qt.AlignmentFlag.AlignCenter, d_str)
+                painter.setFont(QFont("Malgun Gothic", 7.5, QFont.Weight.Bold))
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 20, 56, 14), Qt.AlignmentFlag.AlignCenter, "(오늘)")
+            elif is_future:
+                # Soft gray for upcoming pre-populated days
+                painter.setFont(QFont("Malgun Gothic", 8))
+                painter.setPen(QColor(148, 163, 184)) # #94A3B8
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 6, 56, 14), Qt.AlignmentFlag.AlignCenter, d_str)
+                painter.setFont(QFont("Malgun Gothic", 7.5))
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 20, 56, 14), Qt.AlignmentFlag.AlignCenter, f"({w_str})")
+            else:
+                # Regular past date
+                painter.setFont(QFont("Malgun Gothic", 8))
+                painter.setPen(QColor(71, 85, 105)) # #475569
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 6, 56, 14), Qt.AlignmentFlag.AlignCenter, d_str)
+                painter.setFont(QFont("Malgun Gothic", 7.5))
+                painter.drawText(QRectF(x - 28, padding_top + chart_h + 20, 56, 14), Qt.AlignmentFlag.AlignCenter, f"({w_str})")
 
 
 class GardenDialog(QDialog):
@@ -453,9 +498,14 @@ class GardenDialog(QDialog):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(10)
 
-        # Header Info Card (Single clean border, no inner borders)
-        mood_records = self.db.get_recent_mood_history(limit=10)
-        avg_score = sum(r.get("score", 3) for r in mood_records) / max(1, len(mood_records)) if mood_records else 3.5
+        # Header Info Card (7-Day Daily Aggregated Mental Wellness Summary)
+        daily_records = self.db.get_daily_mood_summary(num_days=7)
+        recorded_days = [d for d in daily_records if d.get("has_data")]
+        total_convos = sum(d.get("count", 0) for d in recorded_days)
+        avg_score = (
+            sum(d["avg_score"] for d in recorded_days) / max(1, len(recorded_days))
+            if recorded_days else 3.5
+        )
 
         stat_card = QFrame()
         stat_card.setStyleSheet("""
@@ -472,15 +522,15 @@ class GardenDialog(QDialog):
         s_layout = QHBoxLayout(stat_card)
         s_layout.setContentsMargins(12, 10, 12, 10)
 
-        s_left = QLabel(f"📈 <b>최근 마음 날씨 평균:</b> <span style='color: #2563EB; font-size: 14px;'><b>{avg_score:.1f}</b> / 5.0</span>")
+        today_entry = next((d for d in daily_records if d.get("is_today") and d.get("has_data")), None)
+        if today_entry:
+            t_score = today_entry["avg_score"]
+            s_left = QLabel(f"📈 <b>오늘 마음 날씨:</b> <span style='color: #2563EB; font-size: 14px;'><b>{t_score:.1f}</b> / 5.0</span> (주간 평균 {avg_score:.1f})")
+        else:
+            s_left = QLabel(f"📈 <b>주간 마음 날씨 평균:</b> <span style='color: #2563EB; font-size: 14px;'><b>{avg_score:.1f}</b> / 5.0</span>")
         s_left.setStyleSheet("color: #1E293B; font-size: 12px;")
 
-        unique_dates = {r.get("date", "") for r in mood_records if r.get("date")}
-        if len(unique_dates) == 1 and mood_records:
-            t_date = mood_records[0].get("date", "")
-            s_right = QLabel(f"오늘({t_date}) 총 <b>{len(mood_records)}회</b> 대화 추이")
-        else:
-            s_right = QLabel(f"최근 총 <b>{len(mood_records)}회</b> 대화 추이")
+        s_right = QLabel(f"🗓️ <b>7일 일별 케어</b> (기록 {len(recorded_days)}일 / 총 {total_convos}회)")
         s_right.setStyleSheet("color: #64748B; font-size: 11px;")
 
         s_layout.addWidget(s_left, 1)
@@ -503,7 +553,7 @@ class GardenDialog(QDialog):
         c_layout = QVBoxLayout(chart_frame)
         c_layout.setContentsMargins(6, 6, 6, 6)
 
-        chart_widget = MoodChartWidget(mood_records)
+        chart_widget = MoodChartWidget(daily_records)
         c_layout.addWidget(chart_widget)
         layout.addWidget(chart_frame, 1)
 
