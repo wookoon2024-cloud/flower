@@ -28,3 +28,13 @@ ENV/
 
 # User local configs
 # (Keep default code clean, user's private API keys not committed)
+
+# Logs
+*.log
+
+# Contest submission files & documents (Never push to GitHub)
+*공모대회*
+*제안서*
+*제출패키지*
+*.docx
+screenshots/
