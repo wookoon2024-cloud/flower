@@ -190,6 +190,10 @@ class SettingsDialog(QDialog):
         self.edit_model.setText(self.config.get("model", "HCX-GOV-THINK-V1-32B"))
         form_api.addRow("모델명 (Model):", self.edit_model)
 
+        lbl_model_hint = QLabel("💡 클로바스튜디오 공공 전용: HCX-GOV-Think 32B ➔ 30B('26.9.29. 도입) 자동 호환", group_api)
+        lbl_model_hint.setStyleSheet("font-size: 10px; color: #4F46E5; margin-bottom: 2px;")
+        form_api.addRow("", lbl_model_hint)
+
         self.spin_timeout = QSpinBox(group_api)
         self.spin_timeout.setRange(2, 60)
         self.spin_timeout.setValue(self.config.get("timeout_sec", 10))

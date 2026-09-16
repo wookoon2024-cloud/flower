@@ -390,8 +390,18 @@ class AIChatWorker(QThread):
                 "Authorization": f"Bearer {api_key}"
             }
 
+            # Smart Auto-Migration for Naver CLOVA Studio GOV (HCX-GOV-Think 32B -> 30B)
+            # Discontinuation: 2026.09.29 19:00 / Introduction: 2026.09.29 19:30
+            active_model = model
+            cutoff_date = datetime.datetime(2026, 9, 29, 19, 30)
+            if "clovastudio.go.kr" in endpoint or "hcx-gov-think" in model.lower():
+                if now >= cutoff_date and "32b" in model.lower():
+                    active_model = "HCX-GOV-Think 30B"
+                elif now < cutoff_date and "30b" in model.lower() and not self.config.get("force_30b", False):
+                    active_model = "HCX-GOV-THINK-V1-32B"
+
             payload = {
-                "model": model,
+                "model": active_model,
                 "messages": messages,
                 "stream": stream_enabled,
                 "temperature": 0.7,
@@ -400,6 +410,7 @@ class AIChatWorker(QThread):
 
             # 3. Request with Exponential Backoff (429 Rate-Limit / 5xx Server Errors)
             full_reply = ""
+            model_migrated = False
             for attempt in range(max_retries):
                 if not self._is_running:
                     return
@@ -413,6 +424,20 @@ class AIChatWorker(QThread):
                         verify=ssl_verify,
                         stream=stream_enabled
                     )
+
+                    # Bidirectional Auto-Migration Fallback (32B <-> 30B on model error)
+                    if response.status_code in [400, 404] and not model_migrated:
+                        curr_m = str(payload.get("model", "")).lower()
+                        if "32b" in curr_m:
+                            print(f"[AIChatWorker] Model {payload['model']} returned {response.status_code}. Auto-migrating to HCX-GOV-Think 30B...")
+                            payload["model"] = "HCX-GOV-Think 30B"
+                            model_migrated = True
+                            continue
+                        elif "30b" in curr_m:
+                            print(f"[AIChatWorker] Model {payload['model']} returned {response.status_code}. Falling back to HCX-GOV-THINK-V1-32B...")
+                            payload["model"] = "HCX-GOV-THINK-V1-32B"
+                            model_migrated = True
+                            continue
 
                     # Handle 429 Rate Limit or 5xx Server Busy with Exponential Backoff
                     if response.status_code == 429 or 500 <= response.status_code < 600:
