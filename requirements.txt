@@ -4,3 +4,8 @@ requests>=2.33.1
 urllib3>=2.8.0
 Pillow>=13.0.0
 pyinstaller>=6.17.0
+
+# 보안 패치 버전 고정 (requests 하위 의존성, 공공 GitLab OSV-Scanner 기준)
+certifi>=2026.10.23
+idna>=3.20
+charset-normalizer>=3.5.2
