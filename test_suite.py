@@ -369,6 +369,11 @@ class TestAIPlantWidget(unittest.TestCase):
         self.assertIn("EAP", r3)
         # 4턴 이후에는 상담 흐름이 끝나고 일반 응답으로 돌아감
         self.assertIsNone(counsel_reply("오늘 점심 뭐 먹지", hist[-6:], "홍길동 주무관님"))
+        # 마무리 직후 새 상담을 시작하면 0턴부터 다시 이어짐 (앞 상담 턴을 세지 않음)
+        r5 = say("과장님 때문에 너무 속상해")
+        self.assertEqual(r5, COUNSEL_FLOW["boss"][0].format(user="홍길동 주무관님") + COUNSEL_MARK)
+        r6 = say("회의 때 다른 직원들 앞에서 제 보고서를 크게 지적하셨어")
+        self.assertIn("듣고 싶었던 말", r6)
         # 화분 돌보기 말은 상담 중이어도 상담 흐름에서 빠짐
         self.assertIsNone(counsel_reply("벚꽃이 목마르지? 물 줄게", hist[-2:], "홍길동 주무관님"))
         # 상담과 무관한 말은 상담 흐름을 시작하지 않음

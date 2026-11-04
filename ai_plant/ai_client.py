@@ -347,6 +347,8 @@ def counsel_reply(user_text: str, chat_history: List[Dict[str, Any]], user_name:
     if i >= 0 and str(hist[i].get("content", "")).endswith(COUNSEL_END):
         i = -1  # 직전 상담이 이미 마무리됨
     while i >= 0 and hist[i].get("role") == "assistant" and str(hist[i].get("content", "")).endswith(COUNSEL_MARK):
+        if str(hist[i].get("content", "")).endswith(COUNSEL_END):
+            break  # 앞선 상담의 마무리 답변 – 그 앞은 다른 상담이다
         turn += 1
         if i - 1 >= 0 and hist[i - 1].get("role") == "user":
             prev = detect_counsel_topic(hist[i - 1].get("content", ""))
