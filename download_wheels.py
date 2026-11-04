@@ -11,11 +11,11 @@ def download_wheels():
     os.makedirs(wheels_dir, exist_ok=True)
 
     packages = [
-        "PySide6>=6.5.0",
-        "requests>=2.28.0",
-        "urllib3>=1.26.0",
-        "Pillow>=9.0.0",
-        "pyinstaller>=5.10.0"
+        "PySide6>=6.10.2",
+        "requests>=2.33.1",
+        "urllib3>=2.8.0",
+        "Pillow>=13.0.0",
+        "pyinstaller>=6.17.0"
     ]
 
     print("=== [1/2] 업무망 오프라인용 Wheel 패키지 다운로드 시작 ===")
