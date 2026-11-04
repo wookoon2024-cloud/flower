@@ -275,6 +275,99 @@ def select_fallback_response(category_or_user_text: str, user_name: str, plant_n
     return choice.format(user=safe_user, plant=safe_plant)
 
 
+# ───────────────────────────────────────────────────────────────
+# 오프라인 여러 턴 상담 흐름 (AI 미연결 시)
+#   0턴: 공감 + 무슨 일이 있었는지 묻기
+#   1턴: 상황 되짚기 + 그때 마음이 어땠는지 묻기
+#   2턴: 감정 인정 + 숨 고르기·대처 안내 + 좀 나아졌는지 확인
+#   3턴: 마무리 + 기관 상담(EAP) 안내
+# 상담 답변 끝에 보이지 않는 표시(COUNSEL_MARK)를 붙여, 다음 메시지가 같은 상담의 몇 번째 턴인지 이어서 판단한다.
+# ───────────────────────────────────────────────────────────────
+COUNSEL_MARK = "⁣"
+COUNSEL_END = COUNSEL_MARK * 2  # 마무리 턴 표시 – 이 답변 뒤로는 상담 흐름을 새로 시작한다
+COUNSEL_MAX_TURN = 3
+COUNSEL_EXIT_KEYWORDS = ["물 줄", "물줄", "물 마셔", "햇빛", "햇볕", "쓰담", "쓰다듬"]
+
+COUNSEL_TOPIC_KEYWORDS = [
+    ("complaint", ["민원", "폭언", "소리를 질", "소리 질", "욕설", "욕을", "고함", "항의", "막말"]),
+    ("boss", ["계장", "과장", "팀장", "부장", "국장", "상사", "선배", "부서장", "지적", "지시", "혼났", "면박"]),
+    ("peer", ["팀원", "동료", "후배", "동기", "협업", "인간관계", "서운", "섭섭", "뒷담"]),
+    ("workload", ["과부하", "업무량", "일이 너무", "일이 몰", "번아웃", "야근", "마감", "지쳐", "지쳤", "버거", "벅차"]),
+    ("general", ["고민", "상담", "들어줘", "들어 줘", "털어놓", "하소연", "스트레스", "힘들", "힘드", "속상", "답답", "우울", "괴로", "불안", "억울"]),
+]
+
+COUNSEL_FLOW = {
+    "general": [
+        "그럼요, {user}! 제가 끝까지 들어드릴게요 🌿 오늘 어떤 일이 있었어요? 생각나는 대로 편하게 말씀해 주세요.",
+        "그런 일이 있었군요... 이야기해 주셔서 고마워요 🍵 그 일을 겪으면서 {user}의 마음은 어땠어요? 속상했는지, 화가 났는지, 그냥 지쳤는지 궁금해요.",
+        "그렇게 느끼는 건 너무나 당연해요. {user}의 잘못이 아니에요 💚 지금 잠깐 숨을 4초 들이마시고 6초 내쉬어 볼까요? 조금은 마음이 가라앉았나요?",
+        "함께 이야기 나눠 줘서 고마워요, {user} 🌷 오늘 일은 오늘로 내려놓고 퇴근길엔 좋아하는 노래 한 곡 들어 봐요. 마음이 계속 무겁다면 기관 상담 프로그램(EAP)도 꼭 활용해 보세요. 저는 언제든 여기 있을게요 🪴",
+    ],
+    "complaint": [
+        "{user}, 민원인에게 계속 큰소리를 들으셨다니 얼마나 놀라고 지치셨을까요... 😢 어떤 일이 있었는지 조금 더 이야기해 줄 수 있어요? 제가 다 들을게요 🍵",
+        "그 상황에서도 끝까지 응대하신 {user}, 정말 애쓰셨어요. 그때 마음은 어땠어요? 억울했는지, 무서웠는지, 아니면 그냥 지쳐 버렸는지 궁금해요 🌸",
+        "그렇게 느끼는 게 당연해요. 폭언을 들은 건 {user}의 잘못이 아니에요 💚 지금 숨을 4초 들이마시고 6초 내쉬어 보세요. 그리고 폭언이 반복되면 혼자 감당하지 말고 기관의 특이민원 대응 절차대로 상급자와 함께 대응하세요. 조금은 나아졌어요?",
+        "이야기해 줘서 고마워요, {user} 🌷 오늘 같은 날은 퇴근 후 꼭 나를 위한 시간을 가져요. 마음이 계속 무겁다면 기관 상담 프로그램(EAP)도 활용해 보세요. 저는 늘 여기서 {user} 편이에요 🪴",
+    ],
+    "boss": [
+        "윗분 때문에 속상한 일이 있으셨군요... 눈치 보느라 마음이 많이 닳으셨겠어요 😢 그때 어떤 상황이었어요? 편하게 다 털어놓으세요 🍵",
+        "다른 사람들 앞이었다면 더 창피하고 서운했겠어요. 그 순간 {user}이(가) 가장 듣고 싶었던 말은 뭐였어요? 🌸",
+        "그 마음, 충분히 그럴 만해요. 지적받은 건 '일'이지 {user}이라는 사람이 아니에요 💚 오늘은 그 말을 마음에서 잠시 분리해 두고, 내일 필요한 부분만 차분히 정리해 봐요. 조금은 가벼워졌어요?",
+        "오늘도 버텨 낸 {user}, 정말 수고 많으셨어요 🌷 혼자 삭이기 힘들면 믿을 만한 동료나 기관 상담 프로그램(EAP)에 꼭 이야기해 보세요. 저도 언제든 들을게요 🪴",
+    ],
+    "peer": [
+        "동료와 마음이 엇갈리면 하루 종일 신경 쓰이죠... 😢 어떤 일이 있었는지 들려줄래요? 제가 다 들어드릴게요 🍵",
+        "그런 일이 있었군요. 그때 {user}은(는) 어떤 마음이 들었어요? 서운했는지, 답답했는지 궁금해요 🌸",
+        "그렇게 느끼는 건 자연스러워요 💚 모든 사람과 다 잘 맞을 수는 없어요. 숨 한 번 크게 쉬고, 꼭 필요한 이야기만 담담하게 전해 보는 건 어때요? 조금은 정리가 됐어요?",
+        "이야기해 줘서 고마워요, {user} 🌷 관계 때문에 마음이 계속 무겁다면 기관 상담 프로그램(EAP)도 도움이 돼요. 저는 언제나 {user} 편이에요 🪴",
+    ],
+    "workload": [
+        "일이 한꺼번에 몰려서 많이 지치셨군요... 😢 요즘 가장 버거운 일이 뭐예요? 편하게 말씀해 주세요 🍵",
+        "그걸 혼자 다 해내고 계셨다니 정말 애쓰셨어요. 그 일을 생각하면 지금 어떤 마음이 들어요? 불안한지, 그냥 지쳤는지 궁금해요 🌸",
+        "그렇게 느끼는 건 당연해요 💚 오늘 꼭 해야 할 일 딱 한 가지만 골라 볼까요? 나머지는 내일로 미뤄도 괜찮아요. 1분만 어깨를 돌리고 물 한 잔 마셔요. 조금은 나아졌어요?",
+        "오늘도 정말 수고 많으셨어요, {user} 🌷 업무가 계속 감당하기 어렵다면 혼자 버티지 말고 담당 상급자와 업무 조정을 꼭 이야기해 보세요. 저는 늘 여기서 응원할게요 🪴",
+    ],
+}
+
+
+def detect_counsel_topic(text: str) -> Optional[str]:
+    t = str(text)
+    for topic, kws in COUNSEL_TOPIC_KEYWORDS:
+        if any(k in t for k in kws):
+            return topic
+    return None
+
+
+def counsel_reply(user_text: str, chat_history: List[Dict[str, Any]], user_name: str) -> Optional[str]:
+    """오프라인 여러 턴 상담 답변. 상담 흐름이 아니면 None 을 돌려준다."""
+    hist = [m for m in (chat_history or []) if m.get("role") in ("user", "assistant")]
+    # 직전까지 이어진 상담 턴 수와 그 상담의 주제
+    turn, thread_topic = 0, None
+    i = len(hist) - 1
+    if i >= 0 and str(hist[i].get("content", "")).endswith(COUNSEL_END):
+        i = -1  # 직전 상담이 이미 마무리됨
+    while i >= 0 and hist[i].get("role") == "assistant" and str(hist[i].get("content", "")).endswith(COUNSEL_MARK):
+        turn += 1
+        if i - 1 >= 0 and hist[i - 1].get("role") == "user":
+            prev = detect_counsel_topic(hist[i - 1].get("content", ""))
+            if prev and (thread_topic in (None, "general")):
+                thread_topic = prev
+        i -= 2
+    if any(k in str(user_text) for k in COUNSEL_EXIT_KEYWORDS):
+        return None  # 물 주기·햇빛·쓰다듬기 같은 화분 돌보기 말은 상담 흐름에서 빠진다
+    topic = detect_counsel_topic(user_text)
+    if turn == 0 and topic is None:
+        return None
+    if turn > COUNSEL_MAX_TURN:
+        return None
+    if topic is None or (topic == "general" and thread_topic not in (None, "general")):
+        topic = thread_topic or "general"
+    flow = COUNSEL_FLOW.get(topic, COUNSEL_FLOW["general"])
+    safe_user = format_clean_user_name(user_name).replace("{", "").replace("}", "")
+    idx = min(turn, len(flow) - 1)
+    return flow[idx].format(user=safe_user) + (COUNSEL_END if idx == len(flow) - 1 else COUNSEL_MARK)
+
+
 class AIChatWorker(QThread):
     """
     Asynchronous AI Chat Worker supporting:
@@ -330,7 +423,7 @@ class AIChatWorker(QThread):
             # 1. Immediate offline fallback if no API key or invalid URL
             if not api_key or not endpoint.startswith("http"):
                 fallback_key = self.proactive_mode if self.proactive_mode else self.user_message
-                raw_reply = select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
+                raw_reply = (None if self.proactive_mode else counsel_reply(self.user_message, self.chat_history, user_name))                     or select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
                 cleaned, actions = parse_action_tags(raw_reply)
                 self._stream_fallback_simulation(cleaned, actions)
                 return
@@ -356,7 +449,7 @@ class AIChatWorker(QThread):
                 f"[직장 고민상담 & 스트레스 케어 핵심 가이드라인]\n"
                 f"1. 100% 내 편 공감 & 지지: 계장님, 과장님, 팀장님 등 상사와의 갈등이나 무리한 지시, 팀원/동료와의 불화, 억울한 일, 민원 스트레스에 대해 무조건 공직자님({user_name}) 편에서 마음을 따뜻하게 위로하고 지지해 주세요.\n"
                 f"2. 상처받지 않는 지혜로운 조언: 감정을 다치지 않고 선을 지키며 직장 생활의 스트레스를 현명하게 넘길 수 있는 실용적이고 따뜻한 팁(호흡하기, 마음 분리하기, 기록하기 등)을 건네세요.\n"
-                f"3. 다정한 되물어보기 (Counseling Follow-up): 대화 말미에 '계장님이나 과장님 때문에 오늘 특히 속상하셨던 점이 있으신가요?', '마음속 답답한 이야기 편하게 다 털어놓으세요 🌸'처럼 편하게 고민을 이어갈 수 있도록 배려 깊게 물어보세요.\n"
+                f"3. 다정한 되물어보기 (Counseling Follow-up): 고민 상담은 한 번에 결론·조언을 쏟아내지 말고 여러 턴에 걸쳐 이어가세요. (1) 공감하며 무슨 일이 있었는지 묻고 (2) 그때 마음이 어땠는지 묻고 (3) 감정을 인정한 뒤 숨 고르기 등 작은 대처를 제안하고 (4) 필요하면 기관 상담(EAP)·특이민원 대응 절차를 안내하세요. 마무리 전까지는 답변을 열린 질문 하나로 끝내세요. 예: 대화 말미에 '계장님이나 과장님 때문에 오늘 특히 속상하셨던 점이 있으신가요?', '마음속 답답한 이야기 편하게 다 털어놓으세요 🌸'처럼 편하게 고민을 이어갈 수 있도록 배려 깊게 물어보세요.\n"
                 f"4. 말투 & 길이: 항상 정중하고 다정한 존댓말, 이모지(🌸, 🍵, ☕, 🌿, ✨ 등)를 사용하며 2~3문장(120자 내외)으로 읽기 편하게 답하세요.\n"
                 f"5. 인-게임 인터랙션 태그: 물/햇빛/칭찬을 주면 끝에 `[ACTION:WATER]`, `[ACTION:SUN]`, 또는 `[ACTION:PET]` 태그를 붙이세요."
             )
@@ -475,7 +568,7 @@ class AIChatWorker(QThread):
             # If all retries failed or API was terminated, switch seamlessly to offline companion mode
             if self._is_running:
                 fallback_key = self.proactive_mode if self.proactive_mode else self.user_message
-                raw_reply = select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
+                raw_reply = (None if self.proactive_mode else counsel_reply(self.user_message, self.chat_history, user_name))                     or select_fallback_response(fallback_key, user_name, plant_name, self.plant_state)
                 
                 # If API key was provided but failed with HTTP auth/expiration error, provide graceful notice on first occurrence
                 if not getattr(AIChatWorker, '_api_expired_notified', False):

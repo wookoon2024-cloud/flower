@@ -342,6 +342,43 @@ class TestAIPlantWidget(unittest.TestCase):
         unlocked = self.db.get_unlocked_achievements()
         self.assertIn("master_botanist", unlocked)
 
+    def test_offline_multi_turn_counseling(self):
+        from ai_plant.ai_client import counsel_reply, COUNSEL_MARK, COUNSEL_FLOW
+        hist = []
+
+        def say(text):
+            reply = counsel_reply(text, hist[-6:], "홍길동 주무관님")
+            hist.append({"role": "user", "content": text})
+            if reply:
+                hist.append({"role": "assistant", "content": reply})
+            return reply
+
+        # 0턴: 일반 고민 → 무슨 일이 있었는지 되묻기
+        r0 = say("벚꽃이아, 오늘 회사에서 스트레스 받는 일이 있었는데 내 이야기 좀 들어줘...")
+        self.assertTrue(r0.endswith(COUNSEL_MARK))
+        self.assertIn("어떤 일이 있었어요?", r0)
+        # 1턴: 민원 이야기 → 민원 주제로 이어서 마음을 묻기
+        r1 = say("오늘 민원인이 전화로 계속 소리를 질러서 너무 힘들었어")
+        self.assertIn("마음은 어땠어요?", r1)
+        self.assertIn("응대", r1)
+        # 2턴: 감정 표현 → 민원 주제 유지, 숨 고르기·특이민원 절차 안내
+        r2 = say("억울하고 손이 떨렸어. 내가 뭘 잘못했나 싶고")
+        self.assertIn("특이민원", r2)
+        # 3턴: 마무리 + 기관 상담 안내
+        r3 = say("응 숨 쉬니까 좀 나아졌어")
+        self.assertIn("EAP", r3)
+        # 4턴 이후에는 상담 흐름이 끝나고 일반 응답으로 돌아감
+        self.assertIsNone(counsel_reply("오늘 점심 뭐 먹지", hist[-6:], "홍길동 주무관님"))
+        # 화분 돌보기 말은 상담 중이어도 상담 흐름에서 빠짐
+        self.assertIsNone(counsel_reply("벚꽃이 목마르지? 물 줄게", hist[-2:], "홍길동 주무관님"))
+        # 상담과 무관한 말은 상담 흐름을 시작하지 않음
+        self.assertIsNone(counsel_reply("안녕 반가워", [], "홍길동 주무관님"))
+        # 모든 주제 흐름은 4턴이고, 마지막 턴 전까지는 되묻는 질문이 들어 있음
+        for topic, flow in COUNSEL_FLOW.items():
+            self.assertEqual(len(flow), 4, topic)
+            for line in flow[:3]:
+                self.assertIn("?", line, (topic, line))
+
 if __name__ == "__main__":
     unittest.main()
 
