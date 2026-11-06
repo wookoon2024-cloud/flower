@@ -27,6 +27,7 @@ ENV/
 .idea/
 
 # User local configs
+config.json
 # (Keep default code clean, user's private API keys not committed)
 
 # Logs
